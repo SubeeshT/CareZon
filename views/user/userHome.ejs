@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareZon - Healthcare Products</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/user/css/home.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <img src="/user/images/logo.png" alt="CareZon Logo" class="img-fluid">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Contact</a>
+                        </li>
+                    </ul>
+                    <div class="search-box me-3">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" placeholder="Search medicines, equipment...">
+                    </div>
+                    <a href="/signUp" class="btn btn-outline-primary me-3">Sign Up</a>
+                    <div class="d-flex align-items-center">
+                        <a href="#" class="me-3" title="Wishlist">
+                            <i class="far fa-heart fs-5"></i>
+                        </a>
+                        <a href="#" class="me-3" title="Cart">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                        </a>
+                        <div class="dropdown">
+                            <a href="#" class="text-dark dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle fs-5"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user me-2"></i> Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-shopping-bag me-2"></i> My Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-map-marker-alt me-2"></i> Manage Address
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-heart me-2"></i> Favorites
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-wallet me-2"></i> Wallet
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-ticket-alt me-2"></i> My Coupons
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Carousel Banner -->
+    <div id="carouselBanner" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#carouselBanner" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#carouselBanner" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#carouselBanner" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#carouselBanner" data-bs-slide-to="3" aria-label="Slide 4"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="hero-section" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="hero-content animate__animated animate__fadeInLeft">
+                        <h1>Crafted For Comfort, Designed For You.</h1>
+                        <p class="mb-4">Discover premium healthcare products and medical equipment for your wellness journey.</p>
+                        <a href="#" class="btn btn-shop-now">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-section" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="hero-content animate__animated animate__fadeInLeft">
+                        <h1>Quality Healthcare Products</h1>
+                        <p class="mb-4">Trusted medicines and medical equipment for your health and safety.</p>
+                        <a href="#" class="btn btn-shop-now">Explore Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-section" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1583947215259-38e31be8751f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="hero-content animate__animated animate__fadeInLeft">
+                        <h1>Medical Equipment You Can Trust</h1>
+                        <p class="mb-4">Professional-grade medical devices and healthcare solutions.</p>
+                        <a href="#" class="btn btn-shop-now">View Products</a>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="hero-section" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="hero-content animate__animated animate__fadeInLeft">
+                        <h1>Your Health, Our Priority</h1>
+                        <p class="mb-4">Comprehensive healthcare solutions delivered to your doorstep.</p>
+                        <a href="#" class="btn btn-shop-now">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselBanner" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselBanner" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <!-- Offer Zone -->
+    <section class="offer-zone">
+        <div class="container">
+            <div class="offer-zone-title animate-on-scroll">
+                <h2>Offer Zone</h2>
+            </div>
+            <p class="mb-5 animate-on-scroll">"Grab unbeatable discounts and save big today!"</p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Medical Equipment" class="img-fluid">
+                            <div class="discount-badge">Up to 20% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Digital Thermometer</h4>
+                            <p class="product-description">Accurate digital thermometer for quick temperature readings</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹1,200.00</span>
+                                    <span class="original-price ms-2">₹1,500.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Blood Pressure Monitor" class="img-fluid">
+                            <div class="discount-badge">Up to 30% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Blood Pressure Monitor</h4>
+                            <p class="product-description">Digital BP monitor with large display and memory function</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹2,800.00</span>
+                                    <span class="original-price ms-2">₹4,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="First Aid Kit" class="img-fluid">
+                            <div class="discount-badge">Up to 25% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Complete First Aid Kit</h4>
+                            <p class="product-description">Comprehensive first aid kit for home and office use</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹1,500.00</span>
+                                    <span class="original-price ms-2">₹2,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-end mt-4">
+                <a href="#" class="btn btn-outline-primary">View all offers <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dream Space Section -->
+    <section class="dream-space">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-on-scroll">
+                    <h2>Your Health Journey Starts Here</h2>
+                    <p>Discover comprehensive healthcare solutions crafted to transform your wellness experience.</p>
+                    <p>From premium medicines to advanced medical equipment, every product is selected with precision, safety, and your health in mind.</p>
+                </div>
+                <div class="col-lg-6 animate-on-scroll">
+                    <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Healthcare Solutions" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="animate-on-scroll">Featured Products</h2>
+            <p class="subtitle animate-on-scroll">The products we provide are carefully selected from the best available in market, certified by healthcare experts.</p>
+            
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Pulse Oximeter">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Pulse Oximeter</h5>
+                            <div class="featured-product-price">₹2,500 <span class="original-price">₹3,200</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1576671081837-49000212a370?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Stethoscope">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Digital Stethoscope</h5>
+                            <div class="featured-product-price">₹8,500 <span class="original-price">₹10,000</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Nebulizer">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Portable Nebulizer</h5>
+                            <div class="featured-product-price">₹4,200 <span class="original-price">₹5,500</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Wheelchair">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Mobility Wheelchair</h5>
+                            <div class="featured-product-price">₹12,500 <span class="original-price">₹15,000</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Glucose Meter">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Glucose Meter</h5>
+                            <div class="featured-product-price">₹1,800 <span class="original-price">₹2,200</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Hospital Bed">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Adjustable Hospital Bed</h5>
+                            <div class="featured-product-price">₹25,000 <span class="original-price">₹30,000</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1583947215259-38e31be8751f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Oxygen Concentrator">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Oxygen Concentrator</h5>
+                            <div class="featured-product-price">₹45,000 <span class="original-price">₹55,000</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="featured-product-card animate-on-scroll">
+                        <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Walking Aid">
+                        <div class="featured-product-info">
+                            <h5 class="featured-product-title">Walking Aid Support</h5>
+                            <div class="featured-product-price">₹3,500 <span class="original-price">₹4,200</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <nav aria-label="Product pagination">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">4</a></li>
+                        <li class="page-item"><a class="page-link" href="#">5</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <!-- <section class="testimonials">
+        <div class="container">
+            <h2 class="animate-on-scroll">What People Are Saying About Us</h2>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="testimonial-card animate-on-scroll">
+                        <div class="d-flex align-items-center">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Josh Smith">
+                            <div>
+                                <h5 class="testimonial-author">Josh Smith</h5>
+                                <p class="testimonial-position">Manager at The New York Times</p>
+                            </div>
+                        </div>
+                        <p class="testimonial-content">"They have a perfect approach to make healthcare accessible and professional. The quality of products is exceptional and very useful for everyone."</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="testimonial-card animate-on-scroll">
+                        <div class="d-flex align-items-center">
+                            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Sarah Johnson">
+                            <div>
+                                <h5 class="testimonial-author">Sarah Johnson</h5>
+                                <p class="testimonial-position">Healthcare Professional</p>
+                            </div>
+                        </div>
+                        <p class="testimonial-content">"The quality of their medical equipment is outstanding. I recommend CareZon to all my patients for their healthcare needs. Excellent service and reliable products."</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <nav aria-label="Testimonial pagination">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- More Products Section -->
+    <section class="offer-zone">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Medical Supplies" class="img-fluid">
+                            <div class="discount-badge">Up to 15% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Medical Supplies Kit</h4>
+                            <p class="product-description">Essential medical supplies for healthcare professionals</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹3,400.00</span>
+                                    <span class="original-price ms-2">₹4,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1576671081837-49000212a370?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Diagnostic Equipment" class="img-fluid">
+                            <div class="discount-badge">Up to 20% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Diagnostic Equipment</h4>
+                            <p class="product-description">Professional diagnostic tools for accurate health monitoring</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹6,800.00</span>
+                                    <span class="original-price ms-2">₹8,500.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="product-card animate-on-scroll">
+                        <div class="position-relative">
+                            <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Mobility Aids" class="img-fluid">
+                            <div class="discount-badge">Up to 18% off</div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">Mobility Aids</h4>
+                            <p class="product-description">Comfortable and reliable mobility support equipment</p>
+                            <div class="star-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <div class="product-price">
+                                <div>
+                                    <span class="price">₹4,100.00</span>
+                                    <span class="original-price ms-2">₹5,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-logo">
+                        <img src="/user/images/logo.png" alt="CareZon Logo" class="img-fluid">
+                    </div>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-links">
+                        <h5>Quick Links</h5>
+                        <ul>
+                            <li><a href="#">Home</a></li>
+                            <li><a href="#">Shop by Category</a></li>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="#">Upload Prescription</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-links">
+                        <h5>Policies</h5>
+                        <ul>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Terms & Conditions</a></li>
+                            <li><a href="#">Return & Refund Policy</a></li>
+                            <li><a href="#">Shipping Policy</a></li>
+                            <li><a href="#">Prescription Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <div class="footer-links">
+                        <h5>CONTACT US</h5>
+                        <ul class="contact-info">
+                            <li><i class="fas fa-phone"></i> Phone: +91-9048042970</li>
+                            <li><i class="far fa-clock"></i> Working Hours: Mon–Sat, 9 AM – 8 PM</li>
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i> Address: CareZon Healthcare Pvt. Ltd.<br>
+                                2nd Floor, Q2 Building,<br>
+                                TechnoPark Campus,<br>
+                                Calicut, Kerala - 673602<br>
+                                India
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2023 CareZon. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate elements on scroll
+            const animateOnScroll = function() {
+                const elements = document.querySelectorAll('.animate-on-scroll');
+                
+                elements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    
+                    if (elementPosition < windowHeight - 100) {
+                        element.classList.add('animated');
+                    }
+                });
+            };
+            
+            // Initial check on page load
+            animateOnScroll();
+            
+            // Check on scroll
+            window.addEventListener('scroll', animateOnScroll);
+            
+            // Carousel auto-play with custom timing
+            const carousel = document.querySelector('#carouselBanner');
+            const carouselInstance = new bootstrap.Carousel(carousel, {
+                interval: 4000,
+                wrap: true
+            });
+            
+            // Add smooth scrolling to anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Add loading animation to product cards
+            const productCards = document.querySelectorAll('.product-card, .featured-product-card');
+            productCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
