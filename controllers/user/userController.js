@@ -11,7 +11,7 @@ const pageNotFound = async (req,res) => {
     }
 }
 
-const loadHome = async (req,res) => {
+const loadLanding = async (req,res) => {
     try {
         return res.render('userHome')
     } catch (error) {
@@ -184,31 +184,56 @@ const loadSignIn = async (req,res) => {
 }
 
 const signIn = async (req,res) => {
-    // try {
-    //     const {email , phone, password} = req.body
+    try {
+        const {emailOrPhone, password} = req.body
 
-    //     const user = await User.findOne({email})
-    //     if(!user.email === email && !user.phone === phone){
-    //         return res.status(400).json({message: "Not have an account, Please signUP first"})
-    //     }
+        const user = await User.findOne({
+            $or: [{email: emailOrPhone}, {phone: emailOrPhone}]
+        })
 
-    //     if(!user.password === password){
-    //         return res.status(400).json({message: "Email & Password is not matching"})
-    //     }
+        if(!user){
+            return res.status(401).json({message: "Not have an account, Please signUP first"})
+        }
 
-    //     req.session.body = user
+        const isPasswordMatch = await bcrypt.compare(password, user.password)
+        if(!isPasswordMatch){
+            return res.status(401).json({message: "Email & Password is not matching"})
+        }
 
-    //     res.redirect('/userHome')
+        if(user.isBlocked){
+            return res.status(403).json({message: "This account is blocked, please contact us."})
+        }
 
-    // } catch (error) {
-    //     console.error("failed to signIn : ", error)
-    //     res.status(500).json({message: "failed to signIn, Please try agian"})
-    // }
+        req.session.userId = user._id 
+        console.log(`Loged user is : ${user.fullName}`)
+
+        res.redirect('/home')
+
+    } catch (error) {
+        console.error("failed to signIn : ", error)
+        res.status(500).json({message: "failed to signIn, Please try agian"})
+    }
+}
+
+const loadHome  = (req,res) => {
+    const user = req.session.userId
+    res.render('userHome', {user})             
+}
+
+const logOut = (req,res) => {
+    req.session.destroy((err) => {
+        if(err){
+            console.error("Failed to logout : ",err)
+            return res.status(500).send("failed to log out, Please try again")
+        }
+        res.clearCookie('connect.sid')
+        res.redirect('/')
+    })
 }
 
 module.exports = {
     pageNotFound,
-    loadHome,
+    loadLanding,
     loadSignUp,
     signUp,
     loadOtp,
@@ -216,4 +241,7 @@ module.exports = {
     resendOTP,
     loadSignIn,
     signIn,
+    loadHome,
+    logOut,
 }
+

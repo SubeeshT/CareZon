@@ -20,12 +20,12 @@
         <form method="post" action="/signIn">
           <div class="mb-3">
             <label class="form-label">Email ID or Phone No</label>
-            <input type="text" class="form-control" placeholder="Enter email or phone" />
+            <input type="text" name="emailOrPhone" class="form-control" placeholder="Enter email or phone" />
           </div>
 
           <div class="mb-2 position-relative">
             <label class="form-label">Password</label>
-            <input type="password" class="form-control" id="passwordInput" placeholder="Enter password" />
+            <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Enter password" />
             <i class="bi bi-eye-slash password-toggle" id="togglePassword"></i>
           </div>
 
@@ -35,14 +35,14 @@
 
           <div class="d-grid gap-2 mb-2">
             <button type="submit" class="btn btn-custom">Sign In</button>
-            <button type="button" class="btn google-btn">
+            <a href="/auth/google" class="btn google-btn">
               <i class="bi bi-google me-1"></i> Sign in with Google
-            </button>
+          </a>
           </div>
 
           <div class="text-center mt-2">
             <span>New User? </span>
-            <a href="#" class="fw-bold text-decoration-underline text-primary">Sign Up...</a>
+            <a href="signUp" class="fw-bold text-decoration-underline text-primary">Sign Up...</a>
           </div>
         </form>
       </div>
