@@ -160,3 +160,84 @@ body {
 #phone {
   letter-spacing: 1px;
 }
+
+/* Additional styles for new features */
+.password-input-container {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+  transition: color 0.3s ease;
+  z-index: 10;
+}
+
+.password-toggle:hover {
+  color: #007bff;
+}
+
+.password-requirements {
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #dee2e6;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.requirement:last-child {
+  margin-bottom: 0;
+}
+
+.requirement i {
+  margin-right: 6px;
+  font-size: 10px;
+}
+
+.requirement.valid {
+  color: #28a745;
+}
+
+.requirement.invalid {
+  color: #dc3545;
+}
+
+.loading-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-custom:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

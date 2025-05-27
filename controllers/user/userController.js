@@ -231,6 +231,23 @@ const logOut = (req,res) => {
     })
 }
 
+const loadForgotPassword = async (req,res) => {
+    try {
+        return res.render('userChangePassword')
+    } catch (error) {
+        console.log('error found to load change password', error)
+        res.status(500).send('failed to load change password page')
+    }
+}
+
+const forgotPassword = async (req,res) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+}
+
 module.exports = {
     pageNotFound,
     loadLanding,
@@ -243,5 +260,7 @@ module.exports = {
     signIn,
     loadHome,
     logOut,
+    loadForgotPassword,
+    forgotPassword,
 }
 

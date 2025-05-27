@@ -15,7 +15,12 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 720 * 60 * 60 * 1000}
+    cookie: {
+        maxAge: 720 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    }
 }));
 
 app.use(express.json());
@@ -30,4 +35,5 @@ app.use(passport.session());
 
 app.use('/', userRouter);
 
-app.listen(process.env.PORT, () => console.log(`server running (CareZon)`));
+const PORT = process.env.PORT || 3032
+app.listen(PORT, () => console.log(`server running (CareZon)`));

@@ -6,7 +6,9 @@
   <title>Create Account</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
     rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/user/css/signUp.css">
+  
   
 </head>
 <body>
@@ -41,17 +43,48 @@
       
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" />
+        <div class="password-input-container">
+          <input type="password" class="form-control" id="password" name="password" />
+          <button type="button" class="password-toggle" onclick="togglePassword('password')">
+            <i class="fas fa-eye" id="passwordIcon"></i>
+          </button>
+        </div>
         <div class="field-feedback" id="passwordFeedback"></div>
+        <div class="password-requirements" id="passwordRequirements" style="display: none;">
+          <div class="requirement" id="lengthReq">
+            <i class="fas fa-times"></i>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="requirement" id="uppercaseReq">
+            <i class="fas fa-times"></i>
+            <span>One uppercase letter</span>
+          </div>
+          <div class="requirement" id="lowercaseReq">
+            <i class="fas fa-times"></i>
+            <span>One lowercase letter</span>
+          </div>
+          <div class="requirement" id="numberReq">
+            <i class="fas fa-times"></i>
+            <span>One number</span>
+          </div>
+        </div>
       </div>
       
       <div class="mb-3">
         <label for="confirmPassword" class="form-label">Confirm Password</label>
-        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" />
+        <div class="password-input-container">
+          <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" />
+          <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+            <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+          </button>
+        </div>
         <div class="field-feedback" id="confirmPasswordFeedback"></div>
       </div>
       
-      <button type="submit" class="btn btn-custom">Sign Up</button>
+      <button type="submit" class="btn btn-custom" id="submitBtn">
+        <span class="loading-spinner" id="loadingSpinner"></span>
+        <span id="submitText">Sign Up</span>
+      </button>
     </form>
 
     <div class="login-link">
@@ -60,6 +93,66 @@
   </div>
 
   <script>
+    // Password visibility toggle function
+    function togglePassword(fieldId) {
+      const passwordField = document.getElementById(fieldId);
+      const icon = document.getElementById(fieldId + 'Icon');
+      
+      if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        passwordField.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    // Password requirements checker
+    function checkPasswordRequirements(password) {
+      const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password)
+      };
+
+      // Update requirement indicators
+      updateRequirement('lengthReq', requirements.length);
+      updateRequirement('uppercaseReq', requirements.uppercase);
+      updateRequirement('lowercaseReq', requirements.lowercase);
+      updateRequirement('numberReq', requirements.number);
+
+      // Show/hide requirements panel
+      const requirementsPanel = document.getElementById('passwordRequirements');
+      if (password.length > 0) {
+        requirementsPanel.style.display = 'block';
+      } else {
+        requirementsPanel.style.display = 'none';
+      }
+
+      // Return if all requirements are met
+      return Object.values(requirements).every(req => req);
+    }
+
+    function updateRequirement(elementId, isValid) {
+      const element = document.getElementById(elementId);
+      const icon = element.querySelector('i');
+      
+      if (isValid) {
+        element.classList.remove('invalid');
+        element.classList.add('valid');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-check');
+      } else {
+        element.classList.remove('valid');
+        element.classList.add('invalid');
+        icon.classList.remove('fa-check');
+        icon.classList.add('fa-times');
+      }
+    }
+
     // Custom Alert Function
     function showAlert(message, type = 'error') {
       // Remove existing alerts
@@ -144,10 +237,19 @@
         };
       },
       
-      password: (value) => ({
-        isValid: value.length >= 6,
-        message: value.length === 0 ? 'Password is required' : 'Password must be at least 6 characters'
-      }),
+      password: (value) => {
+        if (value.length === 0) {
+          return { isValid: false, message: 'Password is required' };
+        }
+        
+        const hasAllRequirements = checkPasswordRequirements(value);
+        
+        if (!hasAllRequirements) {
+          return { isValid: false, message: 'Password must meet all requirements above' };
+        }
+        
+        return { isValid: true, message: 'Strong password!' };
+      },
       
       confirmPassword: (value) => {
         const password = document.getElementById('password').value;
@@ -193,6 +295,16 @@
       validateField(this, feedbacks.phone, validators.phone, 'Valid phone number');
     });
 
+    // Password field special handling
+    fields.password.addEventListener('input', function() {
+      checkPasswordRequirements(this.value);
+      
+      // Re-validate confirm password if it has a value
+      if (fields.confirmPassword.value) {
+        validateField(fields.confirmPassword, feedbacks.confirmPassword, validators.confirmPassword, 'Passwords match');
+      }
+    });
+
     // Real-time validation for all fields
     Object.keys(fields).forEach(fieldName => {
       const field = fields[fieldName];
@@ -203,7 +315,7 @@
           fullName: 'Valid name',
           email: 'Valid email address',
           phone: 'Valid phone number',
-          password: 'Strong password',
+          password: 'Strong password!',
           confirmPassword: 'Passwords match'
         };
         
@@ -220,7 +332,7 @@
       }
     });
 
-    // Form submission validation
+    // Form submission validation with loading state
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -241,7 +353,7 @@
           fullName: 'Valid name',
           email: 'Valid email address',
           phone: 'Valid phone number',
-          password: 'Strong password',
+          password: 'Strong password!',
           confirmPassword: 'Passwords match'
         };
         
@@ -265,8 +377,20 @@
         return;
       }
 
-      // If all validations pass, submit the form
-      this.submit();
+      // Show loading state
+      const submitBtn = document.getElementById('submitBtn');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      const submitText = document.getElementById('submitText');
+
+      submitBtn.disabled = true;
+      loadingSpinner.style.display = 'inline-block';
+      submitText.textContent = 'Creating Account...';
+
+      // Simulate form submission delay (remove this in production)
+      setTimeout(() => {
+        // If all validations pass, submit the form
+        this.submit();
+      }, 1000);
     });
 
     // Clear validation styles when user starts typing
@@ -274,7 +398,7 @@
       field.addEventListener('input', function() {
         if (this.classList.contains('is-invalid') || this.classList.contains('is-valid')) {
           // Don't clear validation for phone field as it has special handling
-          if (this.id !== 'phone') {
+          if (this.id !== 'phone' && this.id !== 'password') {
             this.classList.remove('is-invalid', 'is-valid');
             const feedback = feedbacks[this.id];
             if (feedback) {

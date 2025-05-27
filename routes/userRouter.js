@@ -17,6 +17,8 @@ router.get('/signIn', controllers.loadSignIn);
 router.post('/signIn', controllers.signIn);
 router.get('/home', auth.isUserLoggedIn, controllers.loadHome);
 router.get('/logOut', auth.isUserLoggedIn, controllers.logOut);
+router.get('/changePassword', controllers.loadForgotPassword)
+router.post('/changePassword', controllers.forgotPassword)
 
 //start google oauth login
 router.get('/auth/google', passport.authenticate('google', {
@@ -30,6 +32,7 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     req.session.userId = req.user._id;
     res.redirect('/home')
 })
+
 
 
 module.exports = router
