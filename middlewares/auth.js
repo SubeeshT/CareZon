@@ -8,6 +8,16 @@ function isUserLoggedIn (req,res,next) {
     }
 }
 
+function isAdminLoggedIn(req,res,next) {
+    if(req.session.isAdminAuth && req.session.admin){
+        return next()
+    }else{
+        return res.redirect('/admin/signIn')
+    }
+}
+
 module.exports = {
     isUserLoggedIn,
+    isAdminLoggedIn,
 }
+

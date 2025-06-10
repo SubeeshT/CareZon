@@ -24,11 +24,9 @@ async (accessToken, refreshToken, profile, done) => {
         return done(error, null)
     }
 }))
-
 passport.serializeUser((user, done) => {
     done(null, user._id) //Store user ID in session
 })
-
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findById(id)

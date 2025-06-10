@@ -3,13 +3,13 @@ const User = require('../../models/userSchema')
 const bcrypt = require('bcryptjs')
 const sendOTPEmail = (require('../../utils/sendEmail'))
 
-const pageNotFound = async (req,res) => {
-    try {
-        res.render('page-404')
-    } catch (error) {
-        res.redirect('/pageNotFound')
-    }
-}
+// const pageNotFound = async (req,res) => {
+//     try {
+//         res.render('page-404')
+//     } catch (error) {
+//         res.redirect('/pageNotFound')
+//     }
+// }
 
 const loadLanding = async (req,res) => {
     try {
@@ -22,6 +22,9 @@ const loadLanding = async (req,res) => {
 
 const loadSignUp = async (req,res) => {
     try {
+         if(req.session.userId){
+            return res.redirect('/home')
+        }
         return res.render('userSignUp')
     } catch (error) {
         console.log("failed to load signUP page", error)
@@ -176,6 +179,9 @@ const resendOTP = async (req,res) => {
 
 const loadSignIn = async (req,res) => {
     try {
+        if(req.session.userId){
+            return res.redirect('/home')
+        }
         return res.render('userSignIn')
     } catch (error) {
         console.log("failed to load user signin page", error)
@@ -187,9 +193,7 @@ const signIn = async (req,res) => {
     try {
         const {emailOrPhone, password} = req.body
 
-        const user = await User.findOne({
-            $or: [{email: emailOrPhone}, {phone: emailOrPhone}]
-        })
+        const user = await User.findOne({$or: [{email: emailOrPhone}, {phone: emailOrPhone}]})
 
         if(!user){
             return res.status(401).json({message: "Not have an account, Please signUP first"})
@@ -215,9 +219,17 @@ const signIn = async (req,res) => {
     }
 }
 
-const loadHome  = (req,res) => {
-    const user = req.session.userId
-    res.render('userHome', {user})             
+const loadHome = async (req, res) => {
+    try {
+        const user = await User.findById(req.session.userId)
+        if (!user) {
+            return res.redirect('/signIn')
+        }
+        res.render('userHome', { user }) 
+    } catch (error) {
+        console.error("Failed to load home : ",error)
+        res.redirect('/signIn')
+    }
 }
 
 const logOut = (req,res) => {
@@ -233,7 +245,7 @@ const logOut = (req,res) => {
 
 const loadForgotPassword = async (req,res) => {
     try {
-        return res.render('userChangePassword')
+        return res.render('userForgotPassword')
     } catch (error) {
         console.log('error found to load change password', error)
         res.status(500).send('failed to load change password page')
@@ -242,14 +254,140 @@ const loadForgotPassword = async (req,res) => {
 
 const forgotPassword = async (req,res) => {
     try {
-        
+        const {emailOrPhone, otp, password, step} = req.body
+
+        //----------step 1: send OTP to email/phone----------
+
+        if(!step || step === 'send-otp'){
+            if(!emailOrPhone){
+                return res.status(400).json({success: false, message: "Email or phone number  is required"})
+            }
+            const user = await User.findOne({$or: [{email: emailOrPhone}, {phone: emailOrPhone}]})
+
+            if(!user){
+                return res.status(404).json({success: false, message: "No user found with this email or phone number"})
+            }
+            if(user.isBlocked){
+                return res.status(403).json({success: false, message: "This account is blocked. Please contact us"})
+            }
+            const resendOTP = generateOTP()
+            const otpExpires = new Date(Date.now() + 1 * 60 * 1000)
+
+            console.log(`Reset password OTP is : ${resendOTP}`)
+
+            req.session.passwordReset = {
+                userId: user._id,
+                emailOrPhone: emailOrPhone,
+                otp: {
+                    code: resendOTP,
+                    expiresAt: otpExpires,
+                },
+                isVerified: false,
+            }
+            await sendOTPEmail(user.email, resendOTP, 'Password Reset')
+            return res.status(200).json({success: true, message: "OTP sent successfully to your email", nextStep: "verify-otp"})
+        }
+
+        // ----------step 2: Verify OTP----------
+
+        else if(step === 'verify-otp'){
+            if(!otp){
+                return res.status(400).json({success: false, message: "OTP is required"})
+            }
+            const resetSession = req.session.passwordReset
+
+            if(!resetSession){
+                return res.status(400).json({success: false, message: "No active password reset session found"})
+            }
+            const expiresAt = new Date(resetSession.otp.expiresAt)
+
+            if(expiresAt < new Date()){
+                return res.status(400).json({success: false, message: "OTP has expired. Please request a new one."})
+            }
+
+            if(resetSession.otp.code !== otp){
+                return res.status(400).json({success: false, message: "Invalid OTP. please try again."})
+            }
+
+            req.session.passwordReset.isVerified = true
+
+            return res.status(200).json({success: true, message: "OTP verified successfull", nextStep: "reset-password"})
+        }
+
+        // ---------- Step 3: Reset password ----------
+
+        else if(step === 'reset-password'){
+            if(!password){
+                return res.status(400).json({success: false, message: "New password is required"})
+            }
+
+            const resetSession = req.session.passwordReset
+
+            if(!resetSession || !resetSession.isVerified){
+                return res.status(400).json({success: false, message: "Please verify OTP first"})
+            }
+            if(password.length < 8){
+                return res.status(400).json({success: false, message: "Password must be at least 8 characters long"})
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10)
+
+            await User.findByIdAndUpdate(resetSession.userId, {password: hashedPassword}) //update user password
+
+            req.session.passwordReset = null
+
+            return res.status(200).json({success: true, message: "Password reset successfully. you can now login with your new password", nextStep: "complete"})
+        }
+
+        // ---------- Invalid Step ----------
+        else{
+            return res.status(400).json({success: false, message: "Invalid step"})
+        }
+
     } catch (error) {
+        console.error("Forgot password error : ", error)
+        res.status(500).json({success: false, message: "server error during password reset"})
         
     }
 }
 
+const resendOTPResetPassword = async (req,res) => {
+    try {
+        const resetSession = req.session.passwordReset
+
+        if(!resetSession){
+            return res.status(400).json({success: false, message: "No active password reset session found"})
+        }
+
+        const newOTP = generateOTP()
+        const newExpiration = new Date(Date.now() + 1 * 60 * 1000)
+
+        req.session.passwordReset.otp = {
+            code: newOTP,
+            expiresAt: newExpiration
+        }
+        req.session.passwordReset.isVerified = false
+
+        console.log(`New password reset OTP is : ${newOTP}`)
+
+        const user = await User.findById(resetSession.userId)
+        if(!user){
+            return res.status(404).json({success: false, message: "user not found"})
+        }
+
+        await sendOTPEmail(user.email, newOTP, 'password reset')
+
+        res.status(200).json({success: true, message: "New OTP send successfully", newExpiresAt: newExpiration.toISOString()})
+
+
+    } catch (error) {
+        console.error("Resend OTP and reset Password error", error)
+        res.status(500).json({success: false, message: "failed to resend OTP"})
+    }
+}
+
 module.exports = {
-    pageNotFound,
+   // pageNotFound,
     loadLanding,
     loadSignUp,
     signUp,
@@ -262,5 +400,6 @@ module.exports = {
     logOut,
     loadForgotPassword,
     forgotPassword,
+    resendOTPResetPassword,
 }
 

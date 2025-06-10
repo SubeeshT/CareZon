@@ -1,0 +1,416 @@
+<%
+    const pageData = {
+        title: 'Dashboard - Carezon Admin',
+        pageTitle: 'Dashboard',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Dashboard', url: '/admin/dashboard' }
+        ]
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <% pageData.breadcrumb.forEach(function(item, index) { %>
+                                    <% if (index === pageData.breadcrumb.length - 1) { %>
+                                        <li class="breadcrumb-item active" aria-current="page"><%= item.name %></li>
+                                    <% } else { %>
+                                        <li class="breadcrumb-item"><a href="<%= item.url %>"><%= item.name %></a></li>
+                                    <% } %>
+                                <% }); %>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stats-card total-sales fade-in-up">
+                        <div class="stats-value">₹3,55,000</div>
+                        <div class="stats-label">Total Sales</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stats-card visitors fade-in-up" style="animation-delay: 0.1s;">
+                        <div class="stats-value">2,500</div>
+                        <div class="stats-label">Visitors</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stats-card total-orders fade-in-up" style="animation-delay: 0.2s;">
+                        <div class="stats-value">1,500</div>
+                        <div class="stats-label">Total Orders</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stats-card users fade-in-up" style="animation-delay: 0.3s;">
+                        <div class="stats-value">1,013</div>
+                        <div class="stats-label">Users</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Chart Section -->
+                <div class="col-lg-8 mb-4">
+                    <div class="chart-container fade-in-up" style="animation-delay: 0.4s;">
+                        <canvas id="salesChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="col-lg-4 mb-4">
+                    <div class="recent-sales slide-in-left" style="animation-delay: 0.5s;">
+                        <h5>Recent Sales</h5>
+                        <div class="sales-list">
+                            <div class="sale-item">
+                                <div class="sale-avatar">A</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Abrahad</div>
+                                    <div class="sale-time">5 minutes ago</div>
+                                </div>
+                                <div class="sale-amount">₹2599.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">J</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">John</div>
+                                    <div class="sale-time">15 minutes ago</div>
+                                </div>
+                                <div class="sale-amount">₹1009.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">J</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Jordan Fisher</div>
+                                    <div class="sale-time">30 minutes ago</div>
+                                </div>
+                                <div class="sale-amount">₹508.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">P</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Paulson Rame</div>
+                                    <div class="sale-time">1 hr ago</div>
+                                </div>
+                                <div class="sale-amount">₹35678.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">A</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Andrea Netto</div>
+                                    <div class="sale-time">1 hr ago</div>
+                                </div>
+                                <div class="sale-amount">₹876.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">A</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Agnus Xavier</div>
+                                    <div class="sale-time">2 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹9675.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">A</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Ariana Grande</div>
+                                    <div class="sale-time">2 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹566.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">S</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Suhail</div>
+                                    <div class="sale-time">3 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹299.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">H</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Harley Davidson</div>
+                                    <div class="sale-time">3 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹4500.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">H</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Hungry</div>
+                                    <div class="sale-time">4 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹15888.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">M</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Michael Johnson</div>
+                                    <div class="sale-time">5 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹2299.00</div>
+                            </div>
+                            <div class="sale-item">
+                                <div class="sale-avatar">S</div>
+                                <div class="sale-info">
+                                    <div class="sale-name">Sarah Wilson</div>
+                                    <div class="sale-time">6 hrs ago</div>
+                                </div>
+                                <div class="sale-amount">₹1899.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dashboard JavaScript functionality
+        document.addEventListener("DOMContentLoaded", () => {
+            // Sidebar functionality
+            const sidebar = document.getElementById("sidebar")
+            const mainContent = document.getElementById("main-content")
+            const sidebarToggle = document.getElementById("sidebar-toggle")
+            const mobileMenuToggle = document.getElementById("mobile-menu-toggle")
+            const sidebarLinks = document.querySelectorAll(".sidebar-link")
+
+            // Initialize sidebar state
+            initializeSidebar()
+
+            // Toggle sidebar
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", () => {
+                    toggleSidebar()
+                })
+            }
+
+            // Mobile menu toggle
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("show")
+                })
+            }
+
+            // Sidebar link highlighting
+            highlightActiveLink()
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener("click", (e) => {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        sidebar.classList.remove("show")
+                    }
+                }
+            })
+
+            // Handle window resize
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove("show")
+                }
+            })
+
+            // Functions
+            function initializeSidebar() {
+                // Check if sidebar should be collapsed from localStorage
+                const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true"
+                if (isCollapsed) {
+                    sidebar.classList.add("collapsed")
+                    mainContent.classList.add("expanded")
+                    updateToggleIcon(true)
+                }
+            }
+
+            function toggleSidebar() {
+                const isCollapsed = sidebar.classList.toggle("collapsed")
+                mainContent.classList.toggle("expanded")
+                updateToggleIcon(isCollapsed)
+
+                // Save state to localStorage
+                localStorage.setItem("sidebarCollapsed", isCollapsed)
+            }
+
+            function updateToggleIcon(isCollapsed) {
+                const icon = sidebarToggle.querySelector("i")
+                if (isCollapsed) {
+                    icon.classList.remove("fa-chevron-left")
+                    icon.classList.add("fa-chevron-right")
+                } else {
+                    icon.classList.remove("fa-chevron-right")
+                    icon.classList.add("fa-chevron-left")
+                }
+            }
+
+            function highlightActiveLink() {
+                const currentPath = window.location.pathname
+
+                // Remove active class from all links
+                sidebarLinks.forEach((link) => {
+                    link.classList.remove("active")
+                })
+
+                // Add active class to current page link
+                sidebarLinks.forEach((link) => {
+                    const linkPath = new URL(link.href).pathname
+                    if (linkPath === currentPath) {
+                        link.classList.add("active")
+                    }
+                })
+
+                // Handle click events for sidebar links
+                sidebarLinks.forEach((link) => {
+                    link.addEventListener("click", function (e) {
+                        // Remove active class from all links
+                        sidebarLinks.forEach((l) => l.classList.remove("active"))
+                        // Add active class to clicked link
+                        this.classList.add("active")
+                    })
+                })
+            }
+
+            // Chart.js implementation
+            const ctx = document.getElementById('salesChart');
+            if (ctx) {
+                const salesChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Sales',
+                            data: [12, 19, 15, 25, 22, 30, 35, 40, 45, 50, 55, 60],
+                            backgroundColor: 'rgba(0, 123, 255, 0.8)',
+                            borderColor: 'rgba(0, 123, 255, 1)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+
+            // Stats cards animation on hover
+            const statsCards = document.querySelectorAll('.stats-card');
+            statsCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Add loading animation to stats cards
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const value = Math.floor(progress * (end - start) + start);
+                    element.innerHTML = value.toLocaleString();
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Animate stats on page load
+            setTimeout(() => {
+                const statsValues = document.querySelectorAll('.stats-value');
+                const values = [355000, 2500, 1500, 1013];
+                
+                statsValues.forEach((stat, index) => {
+                    const originalText = stat.textContent;
+                    stat.textContent = '0';
+                    
+                    setTimeout(() => {
+                        if (index === 0) {
+                            animateValue(stat, 0, values[index], 2000);
+                            setTimeout(() => {
+                                stat.textContent = '₹3,55,000';
+                            }, 2000);
+                        } else {
+                            animateValue(stat, 0, values[index], 2000);
+                        }
+                    }, index * 200);
+                });
+            }, 500);
+
+            // Smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

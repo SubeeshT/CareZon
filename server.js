@@ -3,12 +3,10 @@ const app = express();
 const path = require('path');
 const env = require('dotenv').config();
 const session = require('express-session');
-const passport = require('passport');
-require('./config/passport')
+const passport = require('./config/passport');
 const db = require('./config/db');
-
 const userRouter = require('./routes/userRouter');
-
+const adminRouter = require('./routes/adminRouter')
 db()
 
 app.use(session({
@@ -18,8 +16,8 @@ app.use(session({
     cookie: {
         maxAge: 720 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
+        secure: false,
+        sameSite: 'lax'
     }
 }));
 
@@ -34,6 +32,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', userRouter);
+app.use('/admin',adminRouter);
 
 const PORT = process.env.PORT || 3032
 app.listen(PORT, () => console.log(`server running (CareZon)`));

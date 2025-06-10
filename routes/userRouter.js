@@ -4,7 +4,7 @@ const controllers = require('../controllers/user/userController')
 const auth = require('../middlewares/auth')
 const passport = require('passport')
 
-router.get('/pageNotFound', controllers.pageNotFound)
+//router.get('/pageNotFound', controllers.pageNotFound)
 
 //auth section
 router.get('/', controllers.loadLanding);
@@ -19,20 +19,14 @@ router.get('/home', auth.isUserLoggedIn, controllers.loadHome);
 router.get('/logOut', auth.isUserLoggedIn, controllers.logOut);
 router.get('/changePassword', controllers.loadForgotPassword)
 router.post('/changePassword', controllers.forgotPassword)
-
-//start google oauth login
-router.get('/auth/google', passport.authenticate('google', {
-    scope: ['profile', 'email'] 
-}));
-//google oauth callbak
-router.get('/auth/google/callback', passport.authenticate('google', {
-    failureRedirect: '/signUp'
-}),
+router.patch('/changePassword', controllers.forgotPassword)
+router.post('/resendOTPResetPassword', controllers.resendOTPResetPassword)
+router.get('/auth/google', passport.authenticate('google', {scope: ['profile', 'email']})); //start google oauth login
+router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/signUp'}), //google oauth callbak
 (req,res) => {
     req.session.userId = req.user._id;
     res.redirect('/home')
 })
-
 
 
 module.exports = router
