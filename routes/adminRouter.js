@@ -17,6 +17,9 @@ router.get('/dashboard', auth.isAdminLoggedIn, adminController.loadDashboard);
 router.get('/users', auth.isAdminLoggedIn, userController.getUsers);
 router.get('/users/search', auth.isAdminLoggedIn, userController.searchUsers);
 
+//search suggestions endpoint 
+router.get('/users/suggestions', auth.isAdminLoggedIn, userController.getSearchSuggestions);
+
 // Individual user status management
 router.patch('/users/:id/block', auth.isAdminLoggedIn, userController.blockUser);
 router.patch('/users/:id/unblock', auth.isAdminLoggedIn, userController.unblockUser);
@@ -27,11 +30,6 @@ router.patch('/users/:id/status', auth.isAdminLoggedIn, userController.toggleUse
 // Alternative route patterns for compatibility
 router.patch('/users/block/:id', auth.isAdminLoggedIn, userController.blockUser);
 router.patch('/users/unblock/:id', auth.isAdminLoggedIn, userController.unblockUser);
-
-// Customer endpoints (aliases for users)
-// router.get('/customers', auth.isAdminLoggedIn, userController.getUsers);
-// router.get('/customers/search', auth.isAdminLoggedIn, userController.searchUsers);
-// router.patch('/customers/:id/status', auth.isAdminLoggedIn, userController.toggleUserStatus);
 
 // Category management
 router.get('/categorys', auth.isAdminLoggedIn, categoryController.loadCategory);

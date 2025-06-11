@@ -38,20 +38,16 @@
                         <div class="search-container">
                             <div class="search-input-wrapper">
                                 <i class="fas fa-search search-icon"></i>
-                                <input type="text" class="search-input" id="searchInput" placeholder="Search users by name, email, or mobile..." value="<%= search || '' %>">
+                                <input type="text" class="search-input" id="searchInput" placeholder="Search users by name, email, mobile, or date..." value="<%= search || '' %>" list="searchSuggestions">
+                                <datalist id="searchSuggestions"></datalist>
                                 <div class="search-actions">
                                     <button type="button" class="search-btn history-btn" id="historyBtn" title="Search History">
                                         <i class="fas fa-history"></i>
                                     </button>
-                                    
-                                    <!-- <button type="button" class="search-btn clear-btn" id="clearBtn" style="display: <%= (typeof search !== 'undefined' && search) ? 'flex' : 'none' %> ;" title="Clear Search"> -->
-                                    
-                                        <button type="button" class="search-btn clear-btn" id="clearBtn" title="Clear Search">
+                                    <button type="button" class="search-btn clear-btn" id="clearBtn" title="Clear Search">
                                         <i class="fas fa-times"></i>
-                                    </button> 
-                                    
+                                    </button>
                                 </div>
-                                
                             </div>
                             <div class="search-history" id="searchHistory">
                                 <div class="search-history-empty">No search history</div>
@@ -63,10 +59,10 @@
                             <div class="sort-section">
                                 <label for="sortBy" class="form-label mb-0 me-2">Sort by:</label>
                                 <select class="sort-select" id="sortBy">
-                                    <option value="created_at" <%= sortBy === 'created_at' ? 'selected' : '' %>>Date Joined</option>
-                                    <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Name</option>
+                                    <option value="createdAt" <%= sortBy === 'createdAt' ? 'selected' : '' %>>Date Joined</option>
+                                    <option value="fullName" <%= sortBy === 'fullName' ? 'selected' : '' %>>Name</option>
                                     <option value="email" <%= sortBy === 'email' ? 'selected' : '' %>>Email</option>
-                                    <option value="mobile" <%= sortBy === 'mobile' ? 'selected' : '' %>>Mobile</option>
+                                    <option value="phone" <%= sortBy === 'phone' ? 'selected' : '' %>>Mobile</option>
                                     <option value="active" <%= sortBy === 'active' ? 'selected' : '' %>>Active Users</option>
                                     <option value="blocked" <%= sortBy === 'blocked' ? 'selected' : '' %>>Blocked Users</option>
                                 </select>
@@ -95,7 +91,7 @@
                                 <th>Email</th>
                                 <th>Mobile</th>
                                 <th>Date of Joining</th>
-                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="customerTableBody">
@@ -161,13 +157,11 @@
                                     <i class="fas fa-chevron-left"></i>
                                 </a>
                             </li>
-                            
                             <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
                                 <li class="page-item <%= i === currentPage ? 'active' : '' %>">
                                     <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
                                 </li>
                             <% } %>
-                            
                             <li class="page-item <%= !hasNextPage ? 'disabled' : '' %>">
                                 <a class="page-link" href="#" data-page="<%= nextPage || totalPages %>">
                                     <i class="fas fa-chevron-right"></i>
@@ -223,6 +217,7 @@
 
             // Search and pagination elements
             const searchInput = document.getElementById("searchInput")
+            const searchSuggestions = document.getElementById("searchSuggestions")
             const clearBtn = document.getElementById("clearBtn")
             const historyBtn = document.getElementById("historyBtn")
             const searchHistory = document.getElementById("searchHistory")
@@ -241,8 +236,9 @@
             const confirmActionBtn = document.getElementById("confirmActionBtn")
 
             // Search history management
-            let searchHistoryData = JSON.parse(localStorage.getItem('customerSearchHistory') || '[]')
-            let currentAction = null
+            let searchHistoryData = JSON.parse(localStorage.getItem('customerSearchHistory') || '[]'),
+                currentAction = null;
+            let currentSearch = '<%= search || "" %>';
 
             // Initialize sidebar state
             initializeSidebar()
@@ -258,30 +254,45 @@
                 })
             }
 
-            // Search functionality
+            // Search functionality with debouncing
             let searchTimeout
             searchInput.addEventListener("input", (e) => {
                 const value = e.target.value.trim()
+                currentSearch = value
                 
                 // Show/hide clear button
                 clearBtn.style.display = value ? "flex" : "none"
                 
-                // Debounce search
+                // Debounce suggestions
                 clearTimeout(searchTimeout)
                 searchTimeout = setTimeout(() => {
                     if (value) {
-                        performSearch(value)
+                        fetchSuggestions(value)
                     } else {
-                        loadCustomers()
+                        clearBtn.click()
                     }
                 }, 300)
+            })
+
+            // Trigger search on Enter key
+            searchInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault()
+                    const value = searchInput.value.trim()
+                    if (value) {
+                        currentSearch = value
+                        performSearch(value)
+                    }
+                }
             })
 
             // Clear search
             clearBtn.addEventListener("click", () => {
                 searchInput.value = ""
+                currentSearch = ""
                 clearBtn.style.display = "none"
                 searchHistory.classList.remove("show")
+                searchSuggestions.innerHTML = ''
                 loadCustomers()
             })
 
@@ -307,8 +318,20 @@
             })
 
             // Sort functionality
-            sortBy.addEventListener("change", performSort)
-            sortOrder.addEventListener("change", performSort)
+            sortBy.addEventListener("change", () => {
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    fetchFilteredUsers()
+                } else {
+                    performSort()
+                }
+            })
+            sortOrder.addEventListener("change", () => {
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    fetchFilteredUsers()
+                } else {
+                    performSort()
+                }
+            })
 
             // Status button click handlers
             document.addEventListener("click", (e) => {
@@ -333,6 +356,7 @@
                 if (e.target.classList.contains("search-history-text")) {
                     const searchTerm = e.target.textContent
                     searchInput.value = searchTerm
+                    currentSearch = searchTerm
                     clearBtn.style.display = "flex"
                     searchHistory.classList.remove("show")
                     performSearch(searchTerm)
@@ -441,6 +465,33 @@
                 }
             }
 
+            function fetchSuggestions(query) {
+                if (query.length < 2) {
+                    searchSuggestions.innerHTML = ''
+                    return
+                }
+
+                fetch(`/admin/users/suggestions?q=${encodeURIComponent(query)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.suggestions) {
+                        searchSuggestions.innerHTML = data.suggestions.map(suggestion => `
+                            <option value="${suggestion}">
+                        `).join('')
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error)
+                })
+            }
+
             function showConfirmationModal(userId, currentStatus, userName, buttonElement) {
                 const isBlocking = currentStatus === "active"
                 
@@ -475,10 +526,8 @@
             function executeStatusChange(action) {
                 const { userId, newStatus, userName, buttonElement } = action
                 
-                // Show loading
                 showLoading(true)
                 
-                // Make actual API call to your backend
                 fetch(`/admin/users/${userId}/status`, {
                     method: 'PATCH',
                     headers: {
@@ -490,13 +539,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update button
                         buttonElement.textContent = data.newStatus === "active" ? "Active" : "Blocked"
                         buttonElement.className = `status-badge ${data.newStatus === "active" ? "status-active" : "status-blocked"}`
                         buttonElement.dataset.status = data.newStatus
                         
-                        // Show success message
                         showToast(data.message, data.newStatus === "active" ? "success" : "warning")
+                        if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                            fetchFilteredUsers()
+                        } else {
+                            loadCustomers()
+                        }
                     } else {
                         showToast(data.message || "Failed to update user status", "danger")
                     }
@@ -515,11 +567,16 @@
                 addToSearchHistory(query)
                 
                 const params = new URLSearchParams({
-                    search: query,
-                    sort: sortBy.value,
-                    order: sortOrder.value,
+                    q: query,
                     page: 1
                 })
+                
+                if (sortBy.value !== 'active' && sortBy.value !== 'blocked') {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
+                } else {
+                    params.append('filter', sortBy.value)
+                }
                 
                 fetch(`/admin/users/search?${params.toString()}`, {
                     method: 'GET',
@@ -556,8 +613,8 @@
                     page: 1
                 })
                 
-                if (searchInput.value.trim()) {
-                    params.append('search', searchInput.value.trim())
+                if (currentSearch) {
+                    params.append('q', currentSearch)
                 }
                 
                 fetch(`/admin/users?${params.toString()}`, {
@@ -586,17 +643,60 @@
                 })
             }
 
+            function fetchFilteredUsers() {
+                showLoading(true)
+                
+                const params = new URLSearchParams({
+                    filter: sortBy.value,
+                    page: 1
+                })
+                
+                if (currentSearch) {
+                    params.append('q', currentSearch)
+                }
+                
+                fetch(`/admin/users?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Filter failed", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Filter error:', error)
+                    showToast("An error occurred during filtering", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
             function loadPage(page) {
                 showLoading(true)
                 
                 const params = new URLSearchParams({
-                    page: page,
-                    sort: sortBy.value,
-                    order: sortOrder.value
+                    page: page
                 })
                 
-                if (searchInput.value.trim()) {
-                    params.append('search', searchInput.value.trim())
+                if (currentSearch) {
+                    params.append('q', currentSearch)
+                }
+                
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    params.append('filter', sortBy.value)
+                } else {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
                 }
                 
                 fetch(`/admin/users?${params.toString()}`, {
@@ -629,10 +729,15 @@
                 showLoading(true)
                 
                 const params = new URLSearchParams({
-                    sort: sortBy.value,
-                    order: sortOrder.value,
                     page: 1
                 })
+                
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    params.append('filter', sortBy.value)
+                } else {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
+                }
                 
                 fetch(`/admin/users?${params.toString()}`, {
                     method: 'GET',
@@ -702,18 +807,15 @@
             function updatePagination(pagination) {
                 if (!pagination) return
                 
-                // Update info
                 document.getElementById('showingStart').textContent = pagination.showingStart || 0
                 document.getElementById('showingEnd').textContent = pagination.showingEnd || 0
                 document.getElementById('totalRecords').textContent = pagination.totalUsers || 0
                 document.getElementById('currentPage').textContent = pagination.currentPage || 1
                 document.getElementById('totalPages').textContent = pagination.totalPages || 1
                 
-                // Update pagination links
                 const paginationList = document.getElementById('paginationList')
                 let paginationHTML = ''
                 
-                // Previous button
                 paginationHTML += `
                     <li class="page-item ${!pagination.hasPrevPage ? 'disabled' : ''}">
                         <a class="page-link" href="#" data-page="${pagination.prevPage || 1}">
@@ -722,7 +824,6 @@
                     </li>
                 `
                 
-                // Page numbers
                 const startPage = Math.max(1, pagination.currentPage - 2)
                 const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
                 
@@ -734,7 +835,6 @@
                     `
                 }
                 
-                // Next button
                 paginationHTML += `
                     <li class="page-item ${!pagination.hasNextPage ? 'disabled' : ''}">
                         <a class="page-link" href="#" data-page="${pagination.nextPage || pagination.totalPages}">
@@ -772,7 +872,7 @@
                 })
             }
 
-      // Initialize page
+            // Initialize page
             loadCustomers()
         })
     </script>
