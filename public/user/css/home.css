@@ -31,22 +31,96 @@ body {
   color: var(--primary-color);
 }
 
-.search-box {
+/* Header Right Section Styles */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Search Container Styles */
+.search-container {
   position: relative;
-  width: 300px;
 }
 
-.search-box input {
-  border-radius: 20px;
-  padding-left: 40px;
-  border: 1px solid #ddd;
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.search-box i {
+.search-input {
+  width: 280px;
+  padding: 8px 45px 8px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+  background-color: white;
+}
+
+.search-btn {
   position: absolute;
-  left: 15px;
-  top: 10px;
-  color: #999;
+  right: 5px;
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+.search-btn i {
+  font-size: 14px;
+}
+
+/* Sign Up Button Styles */
+.signup-btn {
+  padding: 8px 20px;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+  border-radius: 25px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.signup-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+}
+
+/* Profile Icon Styles */
+.profile-icon {
+  text-decoration: none;
+  color: var(--dark-color);
+  transition: all 0.3s ease;
+}
+
+.profile-icon:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
 }
 
 .hero-section {
@@ -450,16 +524,23 @@ footer {
     font-size: 2rem;
   }
 
-  .search-box {
-    width: 200px;
-  }
-
   .navbar-nav {
     text-align: center;
   }
 
-  .d-flex.align-items-center {
-    justify-content: center;
+  .header-right {
+    flex-direction: column;
+    gap: 10px;
     margin-top: 15px;
+    align-items: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .signup-btn {
+    text-align: center;
+    width: 100%;
   }
 }

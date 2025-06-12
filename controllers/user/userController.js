@@ -13,7 +13,8 @@ const sendOTPEmail = (require('../../utils/sendEmail'))
 
 const loadLanding = async (req,res) => {
     try {
-        return res.render('userHome')
+        let user = null;
+        return res.render('userHome', {user})
     } catch (error) {
         console.log("home page not found",error)
         res.status(500).send("failed to found home page")
