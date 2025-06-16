@@ -29,4 +29,8 @@ router.get('/auth/google/callback', passport.authenticate('google', {failureRedi
 })
 
 
+//shop/product section
+router.get('/product',auth.isUserLoggedIn, controllers.loadProduct)
+
+
 module.exports = router

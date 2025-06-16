@@ -387,6 +387,17 @@ const resendOTPResetPassword = async (req,res) => {
     }
 }
 
+
+const loadProduct = async (req,res) => {
+    try {
+        let user = null;
+        return res.render('productsPage/products', {user})
+    } catch (error) {
+        console.log("home page not found",error)
+        res.status(500).send("failed to found home page")
+    }
+} 
+
 module.exports = {
    // pageNotFound,
     loadLanding,
@@ -402,5 +413,6 @@ module.exports = {
     loadForgotPassword,
     forgotPassword,
     resendOTPResetPassword,
+    loadProduct,
 }
 

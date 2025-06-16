@@ -7,6 +7,13 @@
   margin-bottom: 2rem;
 }
 
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
 .search-section {
   background: white;
   border-radius: 15px;
@@ -34,6 +41,7 @@
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: #f8f9fa;
+  z-index: 1;
 }
 
 .search-input:focus {
@@ -41,6 +49,7 @@
   box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
   background: white;
   outline: none;
+  z-index: 1;
 }
 
 .search-icon {
@@ -87,11 +96,50 @@
 
 .search-btn.clear-btn {
   color: #dc3545;
+  display: none;
+}
+
+.search-btn.clear-btn.visible {
+  display: flex;
 }
 
 .search-btn.clear-btn:hover {
   background: #dc3545;
   color: white;
+}
+
+.search-history {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.search-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-history-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: background 0.2s ease;
+}
+
+.search-history-item:hover {
+  background: #f8f9fa;
+  color: #dc3545;
 }
 
 .category-table {
@@ -151,6 +199,7 @@
   display: inline-block;
   width: 50px;
   height: 24px;
+  cursor: pointer;
 }
 
 .status-toggle input {
@@ -234,47 +283,16 @@ input:checked + .toggle-slider:before {
 }
 
 .action-btn.edit-btn {
-  margin-right: 0.5rem;
-}
-
-.action-btn.active-btn {
-  margin-right: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 .action-btn:hover {
   background: #f8f9fa;
   color: #dc3545;
-  transform: scale(1.1);
 }
 
 .action-btn.edit-btn:hover {
   color: #ffc107;
-}
-
-.action-btn.delete-btn:hover {
-  color: #dc3545;
-}
-
-.add-category-btn {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  border: none;
-  padding: 1rem 1.5rem;
-  border-radius: 50px;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-  transition: all 0.3s ease;
-  z-index: 1000;
-}
-
-.add-category-btn:hover {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
-  color: white;
 }
 
 .pagination-wrapper {
@@ -365,7 +383,6 @@ input:checked + .toggle-slider:before {
   }
 }
 
-/* Modal Styles */
 .modal-content {
   border: none;
   border-radius: 15px;
@@ -469,7 +486,6 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
-/* Confirmation Modal Styles */
 .confirmation-modal .modal-body {
   text-align: center;
   padding: 2rem;
@@ -493,7 +509,27 @@ input:checked + .toggle-slider:before {
   font-size: 0.9rem;
 }
 
-/* Responsive Design */
+.toast-container {
+  z-index: 1060;
+}
+
+.toast {
+  opacity: 1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.toast-body {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+}
+
+.btn-close-white {
+  filter: brightness(0) invert(1);
+}
+
 @media (max-width: 768px) {
   .action-btn.active-btn,
   .action-btn.block-btn {
@@ -503,7 +539,7 @@ input:checked + .toggle-slider:before {
   }
 
   .action-btn.edit-btn {
-    margin-right: 0.25rem;
+    margin-left: 0.25rem;
   }
 
   .search-section {
@@ -529,15 +565,12 @@ input:checked + .toggle-slider:before {
     padding: 0.5rem;
   }
 
-  .add-category-btn {
-    bottom: 1rem;
-    right: 1rem;
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-  }
-
   .category-description {
     max-width: 150px;
+  }
+
+  .search-history {
+    max-width: 100%;
   }
 }
 
@@ -559,17 +592,11 @@ input:checked + .toggle-slider:before {
     font-size: 0.9rem;
   }
 
-  .add-category-btn {
-    position: relative;
-    bottom: auto;
-    right: auto;
-    width: 100%;
-    margin-top: 1rem;
-    border-radius: 8px;
+  .search-history {
+    max-width: 100%;
   }
 }
 
-/* Animation Classes */
 .fade-in {
   animation: fadeIn 0.3s ease-in;
 }

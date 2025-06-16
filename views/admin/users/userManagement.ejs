@@ -543,7 +543,7 @@
                         buttonElement.className = `status-badge ${data.newStatus === "active" ? "status-active" : "status-blocked"}`
                         buttonElement.dataset.status = data.newStatus
                         
-                        showToast(data.message, data.newStatus === "active" ? "success" : "warning")
+                        showToast(data.message, data.newStatus === "active" ? "success" : "danger")
                         if (sortBy.value === 'active' || sortBy.value === 'blocked') {
                             fetchFilteredUsers()
                         } else {

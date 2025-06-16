@@ -4,7 +4,7 @@
         pageTitle: 'Category Management',
         breadcrumb: [
             { name: 'Home', url: '/admin' },
-            { name: 'Category Management', url: '/admin/category' }
+            { name: 'Category Management', url: '/admin/categories' }
         ]
     };
 %>
@@ -35,7 +35,7 @@
             <div class="category-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <h3 class="page-title"><%= pageData.pageTitle %></h3>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                                 <% pageData.breadcrumb.forEach(function(item, index) { %>
@@ -87,6 +87,7 @@
                     <table class="table table-hover mb-0" id="categoryTable">
                         <thead>
                             <tr>
+                                <th>NO</th>
                                 <th>Category</th>
                                 <th>Description</th>
                                 <th>Discounts/Offers</th>
@@ -97,139 +98,146 @@
                         <tbody id="categoryTableBody">
                             <!-- Sample data - will be replaced by backend data -->
                             <tr data-category-id="1" data-category-status="active">
+                                <td>1</td>
                                 <td class="category-name">TAB</td>
                                 <td class="category-description">Tablet medications and supplements</td>
                                 <td><span class="discount-badge">8%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" checked data-category-id="1">
+                                        <input type="checkbox" checked data-category-id="1" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="1" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn active-btn" data-category-id="1" data-status="active" title="Category Status">
                                         Active
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="1" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
                             <tr data-category-id="2" data-category-status="block">
+                                <td>2</td>
                                 <td class="category-name">NRX</td>
                                 <td class="category-description">Non-prescription medications</td>
                                 <td><span class="discount-badge">5%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" data-category-id="2">
+                                        <input type="checkbox" data-category-id="2" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="2" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn block-btn" data-category-id="2" data-status="block" title="Category Status">
                                         Block
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="2" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
                             <tr data-category-id="3" data-category-status="active">
+                                <td>3</td>
                                 <td class="category-name">DROP</td>
                                 <td class="category-description">Eye and ear drops</td>
                                 <td><span class="discount-badge">8%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" checked data-category-id="3">
+                                        <input type="checkbox" checked data-category-id="3" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="3" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn active-btn" data-category-id="3" data-status="active" title="Category Status">
                                         Active
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="3" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
 
                             <tr data-category-id="4" data-category-status="active">
+                                <td>4</td>
                                 <td class="category-name">OIL</td>
                                 <td class="category-description">Medicinal oils and topical treatments</td>
                                 <td><span class="discount-badge">10%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" data-category-id="4">
+                                        <input type="checkbox" data-category-id="4" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="4" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn active-btn" data-category-id="4" data-status="active" title="Category Status">
                                         Active
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="4" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
 
                             <tr data-category-id="5" data-category-status="active">
+                                <td>5</td>
                                 <td class="category-name">SYP</td>
                                 <td class="category-description">Syrups and liquid medications</td>
                                 <td><span class="discount-badge">8%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" checked data-category-id="5">
+                                        <input type="checkbox" checked data-category-id="5" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="5" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn active-btn" data-category-id="5" data-status="active" title="Category Status">
                                         Active
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="5" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
 
                             <tr data-category-id="6" data-category-status="block">
-                                <td class="category-name">MGM</td>
+                                <td>6</td>
+                                <td class="category-name">MEQ</td>
                                 <td class="category-description">Medical equipment and devices</td>
                                 <td><span class="discount-badge">12%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" data-category-id="6">
+                                        <input type="checkbox" data-category-id="6" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="6" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn block-btn" data-category-id="6" data-status="block" title="Category Status">
                                         Block
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="6" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
 
                             <tr data-category-id="7" data-category-status="active">
+                                <td>7</td>
                                 <td class="category-name">FOOD</td>
                                 <td class="category-description">Health foods and supplements</td>
                                 <td><span class="discount-badge">0%</span></td>
                                 <td>
                                     <label class="status-toggle">
-                                        <input type="checkbox" checked data-category-id="7">
+                                        <input type="checkbox" checked data-category-id="7" class="offer-toggle">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </td>
                                 <td>
-                                    <button class="action-btn edit-btn" data-category-id="7" title="Edit Category">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
                                     <button class="action-btn active-btn" data-category-id="7" data-status="active" title="Category Status">
                                         Active
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="7" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
                                     </button>
                                 </td>
                             </tr>
@@ -301,8 +309,7 @@
                                 <div class="form-group">
                                     <label for="visibilityStatus" class="form-label">Visibility Status</label>
                                     <select class="form-select" id="visibilityStatus" name="visibilityStatus" required>
-                                        <option value="">Select Status</option>
-                                        <option value="active">Active</option>
+                                        <option value="active" selected>Active</option>
                                         <option value="block">Block</option>
                                     </select>
                                 </div>
@@ -311,8 +318,7 @@
                                 <div class="form-group">
                                     <label for="discountPercentage" class="form-label">Discounts/Offers in %</label>
                                     <select class="form-select" id="discountPercentage" name="discountPercentage" required>
-                                        <option value="">Select Discount</option>
-                                        <option value="0">0%</option>
+                                        <option value="0" selected>0%</option>
                                         <option value="5">5%</option>
                                         <option value="8">8%</option>
                                         <option value="10">10%</option>
@@ -386,6 +392,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -514,33 +523,35 @@
                     openDeleteModal(categoryId, categoryName)
                 }
 
-                // Active button click
-                if (e.target.closest(".active-btn")) {
-                    const categoryId = e.target.closest(".active-btn").dataset.categoryId
-                    const categoryName = e.target.closest("tr").querySelector(".category-name").textContent
-                    showCategoryStatusConfirmation(categoryId, "block", categoryName)
+                // Active/Block button click (status toggle)
+                if (e.target.closest(".block-btn") || e.target.closest(".active-btn")) {
+                    e.preventDefault();
+                    const btn = e.target.closest(".block-btn") || e.target.closest(".active-btn");
+                    const categoryId = btn.dataset.categoryId;
+                    const currentStatus = btn.dataset.status;
+                    const categoryName = e.target.closest("tr").querySelector(".category-name").textContent;
+                    
+                    // Toggle status
+                    const newStatus = currentStatus === "active" ? "block" : "active";
+                    showCategoryStatusConfirmation(categoryId, newStatus, categoryName);
                 }
 
-                // Block button click
-                if (e.target.closest(".block-btn")) {
-                    const categoryId = e.target.closest(".block-btn").dataset.categoryId
-                    const categoryName = e.target.closest("tr").querySelector(".category-name").textContent
-                    showCategoryStatusConfirmation(categoryId, "active", categoryName)
-                }
-
-                // Status toggle change
-                if (e.target.type === "checkbox" && e.target.closest(".status-toggle")) {
-                    // Prevent default toggle behavior
-                    e.preventDefault()
-                    
-                    const categoryId = e.target.dataset.categoryId
-                    const isCurrentlyActive = e.target.checked
-                    const categoryName = e.target.closest("tr").querySelector(".category-name").textContent
-                    
-                    // Show confirmation before changing
-                    showOfferStatusConfirmation(categoryId, isCurrentlyActive, categoryName)
-                    
-                    return false
+                // Offer status toggle click
+                if (e.target.closest(".status-toggle")) {
+                    const checkbox = e.target.closest(".status-toggle").querySelector("input");
+                    if (checkbox && checkbox.classList.contains("offer-toggle")) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const categoryId = checkbox.dataset.categoryId;
+                        const isCurrentlyActive = checkbox.checked;
+                        const categoryName = e.target.closest("tr").querySelector(".category-name").textContent;
+                        
+                        // Show confirmation before changing
+                        showOfferStatusConfirmation(categoryId, isCurrentlyActive, categoryName);
+                        
+                        return false;
+                    }
                 }
 
                 // Pagination click handlers
@@ -623,6 +634,11 @@
                 categoryModalLabel.textContent = "Add New Category"
                 saveCategoryBtn.textContent = "Save"
                 resetForm()
+                
+                // Set default values
+                visibilityStatus.value = "active"; // Default to active/visible
+                discountPercentage.value = "0";    // Default to 0%
+                
                 categoryModal.show()
             }
 
@@ -705,6 +721,10 @@
             function resetForm() {
                 categoryForm.reset()
                 categoryId.value = ""
+                // Set default values
+                visibilityStatus.value = "active"; // Default to active/visible
+                discountPercentage.value = "0";    // Default to 0%
+                
                 // Remove validation classes
                 categoryForm.querySelectorAll('.is-invalid').forEach(el => {
                     el.classList.remove('is-invalid')
@@ -783,6 +803,9 @@
 
                     showToast("Category deleted successfully", "success")
                     showLoading(false)
+                    
+                    // Update row numbers after deletion
+                    updateRowNumbers();
 
                     // Here you would make the actual API call:
                     // fetch(`/admin/categories/${id}`, {
@@ -829,23 +852,19 @@
                         row.setAttribute('data-category-status', action.newStatus)
                         
                         // Update action button
-                        const actionCell = row.querySelector('td:last-child')
-                        const editBtn = actionCell.querySelector('.edit-btn').outerHTML
-                        
-                        if (action.newStatus === 'active') {
-                            actionCell.innerHTML = `
-                                ${editBtn}
-                                <button class="action-btn block-btn" data-category-id="${action.id}" data-status="block" title="Category Status">
-                                    Block
-                                </button>
-                            `
-                        } else {
-                            actionCell.innerHTML = `
-                                ${editBtn}
-                                <button class="action-btn active-btn" data-category-id="${action.id}" data-status="active" title="Category Status">
-                                    Active
-                                </button>
-                            `
+                        const actionBtn = row.querySelector('.block-btn, .active-btn')
+                        if (actionBtn) {
+                            actionBtn.dataset.status = action.newStatus
+                            
+                            if (action.newStatus === 'active') {
+                                actionBtn.textContent = 'Active'
+                                actionBtn.classList.remove('block-btn')
+                                actionBtn.classList.add('active-btn')
+                            } else {
+                                actionBtn.textContent = 'Block'
+                                actionBtn.classList.remove('active-btn')
+                                actionBtn.classList.add('block-btn')
+                            }
                         }
                     }
 
@@ -871,24 +890,20 @@
                     row.querySelector(".discount-badge").textContent = `${data.discount}%`
                     row.setAttribute('data-category-status', data.status)
                     
-                    // Update action buttons based on status
-                    const actionCell = row.querySelector('td:last-child')
-                    const editBtn = actionCell.querySelector('.edit-btn').outerHTML
-                    
-                    if (data.status === 'active') {
-                        actionCell.innerHTML = `
-                            ${editBtn}
-                            <button class="action-btn block-btn" data-category-id="${data.id}" data-status="block" title="Category Status">
-                                Block
-                            </button>
-                        `
-                    } else {
-                        actionCell.innerHTML = `
-                            ${editBtn}
-                            <button class="action-btn active-btn" data-category-id="${data.id}" data-status="active" title="Category Status">
-                                Active
-                            </button>
-                        `
+                    // Update action button based on status
+                    const actionBtn = row.querySelector('.block-btn, .active-btn')
+                    if (actionBtn) {
+                        actionBtn.dataset.status = data.status
+                        
+                        if (data.status === 'active') {
+                            actionBtn.textContent = 'Active'
+                            actionBtn.classList.remove('block-btn')
+                            actionBtn.classList.add('active-btn')
+                        } else {
+                            actionBtn.textContent = 'Block'
+                            actionBtn.classList.remove('active-btn')
+                            actionBtn.classList.add('block-btn')
+                        }
                     }
                 }
             }
@@ -896,34 +911,50 @@
             function addCategoryToTable(data) {
                 const tbody = document.getElementById("categoryTableBody")
                 const newId = Date.now() // Temporary ID
+                const rowCount = tbody.querySelectorAll('tr').length + 1
                 const newRow = document.createElement("tr")
                 newRow.setAttribute("data-category-id", newId)
                 newRow.setAttribute("data-category-status", data.status)
                 
                 // Create action button based on status
-                const actionButton = data.status === 'active' 
-                    ? `<button class="action-btn block-btn" data-category-id="${newId}" data-status="block" title="Category Status">Block</button>`
-                    : `<button class="action-btn active-btn" data-category-id="${newId}" data-status="active" title="Category Status">Active</button>`
+                const statusClass = data.status === 'active' ? 'active-btn' : 'block-btn'
+                const statusText = data.status === 'active' ? 'Active' : 'Block'
                 
                 newRow.innerHTML = `
+                    <td>${rowCount}</td>
                     <td class="category-name">${data.name.toUpperCase()}</td>
                     <td class="category-description">${data.description}</td>
                     <td><span class="discount-badge">${data.discount}%</span></td>
                     <td>
                         <label class="status-toggle">
-                            <input type="checkbox" ${data.status === "active" ? "checked" : ""} data-category-id="${newId}">
+                            <input type="checkbox" class="offer-toggle" ${data.status === "active" ? "checked" : ""} data-category-id="${newId}">
                             <span class="toggle-slider"></span>
                         </label>
                     </td>
                     <td>
+                        <button class="action-btn ${statusClass}" data-category-id="${newId}" data-status="${data.status}" title="Category Status">
+                            ${statusText}
+                        </button>
                         <button class="action-btn edit-btn" data-category-id="${newId}" title="Edit Category">
                             <i class="fas fa-edit me-1"></i>Edit
                         </button>
-                        ${actionButton}
                     </td>
                 `
                 
                 tbody.insertBefore(newRow, tbody.firstChild) // Add to top for latest first
+                
+                // Update row numbers
+                updateRowNumbers();
+            }
+            
+            function updateRowNumbers() {
+                const rows = document.querySelectorAll('#categoryTableBody tr');
+                rows.forEach((row, index) => {
+                    const cell = row.querySelector('td:first-child');
+                    if (cell) {
+                        cell.textContent = index + 1;
+                    }
+                });
             }
 
             function performSearch(query) {
@@ -979,35 +1010,50 @@
             }
 
             function showToast(message, type = "success") {
-                const toast = document.createElement("div")
-                toast.className = `toast align-items-center text-white bg-${type === "error" ? "danger" : type} border-0`
-                toast.setAttribute("role", "alert")
+                // Create toast container if it doesn't exist
+                let toastContainer = document.querySelector(".toast-container");
+                if (!toastContainer) {
+                    toastContainer = document.createElement("div");
+                    toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
+                    document.body.appendChild(toastContainer);
+                }
+                
+                // Create toast element
+                const toast = document.createElement("div");
+                toast.className = `toast align-items-center text-white bg-${type === "error" ? "danger" : type} border-0`;
+                toast.setAttribute("role", "alert");
+                toast.setAttribute("aria-live", "assertive");
+                toast.setAttribute("aria-atomic", "true");
+                
                 toast.innerHTML = `
                     <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
-                `
-
-                let toastContainer = document.querySelector(".toast-container")
-                if (!toastContainer) {
-                    toastContainer = document.createElement("div")
-                    toastContainer.className = "toast-container position-fixed top-0 end-0 p-3"
-                    document.body.appendChild(toastContainer)
-                }
-
-                toastContainer.appendChild(toast)
-
-                const bsToast = new bootstrap.Toast(toast)
-                bsToast.show()
-
-                toast.addEventListener("hidden.bs.toast", () => {
-                    toast.remove()
-                })
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Initialize and show toast
+                const bsToast = new bootstrap.Toast(toast, {
+                    autohide: true,
+                    delay: 3000
+                });
+                bsToast.show();
+                
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', function() {
+                    toast.remove();
+                });
             }
 
             // Initialize page
-            loadCategories()
+            loadCategories();
+            
+            // Update row numbers on page load
+            updateRowNumbers();
         });
     </script>
 </body>

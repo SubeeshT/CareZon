@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Listing</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom CSS */
+    .product-card {
+      height: 100%;
+      transition: transform 0.3s;
+      border: 1px solid #eee;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .product-img-container {
+      height: 200px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .product-img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    .filter-section {
+      border-right: 1px solid #eee;
+    }
+    .price-range-container {
+      padding: 10px 0;
+    }
+    .price-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .search-container {
+      position: relative;
+    }
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #999;
+    }
+    .search-clear:hover {
+      color: #dc3545;
+    }
+    .sort-dropdown .dropdown-item.active {
+      background-color: #f8f9fa;
+      color: #212529;
+      font-weight: bold;
+    }
+    .filter-title {
+      cursor: pointer;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .filter-content {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .filter-mobile-toggle {
+      display: none;
+    }
+    .pagination-container {
+      margin-top: 30px;
+    }
+    .page-link {
+      color: #333;
+    }
+    .page-item.active .page-link {
+      background-color: #333;
+      border-color: #333;
+    }
+    .no-results {
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    @media (max-width: 991px) {
+      .filter-section {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+      }
+      .filter-mobile-toggle {
+        display: block;
+        margin-bottom: 15px;
+      }
+      .filter-container {
+        display: none;
+      }
+      .filter-container.show {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <h1 class="mb-4">Products</h1>
+    
+    <!-- Search Bar -->
+    <div class="row mb-4">
+      <div class="col-md-8 mb-3 mb-md-0">
+        <div class="search-container">
+          <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+          <span class="search-clear" id="searchClear"><i class="fas fa-times"></i></span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="dropdown sort-dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort By
+          </button>
+          <ul class="dropdown-menu w-100" aria-labelledby="sortDropdown">
+            <li><a class="dropdown-item" href="#" data-sort="price-asc">Price: Low to High</a></li>
+            <li><a class="dropdown-item" href="#" data-sort="price-desc">Price: High to Low</a></li>
+            <li><a class="dropdown-item" href="#" data-sort="name-asc">Name: A to Z</a></li>
+            <li><a class="dropdown-item" href="#" data-sort="name-desc">Name: Z to A</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Filter Section -->
+      <div class="col-lg-3 filter-section">
+        <button class="btn btn-outline-secondary w-100 filter-mobile-toggle" type="button">
+          <i class="fas fa-filter me-2"></i> Filters <span id="filterCount" class="badge bg-secondary ms-2">0</span>
+        </button>
+        
+        <div class="filter-container">
+          <h5 class="mb-3">Filters</h5>
+          
+          <!-- Price Range Filter -->
+          <div class="mb-4">
+            <div class="filter-title">
+              <h6 class="mb-0">Price Range</h6>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="filter-content">
+              <div class="price-range-container">
+                <div class="price-inputs">
+                  <input type="number" id="minPrice" class="form-control form-control-sm" placeholder="Min">
+                  <span>to</span>
+                  <input type="number" id="maxPrice" class="form-control form-control-sm" placeholder="Max">
+                </div>
+                <button id="applyPriceFilter" class="btn btn-sm btn-outline-secondary mt-2">Apply</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Category Filter -->
+          <div class="mb-4">
+            <div class="filter-title">
+              <h6 class="mb-0">Category</h6>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="filter-content" id="categoryFilters">
+              <!-- Categories will be populated dynamically -->
+            </div>
+          </div>
+          
+          <!-- Brand Filter -->
+          <div class="mb-4">
+            <div class="filter-title">
+              <h6 class="mb-0">Brand</h6>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="filter-content" id="brandFilters">
+              <!-- Brands will be populated dynamically -->
+            </div>
+          </div>
+          
+          <!-- Clear All Filters -->
+          <button id="clearAllFilters" class="btn btn-outline-danger btn-sm w-100">Clear All Filters</button>
+        </div>
+      </div>
+      
+      <!-- Product Listing -->
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div id="productCount">Showing <span id="visibleProducts">0</span> of <span id="totalProducts">0</span> products</div>
+          <div class="d-flex align-items-center">
+            <label for="perPage" class="me-2">Show:</label>
+            <select id="perPage" class="form-select form-select-sm" style="width: auto;">
+              <option value="12">12</option>
+              <option value="24">24</option>
+              <option value="48">48</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="productGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <!-- Products will be populated dynamically -->
+        </div>
+        
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+          <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+          <h4>No products found</h4>
+          <p class="text-muted">Try adjusting your search or filter criteria</p>
+          <button id="resetFiltersBtn" class="btn btn-outline-primary mt-2">Reset All Filters</button>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="pagination-container">
+          <nav aria-label="Product pagination">
+            <ul class="pagination justify-content-center" id="pagination">
+              <!-- Pagination will be populated dynamically -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // State management
+      const state = {
+        products: [], // Will store all products
+        filteredProducts: [], // Will store filtered products
+        currentPage: 1,
+        productsPerPage: 12,
+        searchTerm: '',
+        sortBy: '',
+        filters: {
+          priceRange: { min: null, max: null },
+          categories: [],
+          brands: []
+        }
+      };
+
+      // DOM Elements
+      const searchInput = document.getElementById('searchInput');
+      const searchClear = document.getElementById('searchClear');
+      const sortDropdown = document.querySelectorAll('.sort-dropdown .dropdown-item');
+      const productGrid = document.getElementById('productGrid');
+      const pagination = document.getElementById('pagination');
+      const perPageSelect = document.getElementById('perPage');
+      const minPriceInput = document.getElementById('minPrice');
+      const maxPriceInput = document.getElementById('maxPrice');
+      const applyPriceFilterBtn = document.getElementById('applyPriceFilter');
+      const clearAllFiltersBtn = document.getElementById('clearAllFilters');
+      const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+      const filterMobileToggle = document.querySelector('.filter-mobile-toggle');
+      const filterContainer = document.querySelector('.filter-container');
+      const filterTitles = document.querySelectorAll('.filter-title');
+      const noResults = document.getElementById('noResults');
+      const visibleProductsCount = document.getElementById('visibleProducts');
+      const totalProductsCount = document.getElementById('totalProducts');
+      const filterCountBadge = document.getElementById('filterCount');
+      const categoryFiltersContainer = document.getElementById('categoryFilters');
+      const brandFiltersContainer = document.getElementById('brandFilters');
+
+      // Fetch products from the server
+      async function fetchProducts() {
+        try {
+          // Replace with your actual API endpoint
+          const response = await fetch('/api/products');
+          if (!response.ok) {
+            throw new Error('Failed to fetch products');
+          }
+          
+          const data = await response.json();
+          state.products = data.products;
+          state.filteredProducts = [...state.products];
+          
+          // Extract unique categories and brands
+          const categories = [...new Set(state.products.map(product => product.category))];
+          const brands = [...new Set(state.products.map(product => product.brand))];
+          
+          // Populate category filters
+          populateCategoryFilters(categories);
+          
+          // Populate brand filters
+          populateBrandFilters(brands);
+          
+          // Update UI
+          updateProductCount();
+          renderProducts();
+          renderPagination();
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          productGrid.innerHTML = `<div class="col-12 text-center"><p>Error loading products. Please try again later.</p></div>`;
+        }
+      }
+
+      // Populate category filters
+      function populateCategoryFilters(categories) {
+        categoryFiltersContainer.innerHTML = categories.map(category => `
+          <div class="form-check">
+            <input class="form-check-input category-filter" type="checkbox" value="${category}" id="category-${category.replace(/\s+/g, '-').toLowerCase()}">
+            <label class="form-check-label" for="category-${category.replace(/\s+/g, '-').toLowerCase()}">
+              ${category}
+            </label>
+          </div>
+        `).join('');
+        
+        // Add event listeners to category checkboxes
+        document.querySelectorAll('.category-filter').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            if (this.checked) {
+              state.filters.categories.push(this.value);
+            } else {
+              state.filters.categories = state.filters.categories.filter(cat => cat !== this.value);
+            }
+            state.currentPage = 1;
+            applyFilters();
+          });
+        });
+      }
+
+      // Populate brand filters
+      function populateBrandFilters(brands) {
+        brandFiltersContainer.innerHTML = brands.map(brand => `
+          <div class="form-check">
+            <input class="form-check-input brand-filter" type="checkbox" value="${brand}" id="brand-${brand.replace(/\s+/g, '-').toLowerCase()}">
+            <label class="form-check-label" for="brand-${brand.replace(/\s+/g, '-').toLowerCase()}">
+              ${brand}
+            </label>
+          </div>
+        `).join('');
+        
+        // Add event listeners to brand checkboxes
+        document.querySelectorAll('.brand-filter').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            if (this.checked) {
+              state.filters.brands.push(this.value);
+            } else {
+              state.filters.brands = state.filters.brands.filter(b => b !== this.value);
+            }
+            state.currentPage = 1;
+            applyFilters();
+          });
+        });
+      }
+
+      // Render products
+      function renderProducts() {
+        const startIndex = (state.currentPage - 1) * state.productsPerPage;
+        const endIndex = startIndex + state.productsPerPage;
+        const paginatedProducts = state.filteredProducts.slice(startIndex, endIndex);
+        
+        if (paginatedProducts.length === 0) {
+          productGrid.style.display = 'none';
+          noResults.style.display = 'flex';
+        } else {
+          productGrid.style.display = 'flex';
+          noResults.style.display = 'none';
+          
+          productGrid.innerHTML = paginatedProducts.map(product => `
+            <div class="col">
+              <div class="product-card card h-100">
+                <div class="product-img-container">
+                  <img src="${product.image}" class="product-img" alt="${product.name}">
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">${product.name}</h5>
+                  <p class="card-text text-muted small">${product.category} | ${product.brand}</p>
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <h6 class="mb-0 fw-bold">$${product.price.toFixed(2)}</h6>
+                    <button class="btn btn-sm btn-outline-primary">Add to Cart</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Render pagination
+      function renderPagination() {
+        const totalPages = Math.ceil(state.filteredProducts.length / state.productsPerPage);
+        
+        if (totalPages <= 1) {
+          pagination.innerHTML = '';
+          return;
+        }
+        
+        let paginationHTML = `
+          <li class="page-item ${state.currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${state.currentPage - 1}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        `;
+        
+        // Show first page
+        paginationHTML += `
+          <li class="page-item ${state.currentPage === 1 ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="1">1</a>
+          </li>
+        `;
+        
+        // Add ellipsis if needed
+        if (state.currentPage > 3) {
+          paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        
+        // Add pages around current page
+        for (let i = Math.max(2, state.currentPage - 1); i <= Math.min(totalPages - 1, state.currentPage + 1); i++) {
+          if (i === 1 || i === totalPages) continue; // Skip first and last page as they're added separately
+          paginationHTML += `
+            <li class="page-item ${state.currentPage === i ? 'active' : ''}">
+              <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+          `;
+        }
+        
+        // Add ellipsis if needed
+        if (state.currentPage < totalPages - 2) {
+          paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        
+        // Show last page if there's more than one page
+        if (totalPages > 1) {
+          paginationHTML += `
+            <li class="page-item ${state.currentPage === totalPages ? 'active' : ''}">
+              <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+            </li>
+          `;
+        }
+        
+        paginationHTML += `
+          <li class="page-item ${state.currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${state.currentPage + 1}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        `;
+        
+        pagination.innerHTML = paginationHTML;
+        
+        // Add event listeners to pagination links
+        document.querySelectorAll('#pagination .page-link').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            if (page && page !== state.currentPage) {
+              state.currentPage = page;
+              renderProducts();
+              renderPagination();
+              // Scroll to top of product grid
+              productGrid.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+      }
+
+      // Update product count display
+      function updateProductCount() {
+        visibleProductsCount.textContent = state.filteredProducts.length;
+        totalProductsCount.textContent = state.products.length;
+      }
+
+      // Update filter count badge
+      function updateFilterCount() {
+        let count = 0;
+        if (state.filters.priceRange.min !== null || state.filters.priceRange.max !== null) count++;
+        count += state.filters.categories.length;
+        count += state.filters.brands.length;
+        
+        filterCountBadge.textContent = count;
+        filterCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+      }
+
+      // Apply all filters and sorting
+      function applyFilters() {
+        // Start with all products
+        let filtered = [...state.products];
+        
+        // Apply search filter
+        if (state.searchTerm) {
+          const searchLower = state.searchTerm.toLowerCase();
+          filtered = filtered.filter(product => 
+            product.name.toLowerCase().includes(searchLower) || 
+            product.description?.toLowerCase().includes(searchLower) ||
+            product.category.toLowerCase().includes(searchLower) ||
+            product.brand.toLowerCase().includes(searchLower)
+          );
+        }
+        
+        // Apply price range filter
+        if (state.filters.priceRange.min !== null) {
+          filtered = filtered.filter(product => product.price >= state.filters.priceRange.min);
+        }
+        if (state.filters.priceRange.max !== null) {
+          filtered = filtered.filter(product => product.price <= state.filters.priceRange.max);
+        }
+        
+        // Apply category filter
+        if (state.filters.categories.length > 0) {
+          filtered = filtered.filter(product => state.filters.categories.includes(product.category));
+        }
+        
+        // Apply brand filter
+        if (state.filters.brands.length > 0) {
+          filtered = filtered.filter(product => state.filters.brands.includes(product.brand));
+        }
+        
+        // Apply sorting
+        if (state.sortBy) {
+          switch (state.sortBy) {
+            case 'price-asc':
+              filtered.sort((a, b) => a.price - b.price);
+              break;
+            case 'price-desc':
+              filtered.sort((a, b) => b.price - a.price);
+              break;
+            case 'name-asc':
+              filtered.sort((a, b) => a.name.localeCompare(b.name));
+              break;
+            case 'name-desc':
+              filtered.sort((a, b) => b.name.localeCompare(a.name));
+              break;
+          }
+        }
+        
+        state.filteredProducts = filtered;
+        updateProductCount();
+        updateFilterCount();
+        renderProducts();
+        renderPagination();
+      }
+
+      // Search functionality
+      searchInput.addEventListener('input', function() {
+        state.searchTerm = this.value.trim();
+        state.currentPage = 1;
+        
+        // Show/hide clear button
+        searchClear.style.display = state.searchTerm ? 'block' : 'none';
+        
+        // If backend search is required, use debounce to avoid too many requests
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+          // For backend search, you would make an API call here
+          // For now, we'll just filter the existing products
+          applyFilters();
+        }, 300);
+      });
+
+      // Clear search
+      searchClear.addEventListener('click', function() {
+        searchInput.value = '';
+        state.searchTerm = '';
+        searchClear.style.display = 'none';
+        state.currentPage = 1;
+        applyFilters();
+      });
+
+      // Sort functionality
+      sortDropdown.forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Update active class
+          sortDropdown.forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Update dropdown button text
+          document.getElementById('sortDropdown').textContent = this.textContent;
+          
+          // Update state and apply sorting
+          state.sortBy = this.dataset.sort;
+          state.currentPage = 1;
+          applyFilters();
+        });
+      });
+
+      // Products per page change
+      perPageSelect.addEventListener('change', function() {
+        state.productsPerPage = parseInt(this.value);
+        state.currentPage = 1;
+        renderProducts();
+        renderPagination();
+      });
+
+      // Price range filter
+      applyPriceFilterBtn.addEventListener('click', function() {
+        const min = minPriceInput.value ? parseFloat(minPriceInput.value) : null;
+        const max = maxPriceInput.value ? parseFloat(maxPriceInput.value) : null;
+        
+        state.filters.priceRange.min = min;
+        state.filters.priceRange.max = max;
+        state.currentPage = 1;
+        applyFilters();
+      });
+
+      // Clear all filters
+      clearAllFiltersBtn.addEventListener('click', function() {
+        // Reset search
+        searchInput.value = '';
+        state.searchTerm = '';
+        searchClear.style.display = 'none';
+        
+        // Reset price range
+        minPriceInput.value = '';
+        maxPriceInput.value = '';
+        state.filters.priceRange.min = null;
+        state.filters.priceRange.max = null;
+        
+        // Reset categories
+        document.querySelectorAll('.category-filter').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        state.filters.categories = [];
+        
+        // Reset brands
+        document.querySelectorAll('.brand-filter').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        state.filters.brands = [];
+        
+        // Reset sort
+        sortDropdown.forEach(i => i.classList.remove('active'));
+        document.getElementById('sortDropdown').textContent = 'Sort By';
+        state.sortBy = '';
+        
+        // Reset page
+        state.currentPage = 1;
+        
+        // Apply filters
+        applyFilters();
+      });
+
+      // Reset filters button in no results section
+      resetFiltersBtn.addEventListener('click', function() {
+        clearAllFiltersBtn.click();
+      });
+
+      // Mobile filter toggle
+      filterMobileToggle.addEventListener('click', function() {
+        filterContainer.classList.toggle('show');
+      });
+
+      // Collapsible filter sections
+      filterTitles.forEach(title => {
+        title.addEventListener('click', function() {
+          const content = this.nextElementSibling;
+          const icon = this.querySelector('i');
+          
+          if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+          } else {
+            content.style.display = 'none';
+            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+          }
+        });
+      });
+
+      // Initialize
+      fetchProducts();
+    });
+  </script>
+</body>
+</html>
