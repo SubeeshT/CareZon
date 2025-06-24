@@ -1,0 +1,1076 @@
+<%
+    const pageData = {
+        title: 'Products - Carezon Admin',
+        pageTitle: 'Products',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Products', url: '/admin/products' }
+        ],
+        pageActions: '<button class="btn btn-success" onclick="window.location.href=\'/admin/products/add\'"><i class="fas fa-plus"></i> Add Product</button>'
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/product.css">
+    
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <% pageData.breadcrumb.forEach(function(item, index) { %>
+                                    <% if (index === pageData.breadcrumb.length - 1) { %>
+                                        <li class="breadcrumb-item active" aria-current="page"><%= item.name %></li>
+                                    <% } else { %>
+                                        <li class="breadcrumb-item"><a href="<%= item.url %>"><%= item.name %></a></li>
+                                    <% } %>
+                                <% }); %>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="page-actions">
+                        <%- pageData.pageActions %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Content -->
+            <div class="page-content">
+                <!-- Search and Filter Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6 position-relative">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
+                            <button class="clear-btn" id="clearSearch" title="Clear search"><i class="fas fa-times"></i></button>
+                            <button class="history-toggle" id="historyToggle" title="Toggle search history"><i class="fas fa-history"></i></button>
+                        </div>
+                        <div class="search-history" id="searchHistory">
+                            <div class="search-history-header">
+                                <span>Recent Searches</span>
+                                <button class="clear-all-btn" id="clearAllHistory">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sort-filter-group justify-content-end">
+                            <label>Category:</label>
+                            <select class="form-select" id="categorySort">
+                                <option value="">All Categories</option>
+                                <option value="TAB">Tablets</option>
+                                <option value="Oil">Oil</option>
+                                <option value="SYP">Syrup</option>
+                                <option value="Food">Food</option>
+                                <option value="MOM">MOM</option>
+                                <option value="NRX">NRX</option>
+                                <option value="Drop">Drop</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Sales Price</th>
+                                <th>Stock</th>
+                                <th>Offer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-product-id="1" 
+                                data-images='["https://via.placeholder.com/400x300?text=Blumox+Main", "https://via.placeholder.com/400x300?text=Blumox+Side", "https://via.placeholder.com/400x300?text=Blumox+Back", "https://via.placeholder.com/400x300?text=Blumox+Label"]'
+                                data-description="Blumox 500 CAP is an antibiotic medication used to treat various bacterial infections. It contains Amoxicillin as the active ingredient."
+                                data-manufacturer="ABC Pharmaceuticals Ltd."
+                                data-composition="Amoxicillin 500mg"
+                                data-pack-size="10 Capsules"
+                                data-mrp="150.00"
+                                data-discount="20"
+                                data-expiry="2025-12-31"
+                                data-batch="BLX2024001"
+                                data-variants='[
+                                    {
+                                        "id": 1,
+                                        "name": "Blumox 250mg",
+                                        "strength": "250mg",
+                                        "packSize": "10 Capsules",
+                                        "mrp": "₹85.00",
+                                        "salesPrice": "₹68.00",
+                                        "stock": 120,
+                                        "status": "active",
+                                        "batch": "BLX250-001",
+                                        "expiry": "2025-11-30"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "name": "Blumox 500mg",
+                                        "strength": "500mg",
+                                        "packSize": "10 Capsules",
+                                        "mrp": "₹150.00",
+                                        "salesPrice": "₹120.00",
+                                        "stock": 45,
+                                        "status": "active",
+                                        "batch": "BLX500-001",
+                                        "expiry": "2025-12-31"
+                                    },
+                                    {
+                                        "id": 3,
+                                        "name": "Blumox 1000mg",
+                                        "strength": "1000mg",
+                                        "packSize": "6 Capsules",
+                                        "mrp": "₹220.00",
+                                        "salesPrice": "₹185.00",
+                                        "stock": 0,
+                                        "status": "inactive",
+                                        "batch": "BLX1000-001",
+                                        "expiry": "2025-10-15"
+                                    }
+                                ]'>
+                                <td>1</td>
+                                <td>Blumox 500 CAP</td>
+                                <td>TAB</td>
+                                <td>B56FX85E</td>
+                                <td>₹120.00</td>
+                                <td>45</td>
+                                <td>
+                                    <div class="offer-toggle on" onclick="showConfirmModal('offer', 1)">
+                                        <div class="toggle-circle"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="status-btn active" onclick="showConfirmModal('action', 1)">Active</button>
+                                        <button class="status-btn blocked" onclick="showConfirmModal('action', 1)" style="display: none;">Block</button>
+                                        <button class="edit-btn" onclick="editProduct(1)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="view-btn" onclick="viewProduct(1)">
+                                            <i class="fas fa-eye"></i> View More
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-product-id="2" 
+                                data-images='["https://via.placeholder.com/400x300?text=Betadine+Main", "https://via.placeholder.com/400x300?text=Betadine+Label"]'
+                                data-description="Betadine 10% is an antiseptic solution used for wound cleaning and disinfection."
+                                data-manufacturer="Mundipharma Pvt Ltd"
+                                data-composition="Povidone Iodine 10%"
+                                data-pack-size="100ml Bottle"
+                                data-mrp="65.00"
+                                data-discount="23"
+                                data-expiry="2026-03-15"
+                                data-batch="BET2024002"
+                                data-variants='[
+                                    {
+                                        "id": 4,
+                                        "name": "Betadine 5%",
+                                        "strength": "5%",
+                                        "packSize": "100ml Bottle",
+                                        "mrp": "₹45.00",
+                                        "salesPrice": "₹35.00",
+                                        "stock": 200,
+                                        "status": "active",
+                                        "batch": "BET5-001",
+                                        "expiry": "2026-02-28"
+                                    },
+                                    {
+                                        "id": 5,
+                                        "name": "Betadine 10%",
+                                        "strength": "10%",
+                                        "packSize": "100ml Bottle",
+                                        "mrp": "₹65.00",
+                                        "salesPrice": "₹50.00",
+                                        "stock": 100,
+                                        "status": "active",
+                                        "batch": "BET10-001",
+                                        "expiry": "2026-03-15"
+                                    }
+                                ]'>
+                                <td>2</td>
+                                <td>Betadine 10%</td>
+                                <td>Oil</td>
+                                <td>SHF093EN</td>
+                                <td>₹50.00</td>
+                                <td>100</td>
+                                <td>
+                                    <div class="offer-toggle" onclick="showConfirmModal('offer', 2)">
+                                        <div class="toggle-circle"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="status-btn active" onclick="showConfirmModal('action', 2)">Active</button>
+                                        <button class="status-btn blocked" onclick="showConfirmModal('action', 2)" style="display: none;">Block</button>
+                                        <button class="edit-btn" onclick="editProduct(2)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="view-btn" onclick="viewProduct(2)">
+                                            <i class="fas fa-eye"></i> View More
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr data-product-id="3" 
+                                data-images='["https://via.placeholder.com/400x300?text=Modula+Main", "https://via.placeholder.com/400x300?text=Modula+Side", "https://via.placeholder.com/400x300?text=Modula+Back"]'
+                                data-description="Modula TAB is used for treating erectile dysfunction in men."
+                                data-manufacturer="Sun Pharmaceutical Industries Ltd"
+                                data-composition="Tadalafil 20mg"
+                                data-pack-size="4 Tablets"
+                                data-mrp="320.00"
+                                data-discount="15"
+                                data-expiry="2025-08-20"
+                                data-batch="MOD2024003"
+                                data-variants='[
+                                    {
+                                        "id": 6,
+                                        "name": "Modula 5mg",
+                                        "strength": "5mg",
+                                        "packSize": "10 Tablets",
+                                        "mrp": "₹180.00",
+                                        "salesPrice": "₹155.00",
+                                        "stock": 80,
+                                        "status": "active",
+                                        "batch": "MOD5-001",
+                                        "expiry": "2025-07-15"
+                                    },
+                                    {
+                                        "id": 7,
+                                        "name": "Modula 10mg",
+                                        "strength": "10mg",
+                                        "packSize": "4 Tablets",
+                                        "mrp": "₹240.00",
+                                        "salesPrice": "₹205.00",
+                                        "stock": 60,
+                                        "status": "active",
+                                        "batch": "MOD10-001",
+                                        "expiry": "2025-08-10"
+                                    },
+                                    {
+                                        "id": 8,
+                                        "name": "Modula 20mg",
+                                        "strength": "20mg",
+                                        "packSize": "4 Tablets",
+                                        "mrp": "₹320.00",
+                                        "salesPrice": "₹273.00",
+                                        "stock": 150,
+                                        "status": "active",
+                                        "batch": "MOD20-001",
+                                        "expiry": "2025-08-20"
+                                    }
+                                ]'>
+                                <td>3</td>
+                                <td>Modula TAB</td>
+                                <td>TAB</td>
+                                <td>DJF56YY7</td>
+                                <td>₹273.00</td>
+                                <td>150</td>
+                                <td>
+                                    <div class="offer-toggle on" onclick="showConfirmModal('offer', 3)">
+                                        <div class="toggle-circle"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="status-btn active" onclick="showConfirmModal('action', 3)">Active</button>
+                                        <button class="status-btn blocked" onclick="showConfirmModal('action', 3)" style="display: none;">Block</button>
+                                        <button class="edit-btn" onclick="editProduct(3)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="view-btn" onclick="viewProduct(3)">
+                                            <i class="fas fa-eye"></i> View More
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-section">
+                    <div>Showing 1 to 3 of 3 products | Page 1 of 1</div>
+                    <div class="pagination-controls">
+                        <button class="btn" disabled><i class="fas fa-chevron-left"></i></button>
+                        <button class="btn active">1</button>
+                        <button class="btn">2</button>
+                        <button class="btn">3</button>
+                        <button class="btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Enhanced Product Details Modal -->
+    <div class="modal fade product-details-modal" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalTitle">Product Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody">
+                    <!-- Enhanced product details will be populated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editCurrentProduct()">
+                        <i class="fas fa-edit"></i> Edit Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div class="image-lightbox" id="imageLightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()">
+                <i class="fas fa-times"></i>
+            </button>
+            <button class="lightbox-nav lightbox-prev" onclick="previousImage()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <img class="lightbox-image" id="lightboxImage" src="/placeholder.svg" alt="">
+            <button class="lightbox-nav lightbox-next" onclick="nextImage()">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmModalBody">
+                    Are you sure you want to proceed with this action?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn" data-bs-dismiss="modal">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        let isHistoryVisible = false;
+        let currentAction = null;
+        let currentProductId = null;
+        let currentActionType = null;
+        let currentProductData = null;
+        let lightboxImages = [];
+        let currentImageIndex = 0;
+
+        // Debounce utility function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Products page JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize page
+            initializeProductsPage();
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            const historyToggle = document.getElementById('historyToggle');
+            const clearAllHistoryBtn = document.getElementById('clearAllHistory');
+
+            if (searchInput) {
+                const debouncedSearch = debounce(handleSearch, 300);
+                searchInput.addEventListener('input', debouncedSearch);
+                searchInput.addEventListener('focus', () => {
+                    if (isHistoryVisible) {
+                        showSearchHistory();
+                    }
+                });
+                searchInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if (!searchHistoryDiv.matches(':hover') && !historyToggle.matches(':hover')) {
+                            searchHistoryDiv.style.display = 'none';
+                        }
+                    }, 200);
+                });
+
+                clearSearch.addEventListener('click', () => {
+                    searchInput.value = '';
+                    handleSearch({ target: searchInput });
+                });
+
+                historyToggle.addEventListener('click', () => {
+                    isHistoryVisible = !isHistoryVisible;
+                    const icon = historyToggle.querySelector('i');
+                    icon.classList.toggle('fa-history');
+                    icon.classList.toggle('fa-times');
+                    if (isHistoryVisible) {
+                        showSearchHistory();
+                    } else {
+                        searchHistoryDiv.style.display = 'none';
+                    }
+                });
+
+                clearAllHistoryBtn.addEventListener('click', () => {
+                    searchHistory = [];
+                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                    updateSearchHistoryUI();
+                    searchHistoryDiv.style.display = 'none';
+                });
+            }
+
+            // Populate search history on load
+            updateSearchHistoryUI();
+            
+            // Category sort functionality
+            const categorySort = document.getElementById('categorySort');
+            if (categorySort) {
+                categorySort.addEventListener('change', handleCategorySort);
+            }
+
+            // Confirmation modal setup
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmActionBtn = document.getElementById('confirmActionBtn');
+
+            confirmActionBtn.addEventListener('click', () => {
+                if (currentAction && currentProductId && currentActionType) {
+                    if (currentActionType === 'offer') {
+                        toggleOffer(currentProductId);
+                    } else if (currentActionType === 'action') {
+                        toggleList(currentProductId);
+                    }
+                    currentAction = null;
+                    currentProductId = null;
+                    currentActionType = null;
+                }
+            });
+
+            // Reset current action when modal is closed
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', () => {
+                currentAction = null;
+                currentProductId = null;
+                currentActionType = null;
+            });
+
+            // Lightbox event listeners
+            document.addEventListener('keydown', (e) => {
+                const lightbox = document.getElementById('imageLightbox');
+                if (lightbox.style.display === 'flex') {
+                    if (e.key === 'Escape') {
+                        closeLightbox();
+                    } else if (e.key === 'ArrowLeft') {
+                        previousImage();
+                    } else if (e.key === 'ArrowRight') {
+                        nextImage();
+                    }
+                }
+            });
+
+            // Close lightbox when clicking outside image
+            document.getElementById('imageLightbox').addEventListener('click', (e) => {
+                if (e.target.id === 'imageLightbox') {
+                    closeLightbox();
+                }
+            });
+        });
+
+        function initializeProductsPage() {
+            const tableRows = document.querySelectorAll('#productsTable tbody tr');
+            tableRows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.classList.add('fade-in');
+            });
+
+            updateSearchButtons();
+        }
+
+        function updateSearchButtons() {
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            
+            if (searchInput.value) {
+                clearSearch.style.display = 'flex';
+            } else {
+                clearSearch.style.display = 'none';
+            }
+        }
+
+        function showSearchHistory() {
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            if (searchHistory.length > 0) {
+                searchHistoryDiv.style.display = 'block';
+            }
+        }
+
+        function updateSearchHistoryUI() {
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            const itemsContainer = searchHistoryDiv.querySelector('.search-history-header').parentNode;
+            const existingItems = itemsContainer.querySelectorAll('.search-history-item');
+            existingItems.forEach(item => item.remove());
+
+            searchHistory.forEach((term, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'search-history-item';
+                historyItem.innerHTML = `
+                    <span>${term}</span>
+                    <button class="clear-item-btn" title="Clear this search"><i class="fas fa-times"></i></button>
+                `;
+                historyItem.querySelector('span').addEventListener('click', () => {
+                    document.getElementById('searchInput').value = term;
+                    handleSearch({ target: document.getElementById('searchInput') });
+                });
+                historyItem.querySelector('.clear-item-btn').addEventListener('click', () => {
+                    searchHistory.splice(index, 1);
+                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                    updateSearchHistoryUI();
+                    if (searchHistory.length === 0) {
+                        searchHistoryDiv.style.display = 'none';
+                    }
+                });
+                itemsContainer.appendChild(historyItem);
+            });
+
+            const clearAllBtn = document.getElementById('clearAllHistory');
+            clearAllBtn.style.display = searchHistory.length > 0 ? 'block' : 'none';
+        }
+
+        function addToSearchHistory(term) {
+            if (term && !searchHistory.includes(term)) {
+                searchHistory.unshift(term);
+                if (searchHistory.length > 5) {
+                    searchHistory.pop();
+                }
+                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                updateSearchHistoryUI();
+            }
+        }
+
+        function handleSearch(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#productsTable tbody tr');
+            
+            if (searchTerm) {
+                addToSearchHistory(searchTerm);
+            }
+
+            tableRows.forEach(row => {
+                const productName = row.cells[1].textContent.toLowerCase();
+                const category = row.cells[2].textContent.toLowerCase();
+                const brand = row.cells[3].textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || category.includes(searchTerm) || brand.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.classList.add('slide-up');
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            updateTableVisibility();
+            updateSearchButtons();
+        }
+
+        function handleCategorySort() {
+            const category = document.getElementById('categorySort').value;
+            const tableRows = document.querySelectorAll('#productsTable tbody tr');
+            
+            tableRows.forEach(row => {
+                if (!category) {
+                    row.style.display = '';
+                } else {
+                    const rowCategory = row.cells[2].textContent.trim();
+                    if (rowCategory === category) {
+                        row.style.display = '';
+                        row.classList.add('slide-up');
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+            
+            updateTableVisibility();
+        }
+
+        function updateSerialNumbers() {
+            const visibleRows = document.querySelectorAll('#productsTable tbody tr:not([style*="display: none"])');
+            visibleRows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+            updatePaginationStatus(visibleRows.length);
+        }
+
+        function updatePaginationStatus(visibleCount) {
+            const totalCount = document.querySelectorAll('#productsTable tbody tr').length;
+            const paginationStatus = document.querySelector('.pagination-section div:first-child');
+            paginationStatus.textContent = `Showing 1 to ${visibleCount} of ${totalCount} products | Page 1 of 1`;
+        }
+
+        function updateTableVisibility() {
+            const visibleRows = document.querySelectorAll('#productsTable tbody tr:not([style*="display: none"])');
+            const noResultsRow = document.getElementById('noResultsRow');
+            
+            if (visibleRows.length === 0) {
+                if (!noResultsRow) {
+                    const tbody = document.querySelector('#productsTable tbody');
+                    const newRow = document.createElement('tr');
+                    newRow.id = 'noResultsRow';
+                    newRow.innerHTML = `
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No products found matching your criteria</p>
+                        </td>
+                    `;
+                    tbody.appendChild(newRow);
+                }
+            } else {
+                if (noResultsRow) {
+                    noResultsRow.remove();
+                }
+                updateSerialNumbers();
+            }
+        }
+
+        function editProduct(productId) {
+            window.location.href = `/admin/products/edit/${productId}`;
+        }
+
+        function editCurrentProduct() {
+            if (currentProductData && currentProductData.id) {
+                window.location.href = `/admin/products/edit/${currentProductData.id}`;
+            }
+        }
+
+        function showConfirmModal(actionType, productId) {
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmModalBody = document.getElementById('confirmModalBody');
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+
+            if (actionType === 'offer') {
+                const toggle = row.querySelector('.offer-toggle');
+                const isOn = toggle.classList.contains('on');
+                confirmModalBody.textContent = `Are you sure you want to ${isOn ? 'disable' : 'enable'} the offer for this product?`;
+            } else if (actionType === 'action') {
+                const isActive = row.querySelector('.status-btn.active').style.display !== 'none';
+                confirmModalBody.textContent = `Are you sure you want to ${isActive ? 'block' : 'activate'} this product?`;
+            }
+
+            currentAction = actionType;
+            currentProductId = productId;
+            currentActionType = actionType;
+            confirmModal.show();
+        }
+
+        function toggleList(productId) {
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            const activeBtn = row.querySelector('.status-btn.active');
+            const blockedBtn = row.querySelector('.status-btn.blocked');
+            const isActive = activeBtn.style.display !== 'none';
+            
+            activeBtn.style.display = isActive ? 'none' : 'inline-block';
+            blockedBtn.style.display = isActive ? 'inline-block' : 'none';
+            
+            showNotification(`Product ${isActive ? 'blocked' : 'activated'} successfully!`, 'success');
+        }
+
+        function toggleOffer(productId) {
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            const toggle = row.querySelector('.offer-toggle');
+            const isOn = toggle.classList.contains('on');
+            
+            toggle.classList.toggle('on');
+            showNotification(`Offer ${isOn ? 'disabled' : 'enabled'} successfully!`, 'success');
+        }
+
+        function viewProduct(productId) {
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            
+            // Extract all product data from the row
+            const productData = {
+                id: productId,
+                name: row.cells[1].textContent,
+                category: row.cells[2].textContent,
+                brand: row.cells[3].textContent,
+                salesPrice: row.cells[4].textContent,
+                stock: row.cells[5].textContent,
+                offer: row.cells[6].querySelector('.offer-toggle').classList.contains('on') ? 'Active' : 'Inactive',
+                images: JSON.parse(row.getAttribute('data-images') || '[]'),
+                description: row.getAttribute('data-description') || 'No description available',
+                manufacturer: row.getAttribute('data-manufacturer') || 'N/A',
+                composition: row.getAttribute('data-composition') || 'N/A',
+                packSize: row.getAttribute('data-pack-size') || 'N/A',
+                mrp: row.getAttribute('data-mrp') || '0.00',
+                discount: row.getAttribute('data-discount') || '0',
+                expiry: row.getAttribute('data-expiry') || 'N/A',
+                batch: row.getAttribute('data-batch') || 'N/A',
+                variants: JSON.parse(row.getAttribute('data-variants') || '[]')
+            };
+
+            currentProductData = productData;
+            lightboxImages = productData.images;
+
+            // Generate image gallery HTML
+            let imageGalleryClass = 'product-image-gallery';
+            if (productData.images.length === 1) {
+                imageGalleryClass += ' single-image';
+            } else if (productData.images.length === 3) {
+                imageGalleryClass += ' three-images';
+            } else if (productData.images.length >= 4) {
+                imageGalleryClass += ' four-images';
+            }
+
+            let imageHtml = '';
+            if (productData.images.length > 0) {
+                const displayImages = productData.images.slice(0, 4);
+                imageHtml = displayImages.map((img, index) => 
+                    `<img src="${img}" alt="${productData.name}" onclick="openLightbox(${index})">`
+                ).join('');
+            } else {
+                imageHtml = `<img src="https://via.placeholder.com/400x300?text=No+Image" alt="No Image Available">`;
+            }
+
+            // Generate variants HTML
+            let variantsHtml = '';
+            if (productData.variants.length > 0) {
+                variantsHtml = `
+                    <div class="variants-section">
+                        <div class="variants-header">
+                            <h4><i class="fas fa-layer-group"></i> Product Variants</h4>
+                            <span class="variants-count">${productData.variants.length} Variants</span>
+                        </div>
+                        <div class="variants-container">
+                            ${productData.variants.map(variant => `
+                                <div class="variant-card">
+                                    <div class="variant-header">
+                                        <div class="variant-name">${variant.name}</div>
+                                        <div class="variant-status ${variant.status}">${variant.status.toUpperCase()}</div>
+                                    </div>
+                                    <div class="variant-details">
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Strength:</span>
+                                            <span class="variant-detail-value">${variant.strength}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Pack Size:</span>
+                                            <span class="variant-detail-value">${variant.packSize}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">MRP:</span>
+                                            <span class="variant-detail-value price-highlight">${variant.mrp}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Sales Price:</span>
+                                            <span class="variant-detail-value price-highlight">${variant.salesPrice}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Stock:</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.stock > 0 ? 'in-stock' : ''}">${variant.stock} ${variant.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Batch:</span>
+                                            <span class="variant-detail-value">${variant.batch}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Expiry:</span>
+                                            <span class="variant-detail-value">${variant.expiry}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                variantsHtml = `
+                    <div class="variants-section">
+                        <div class="variants-header">
+                            <h4><i class="fas fa-layer-group"></i> Product Variants</h4>
+                            <span class="variants-count">0 Variants</span>
+                        </div>
+                        <div class="text-center py-4">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No variants available for this product</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const modalBody = document.getElementById('viewModalBody');
+            const modalTitle = document.getElementById('productModalTitle');
+            
+            modalTitle.textContent = `${productData.name} - Complete Details`;
+            
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="${imageGalleryClass}">
+                            ${imageHtml}
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="product-info-section">
+                            <h3 class="mb-3">${productData.name}</h3>
+                            <p class="text-muted mb-4">${productData.description}</p>
+                            
+                            <div class="product-info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Category</div>
+                                    <div class="info-value">${productData.category}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Brand Code</div>
+                                    <div class="info-value">${productData.brand}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Manufacturer</div>
+                                    <div class="info-value">${productData.manufacturer}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Composition</div>
+                                    <div class="info-value">${productData.composition}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Pack Size</div>
+                                    <div class="info-value">${productData.packSize}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">MRP</div>
+                                    <div class="info-value">₹${productData.mrp}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Sales Price</div>
+                                    <div class="info-value">${productData.salesPrice}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Discount</div>
+                                    <div class="info-value">${productData.discount}%</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Current Stock</div>
+                                    <div class="info-value">${productData.stock} Units</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Offer Status</div>
+                                    <div class="info-value">${productData.offer}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Batch Number</div>
+                                    <div class="info-value">${productData.batch}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Expiry Date</div>
+                                    <div class="info-value">${productData.expiry}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${variantsHtml}
+            `;
+
+            const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+            viewModal.show();
+        }
+
+        // Lightbox functionality
+        function openLightbox(imageIndex) {
+            if (lightboxImages.length === 0) return;
+            
+            currentImageIndex = imageIndex;
+            const lightbox = document.getElementById('imageLightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            
+            lightboxImage.src = lightboxImages[currentImageIndex];
+            lightbox.style.display = 'flex';
+            
+            // Update navigation buttons visibility
+            updateLightboxNavigation();
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('imageLightbox');
+            lightbox.style.display = 'none';
+        }
+
+        function previousImage() {
+            if (lightboxImages.length <= 1) return;
+            
+            currentImageIndex = currentImageIndex > 0 ? currentImageIndex - 1 : lightboxImages.length - 1;
+            const lightboxImage = document.getElementById('lightboxImage');
+            lightboxImage.src = lightboxImages[currentImageIndex];
+            updateLightboxNavigation();
+        }
+
+        function nextImage() {
+            if (lightboxImages.length <= 1) return;
+            
+            currentImageIndex = currentImageIndex < lightboxImages.length - 1 ? currentImageIndex + 1 : 0;
+            const lightboxImage = document.getElementById('lightboxImage');
+            lightboxImage.src = lightboxImages[currentImageIndex];
+            updateLightboxNavigation();
+        }
+
+        function updateLightboxNavigation() {
+            const prevBtn = document.querySelector('.lightbox-prev');
+            const nextBtn = document.querySelector('.lightbox-next');
+            
+            if (lightboxImages.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+                nextBtn.style.display = 'block';
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} notification-toast`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Sidebar functionality
+        document.addEventListener("DOMContentLoaded", () => {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("main-content");
+            const sidebarToggle = document.getElementById("sidebar-toggle");
+            const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+            const sidebarLinks = document.querySelectorAll(".sidebar-link");
+
+            initializeSidebar();
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", () => {
+                    toggleSidebar();
+                });
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("show");
+                });
+            }
+
+            highlightActiveLink();
+
+            document.addEventListener("click", (e) => {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        sidebar.classList.remove("show");
+                    }
+                }
+            });
+
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove("show");
+                }
+            });
+
+            function initializeSidebar() {
+                const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+                if (isCollapsed) {
+                    sidebar.classList.add("collapsed");
+                    mainContent.classList.add("expanded");
+                    updateToggleIcon(true);
+                }
+            }
+
+            function toggleSidebar() {
+                const isCollapsed = sidebar.classList.toggle("collapsed");
+                mainContent.classList.toggle("expanded");
+                updateToggleIcon(isCollapsed);
+                localStorage.setItem("sidebarCollapsed", isCollapsed);
+            }
+
+            function updateToggleIcon(isCollapsed) {
+                const icon = sidebarToggle.querySelector("i");
+                if (isCollapsed) {
+                    icon.classList.remove("fa-chevron-left");
+                    icon.classList.add("fa-chevron-right");
+                } else {
+                    icon.classList.remove("fa-chevron-right");
+                    icon.classList.add("fa-chevron-left");
+                }
+            }
+
+            function highlightActiveLink() {
+                const currentPath = window.location.pathname;
+                sidebarLinks.forEach((link) => {
+                    link.classList.remove("active");
+                    const linkPath = new URL(link.href).pathname;
+                    if (linkPath === currentPath) {
+                        link.classList.add("active");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

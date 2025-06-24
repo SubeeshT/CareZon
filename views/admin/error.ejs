@@ -60,7 +60,7 @@
         </div>
         <h1 class="error-title">Oops! Something went wrong</h1>
         <p class="error-message">
-            <%= message || 'An unexpected error occurred. Please try again later.' %>
+            <%= locals.message || 'An unexpected error occurred. Please try again later.' %>
         </p>
         <% if (typeof error !== 'undefined' && error.stack && process.env.NODE_ENV === 'development') { %>
             <div class="alert alert-danger text-start mt-3">
@@ -69,8 +69,8 @@
             </div>
         <% } %>
         <div class="mt-4">
-            <a href="/admin/users" class="btn-back">
-                <i class="fas fa-arrow-left me-2"></i>Back to Users
+            <a href="/admin/dashboard" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
             </a>
         </div>
     </div>

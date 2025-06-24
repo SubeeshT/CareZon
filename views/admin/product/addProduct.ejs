@@ -1,0 +1,1071 @@
+<% 
+    const pageData = {
+        title: 'Add Product - Carezon Admin',
+        pageTitle: 'Add New Product',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Products', url: '/admin/products' },
+            { name: 'Add Product', url: '/admin/products/add' }
+        ]
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/productAdd.css">
+    
+</head>
+<body>
+    <%- include('../partials/admin/header') %>
+    <%- include('../partials/admin/sidebar') %>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <% pageData.breadcrumb.forEach(function(item, index) { %>
+                                    <% if (index === pageData.breadcrumb.length - 1) { %>
+                                        <li class="breadcrumb-item active" aria-current="page"><%= item.name %></li>
+                                    <% } else { %>
+                                        <li class="breadcrumb-item"><a href="<%= item.url %>"><%= item.name %></a></li>
+                                    <% } %>
+                                <% }); %>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <form id="productForm" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-12 mb-3">
+                            <label for="productName" class="form-label">Product Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="productName" name="productName" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="tab">Tablet</option>
+                                <option value="capsule">Capsule</option>
+                                <option value="nrx_tab">NRX Tablet</option>
+                                <option value="ointments">Ointments</option>
+                                <option value="drops">Drops</option>
+                                <option value="syrup">Syrup</option>
+                                <option value="food">Food (Serlac, Enfamil, Nan Pro)</option>
+                                <option value="meq">Medical Equipment</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="brand" name="brand" required>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Product Status <span class="text-danger">*</span></label>
+                            <div class="status-toggle">
+                                <input type="checkbox" id="status" name="status" checked data-bootstrap-switch>
+                                <span>Active</span>
+                            </div>
+                        </div>
+
+                        <!-- Offer Status -->
+                        <div class="col-md-6 mb-3">
+                            <label for="offerStatus" class="form-label">Offer Status <span class="text-danger">*</span></label>
+                            <div class="status-toggle">
+                                <input type="checkbox" id="offerStatus" name="offerStatus" checked data-bootstrap-switch>
+                                <span>Active</span>
+                            </div>
+                        </div>
+
+                        <!-- Pricing and Dates -->
+                        <div class="col-md-6 mb-3">
+                            <label for="regularPrice" class="form-label">Regular Price <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="regularPrice" name="regularPrice" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="discountPrice" class="form-label">Sales Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="discountPrice" name="discountPrice" step="0.01">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="expiryDate" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" id="expiryDate" name="expiryDate">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="addedOn" class="form-label">Added On</label>
+                            <input type="date" class="form-control" id="addedOn" name="addedOn" value="<%= new Date().toISOString().split('T')[0] %>">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" required>
+                        </div>
+
+                        <!-- Product Attributes -->
+                        <div class="col-12 mb-4">
+                            <div class="attribute-group">
+                                <h6 class="mb-3">Product Attributes</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Attribute Type</label>
+                                        <div class="attribute-type-list" id="attributeTypeList">
+                                            <div><input type="checkbox" id="attr_dosage" name="attributeType[]" value="dosage"><label for="attr_dosage">Dosage</label></div>
+                                            <div><input type="checkbox" id="attr_mg" name="attributeType[]" value="mg"><label for="attr_mg">Milligrams (mg)</label></div>
+                                            <div><input type="checkbox" id="attr_ml" name="attributeType[]" value="ml"><label for="attr_ml">Milliliters (ml)</label></div>
+                                            <div><input type="checkbox" id="attr_kg" name="attributeType[]" value="kg"><label for="attr_kg">Kilograms (kg)</label></div>
+                                            <div><input type="checkbox" id="attr_color" name="attributeType[]" value="color"><label for="attr_color">Color</label></div>
+                                            <div><input type="checkbox" id="attr_material" name="attributeType[]" value="material"><label for="attr_material">Material</label></div>
+                                            <div><input type="checkbox" id="attr_uom" name="attributeType[]" value="uom"><label for="attr_uom">Unit of Measure (UOM)</label></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="attributeValuesContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="col-12 mb-4">
+                            <label class="form-label">Upload Images (3-6 images) <span class="text-danger">*</span></label>
+                            <div class="image-upload-container">
+                                <div class="image-upload-area" id="imageUploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drop images here to upload (Min: 3, Max: 6)</p>
+                                    <p class="text-muted">or click to browse</p>
+                                    <input type="file" id="imageInput" name="images" multiple accept="image/*" hidden>
+                                </div>
+                                <div class="uploaded-images" id="uploadedImages"></div>
+                                <div class="invalid-feedback" id="imageError"></div>
+                            </div>
+                        </div>
+
+                        <!-- Variants Container -->
+                        <div class="col-12" id="variantsContainer"></div>
+
+                        <!-- Form Actions -->
+                        <div class="col-12">
+                            <div class="d-flex gap-3 justify-content-end">
+                                <button type="button" class="btn btn-outline-success" id="addVariantBtn">
+                                    <i class="fas fa-plus"></i> Add Variant
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="window.location.href='/admin/products'">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAddProductPage();
+        });
+
+        function initializeAddProductPage() {
+            initializeImageUpload();
+            initializeAttributes();
+            initializeFormValidation();
+            initializePriceCalculation();
+            initializeSidebar();
+            initializeCategoryChange();
+            initializeVariants();
+            initializeStatusToggle();
+            initializeOfferStatusToggle();
+        }
+
+        function initializeImageUpload(containerId = '', prefix = '') {
+            const imageUploadArea = document.getElementById(`${prefix}imageUploadArea${containerId}`);
+            const imageInput = document.getElementById(`${prefix}imageInput${containerId}`);
+            const uploadedImagesContainer = document.getElementById(`${prefix}uploadedImages${containerId}`);
+            const errorElement = document.getElementById(`${prefix}imageError${containerId}`);
+            let imageCount = 0;
+
+            if (!imageUploadArea || !imageInput || !uploadedImagesContainer || !errorElement) {
+                console.error(`Image upload elements not found for ${prefix}imageUploadArea${containerId}`);
+                return;
+            }
+
+            imageUploadArea.addEventListener('click', () => {
+                if (imageCount < 6) imageInput.click();
+            });
+
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = 'rgba(220, 53, 69, 0.1)';
+                imageUploadArea.style.borderColor = '#dc3545';
+            });
+
+            imageUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = '';
+                imageUploadArea.style.borderColor = '';
+            });
+
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = '';
+                imageUploadArea.style.borderColor = '';
+                if (imageCount < 6) handleImageFiles(Array.from(e.dataTransfer.files));
+            });
+
+            imageInput.addEventListener('change', (e) => {
+                if (imageCount < 6) handleImageFiles(Array.from(e.target.files));
+            });
+
+            function handleImageFiles(files) {
+                const remainingSlots = 6 - imageCount;
+                const filesToProcess = files.slice(0, remainingSlots).filter(file => file.type.startsWith('image/'));
+
+                filesToProcess.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        addImagePreview(e.target.result, file.name);
+                        imageCount++;
+                        validateImages();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                if (files.length > remainingSlots) {
+                    showNotification('Maximum 6 images allowed!', 'error');
+                }
+            }
+
+            function addImagePreview(src, fileName) {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'uploaded-image fade-in';
+                imageContainer.innerHTML = `
+                    <img src="${src}" alt="${fileName}">
+                    <button type="button" class="remove-image" onclick="removeImage(this, '${containerId}', '${prefix}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                uploadedImagesContainer.appendChild(imageContainer);
+            }
+
+            function validateImages() {
+                errorElement.style.display = imageCount < 3 ? 'block' : 'none';
+                errorElement.textContent = imageCount < 3 ? `Please upload at least ${3 - imageCount} more image(s)` : '';
+            }
+
+            return { validateImages, getImageCount: () => imageCount };
+        }
+
+        window.removeImage = function(button, containerId, prefix) {
+            const imageContainer = button.closest('.uploaded-image');
+            imageContainer.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                imageContainer.remove();
+                const imageUpload = initializeImageUpload(containerId, prefix);
+                if (imageUpload) imageUpload.validateImages();
+            }, 300);
+        };
+
+        function initializeAttributes(containerId = '', prefix = '') {
+            const attributeTypeList = document.getElementById(`${prefix}attributeTypeList${containerId}`);
+            const attributeValuesContainer = document.getElementById(`${prefix}attributeValuesContainer${containerId}`);
+            let valueCounts = {};
+
+            if (!attributeTypeList || !attributeValuesContainer) {
+                console.error(`Attribute elements not found: ${prefix}attributeTypeList${containerId} or ${prefix}attributeValuesContainer${containerId}`);
+                return;
+            }
+
+            attributeTypeList.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const attr = e.target.value;
+                    if (e.target.checked) {
+                        addValueField(attr, containerId, prefix);
+                    } else {
+                        const fields = attributeValuesContainer.querySelectorAll(`[data-attribute="${attr}"]`);
+                        fields.forEach(field => field.remove());
+                        delete valueCounts[attr];
+                    }
+                }
+            });
+
+            function addValueField(attr, containerId, prefix) {
+                const existingField = attributeValuesContainer.querySelector(`[data-attribute="${attr}"]`);
+                if (existingField) return;
+
+                if (!valueCounts[attr]) valueCounts[attr] = 0;
+                valueCounts[attr]++;
+                
+                const valueField = document.createElement('div');
+                valueField.className = 'attribute-value-field';
+                valueField.dataset.attribute = attr;
+                valueField.innerHTML = `
+                    <label class="form-label">${attr.charAt(0).toUpperCase() + attr.slice(1)}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="${prefix}attributes${containerId}[${attr}][]" placeholder="Enter ${attr} value">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="addMoreAttributeValue('${attr}', '${containerId}', '${prefix}')">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeAttributeField(this, '${attr}', '${containerId}', '${prefix}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="additional-values" id="additionalValues_${attr}_${containerId}"></div>
+                `;
+                attributeValuesContainer.appendChild(valueField);
+            }
+
+            window[`attributeValueCounts_${containerId}`] = valueCounts;
+        }
+
+        window.addMoreAttributeValue = function(attr, containerId, prefix) {
+            const additionalContainer = document.getElementById(`additionalValues_${attr}_${containerId}`);
+            if (!additionalContainer) return;
+
+            const newValueField = document.createElement('div');
+            newValueField.className = 'mt-2';
+            newValueField.innerHTML = `
+                <div class="input-group">
+                    <input type="text" class="form-control" name="${prefix}attributes${containerId}[${attr}][]" placeholder="Enter ${attr} value">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeAdditionalValue(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            additionalContainer.appendChild(newValueField);
+        };
+
+        window.removeAdditionalValue = function(button) {
+            const valueField = button.closest('.mt-2');
+            valueField.remove();
+        };
+
+        window.removeAttributeField = function(button, attr, containerId, prefix) {
+            const field = button.closest('.attribute-value-field');
+            field.remove();
+            
+            const checkbox = document.getElementById(`${prefix}attr_${attr}${containerId}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            
+            const valueCounts = window[`attributeValueCounts_${containerId}`] || {};
+            delete valueCounts[attr];
+            window[`attributeValueCounts_${containerId}`] = valueCounts;
+        };
+
+        function initializeCategoryChange() {
+            const categorySelect = document.getElementById('category');
+            const attributeTypeList = document.getElementById('attributeTypeList');
+            const categoryAttributes = {
+                tab: ['dosage', 'mg', 'uom'],
+                capsule: ['dosage', 'mg', 'uom'],
+                nrx_tab: ['dosage', 'mg', 'uom'],
+                ointments: ['material', 'color', 'ml'],
+                drops: ['ml', 'dosage'],
+                syrup: ['ml', 'dosage'],
+                food: ['kg', 'material'],
+                meq: ['material', 'color']
+            };
+
+            if (!categorySelect || !attributeTypeList) return;
+
+            categorySelect.addEventListener('change', () => {
+                const selectedCategory = categorySelect.value;
+                const allowedAttributes = categoryAttributes[selectedCategory] || [];
+
+                Array.from(attributeTypeList.querySelectorAll('input[type="checkbox"]')).forEach(checkbox => {
+                    const attr = checkbox.value;
+                    const label = checkbox.nextElementSibling;
+                    if (allowedAttributes.includes(attr)) {
+                        checkbox.style.display = '';
+                        label.style.display = '';
+                    } else {
+                        checkbox.checked = false;
+                        checkbox.style.display = 'none';
+                        label.style.display = 'none';
+                        const fields = document.getElementById('attributeValuesContainer').querySelectorAll(`[data-attribute="${attr}"]`);
+                        fields.forEach(field => field.remove());
+                    }
+                });
+
+                const variantAttributeLists = document.querySelectorAll('[id^="variantAttributeTypeList"]');
+                variantAttributeLists.forEach(list => {
+                    Array.from(list.querySelectorAll('input[type="checkbox"]')).forEach(checkbox => {
+                        const attr = checkbox.value;
+                        const label = checkbox.nextElementSibling;
+                        if (allowedAttributes.includes(attr)) {
+                            checkbox.style.display = '';
+                            label.style.display = '';
+                        } else {
+                            checkbox.checked = false;
+                            checkbox.style.display = 'none';
+                            label.style.display = 'none';
+                            const variantId = list.id.replace('variantAttributeTypeList', '');
+                            const fields = document.getElementById(`variantAttributeValuesContainer${variantId}`).querySelectorAll(`[data-attribute="${attr}"]`);
+                            fields.forEach(field => field.remove());
+                        }
+                    });
+                    const variantId = list.id.replace('variantAttributeTypeList', '');
+                    initializeVariantAttributes(variantId);
+                });
+            });
+        }
+
+        function initializeVariants() {
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            const variantsContainer = document.getElementById('variantsContainer');
+            const categoryAttributes = {
+                tab: ['dosage', 'mg', 'uom'],
+                capsule: ['dosage', 'mg', 'uom'],
+                nrx_tab: ['dosage', 'mg', 'uom'],
+                ointments: ['dosage','ml','uom'],
+                drops: ['ml', 'dosage','uom'],
+                syrup: ['ml', 'dosage','uom'],
+                food: ['kg', 'uom'],
+                meq: ['material', 'color','uom']
+            };
+            let variantCount = 0;
+
+            if (!addVariantBtn || !variantsContainer) {
+                console.error('Variant elements not found');
+                return;
+            }
+
+            addVariantBtn.addEventListener('click', () => {
+                variantCount++;
+                const variantSection = document.createElement('div');
+                variantSection.className = 'variant-container fade-in';
+                variantSection.id = `variant${variantCount}`;
+                variantSection.innerHTML = `
+                    <button type="button" class="remove-variant" onclick="removeVariant(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h5 class="mb-3">Variant ${variantCount}</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="variantBrand${variantCount}" class="form-label">Brand <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variantBrand${variantCount}" name="variants[${variantCount}][brand]" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantQuantity${variantCount}" class="form-label">Quantity <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="variantQuantity${variantCount}" name="variants[${variantCount}][quantity]" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantRegularPrice${variantCount}" class="form-label">Regular Price <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="variantRegularPrice${variantCount}" name="variants[${variantCount}][regularPrice]" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantDiscountPrice${variantCount}" class="form-label">Sales Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="variantDiscountPrice${variantCount}" name="variants[${variantCount}][discountPrice]" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantExpiryDate${variantCount}" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" id="variantExpiryDate${variantCount}" name="variants[${variantCount}][expiryDate]">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantAddedOn${variantCount}" class="form-label">Added On</label>
+                            <input type="date" class="form-control" id="variantAddedOn${variantCount}" name="variants[${variantCount}][addedOn]" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                       
+                        <div class="col-md-6 mb-3">
+                            <label for="variantOfferStatus${variantCount}" class="form-label">Offer Status <span class="text-danger">*</span></label>
+                            <div class="status-toggle">
+                                <input type="checkbox" id="variantOfferStatus${variantCount}" name="variants[${variantCount}][offerStatus]" checked data-bootstrap-switch>
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="variantProductStatus${variantCount}" class="form-label">Product Status <span class="text-danger">*</span></label>
+                            <div class="status-toggle">
+                                <input type="checkbox" id="variantProductStatus${variantCount}" name="variants[${variantCount}][productStatus]" checked data-bootstrap-switch>
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="variantDescription${variantCount}" class="form-label">Description</label>
+                            <textarea class="form-control" id="variantDescription${variantCount}" name="variants[${variantCount}][description]" rows="4"></textarea>
+                        </div>
+                        <div class="col-12 mb-4">
+                            <div class="attribute-group">
+                                <h6 class="mb-3">Variant Attributes</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Attribute Type</label>
+                                        <div class="attribute-type-list" id="variantAttributeTypeList${variantCount}">
+                                            <div><input type="checkbox" id="variant_attr_dosage${variantCount}" name="variants[${variantCount}][attributeType][]" value="dosage"><label for="variant_attr_dosage${variantCount}">Dosage</label></div>
+                                            <div><input type="checkbox" id="variant_attr_mg${variantCount}" name="variants[${variantCount}][attributeType][]" value="mg"><label for="variant_attr_mg${variantCount}">Milligrams (mg)</label></div>
+                                            <div><input type="checkbox" id="variant_attr_ml${variantCount}" name="variants[${variantCount}][attributeType][]" value="ml"><label for="variant_attr_ml${variantCount}">Milliliters (ml)</label></div>
+                                            <div><input type="checkbox" id="variant_attr_kg${variantCount}" name="variants[${variantCount}][attributeType][]" value="kg"><label for="variant_attr_kg${variantCount}">Kilograms (kg)</label></div>
+                                            <div><input type="checkbox" id="variant_attr_color${variantCount}" name="variants[${variantCount}][attributeType][]" value="color"><label for="variant_attr_color${variantCount}">Color</label></div>
+                                            <div><input type="checkbox" id="variant_attr_material${variantCount}" name="variants[${variantCount}][attributeType][]" value="material"><label for="variant_attr_material${variantCount}">Material</label></div>
+                                            <div><input type="checkbox" id="variant_attr_uom${variantCount}" name="variants[${variantCount}][attributeType][]" value="uom"><label for="variant_attr_uom${variantCount}">Unit of Measure (UOM)</label></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="variantAttributeValuesContainer${variantCount}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-4">
+                            <label class="form-label">Upload Images (3-6 images) <span class="text-danger">*</span></label>
+                            <div class="image-upload-container">
+                                <div class="image-upload-area" id="variantImageUploadArea${variantCount}">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drop images here to upload (Min: 3, Max: 6)</p>
+                                    <p class="text-muted">or click to browse</p>
+                                    <input type="file" id="variantImageInput${variantCount}" name="variants[${variantCount}][images]" multiple accept="image/*" hidden>
+                                </div>
+                                <div class="uploaded-images" id="variantUploadedImages${variantCount}"></div>
+                                <div class="invalid-feedback" id="variantImageError${variantCount}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                variantsContainer.appendChild(variantSection);
+                
+                initializeVariantImageUpload(variantCount);
+                initializeVariantAttributes(variantCount);
+                initializeVariantPriceCalculation(variantCount);
+                initializeVariantStatusToggles(variantCount);
+                showNotification(`Variant ${variantCount} added successfully!`, 'success');
+
+                const categorySelect = document.getElementById('category');
+                const selectedCategory = categorySelect.value;
+                if (selectedCategory) {
+                    const allowedAttributes = categoryAttributes[selectedCategory] || [];
+                    const variantAttributeList = document.getElementById(`variantAttributeTypeList${variantCount}`);
+                    Array.from(variantAttributeList.querySelectorAll('input[type="checkbox"]')).forEach(checkbox => {
+                        const attr = checkbox.value;
+                        const label = checkbox.nextElementSibling;
+                        if (allowedAttributes.includes(attr)) {
+                            checkbox.style.display = '';
+                            label.style.display = '';
+                        } else {
+                            checkbox.checked = false;
+                            checkbox.style.display = 'none';
+                            label.style.display = 'none';
+                        }
+                    });
+                }
+            });
+
+            window.removeVariant = function(button) {
+                const variantSection = button.closest('.variant-container');
+                variantSection.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    variantSection.remove();
+                    showNotification('Variant removed successfully!', 'success');
+                }, 300);
+            };
+        }
+
+        function initializeVariantImageUpload(variantId) {
+            const imageUploadArea = document.getElementById(`variantImageUploadArea${variantId}`);
+            const imageInput = document.getElementById(`variantImageInput${variantId}`);
+            const uploadedImagesContainer = document.getElementById(`variantUploadedImages${variantId}`);
+            const errorElement = document.getElementById(`variantImageError${variantId}`);
+            let imageCount = 0;
+
+            if (!imageUploadArea || !imageInput || !uploadedImagesContainer || !errorElement) {
+                console.error(`Variant image upload elements not found for variant ${variantId}`);
+                return;
+            }
+
+            imageUploadArea.addEventListener('click', () => {
+                if (imageCount < 6) imageInput.click();
+            });
+
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = 'rgba(220, 53, 69, 0.1)';
+                imageUploadArea.style.borderColor = '#dc3545';
+            });
+
+            imageUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = '';
+                imageUploadArea.style.borderColor = '';
+            });
+
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.background = '';
+                imageUploadArea.style.borderColor = '';
+                if (imageCount < 6) handleImageFiles(Array.from(e.dataTransfer.files));
+            });
+
+            imageInput.addEventListener('change', (e) => {
+                if (imageCount < 6) handleImageFiles(Array.from(e.target.files));
+                e.target.value = '';
+            });
+
+            function handleImageFiles(files) {
+                const remainingSlots = 6 - imageCount;
+                const filesToProcess = files.slice(0, remainingSlots).filter(file => file.type.startsWith('image/'));
+
+                filesToProcess.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        addImagePreview(e.target.result, file.name);
+                        imageCount++;
+                        validateImages();
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                if (files.length > remainingSlots) {
+                    showNotification('Maximum 6 images allowed!', 'error');
+                }
+            }
+
+            function addImagePreview(src, fileName) {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'uploaded-image fade-in';
+                imageContainer.innerHTML = `
+                    <img src="${src}" alt="${fileName}">
+                    <button type="button" class="remove-image" onclick="removeVariantImage(this, ${variantId})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                uploadedImagesContainer.appendChild(imageContainer);
+            }
+
+            function validateImages() {
+                errorElement.style.display = imageCount < 3 ? 'block' : 'none';
+                errorElement.textContent = imageCount < 3 ? `Please upload at least ${3 - imageCount} more image(s)` : '';
+            }
+
+            window[`variantImageCount_${variantId}`] = () => imageCount;
+            window[`decrementVariantImageCount_${variantId}`] = () => {
+                imageCount--;
+                validateImages();
+            };
+        }
+
+        window.removeVariantImage = function(button, variantId) {
+            const imageContainer = button.closest('.uploaded-image');
+            imageContainer.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                imageContainer.remove();
+                if (window[`decrementVariantImageCount_${variantId}`]) {
+                    window[`decrementVariantImageCount_${variantId}`]();
+                }
+            }, 300);
+        };
+
+        function initializeVariantAttributes(variantId) {
+            const attributeTypeList = document.getElementById(`variantAttributeTypeList${variantId}`);
+            const attributeValuesContainer = document.getElementById(`variantAttributeValuesContainer${variantId}`);
+            let valueCounts = {};
+
+            if (!attributeTypeList || !attributeValuesContainer) {
+                console.error(`Variant attribute elements not found for variant ${variantId}`);
+                return;
+            }
+
+            attributeTypeList.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const attr = e.target.value;
+                    if (e.target.checked) {
+                        addVariantValueField(attr, variantId);
+                    } else {
+                        const fields = attributeValuesContainer.querySelectorAll(`[data-attribute="${attr}"]`);
+                        fields.forEach(field => field.remove());
+                        delete valueCounts[attr];
+                    }
+                }
+            });
+
+            function addVariantValueField(attr, variantId) {
+                const existingField = attributeValuesContainer.querySelector(`[data-attribute="${attr}"]`);
+                if (existingField) return;
+
+                if (!valueCounts[attr]) valueCounts[attr] = 0;
+                valueCounts[attr]++;
+                
+                const valueField = document.createElement('div');
+                valueField.className = 'attribute-value-field';
+                valueField.dataset.attribute = attr;
+                valueField.innerHTML = `
+                    <label class="form-label">${attr.charAt(0).toUpperCase() + attr.slice(1)}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="variants[${variantId}][attributes][${attr}][]" placeholder="Enter ${attr} value">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="addMoreVariantAttributeValue('${attr}', ${variantId})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeVariantValueField(this, '${attr}', ${variantId})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="additional-values" id="additionalVariantValues_${attr}_${variantId}"></div>
+                `;
+                attributeValuesContainer.appendChild(valueField);
+            }
+
+            window[`variantValueCounts_${variantId}`] = valueCounts;
+        }
+
+        window.addMoreVariantAttributeValue = function(attr, variantId) {
+            const additionalContainer = document.getElementById(`additionalVariantValues_${attr}_${variantId}`);
+            if (!additionalContainer) return;
+
+            const newValueField = document.createElement('div');
+            newValueField.className = 'mt-2';
+            newValueField.innerHTML = `
+                <div class="input-group">
+                    <input type="text" class="form-control" name="variants[${variantId}][attributes][${attr}][]" placeholder="Enter ${attr} value">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeAdditionalVariantValue(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            additionalContainer.appendChild(newValueField);
+        };
+
+        window.removeAdditionalVariantValue = function(button) {
+            const valueField = button.closest('.mt-2');
+            valueField.remove();
+        };
+
+        window.removeVariantValueField = function(button, attr, variantId) {
+            const field = button.closest('.attribute-value-field');
+            field.remove();
+            
+            const checkbox = document.getElementById(`variant_attr_${attr}${variantId}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            
+            const valueCounts = window[`variantValueCounts_${variantId}`] || {};
+            delete valueCounts[attr];
+            window[`variantValueCounts_${variantId}`] = valueCounts;
+        };
+
+        function initializeVariantPriceCalculation(variantId) {
+            const regularPriceInput = document.getElementById(`variantRegularPrice${variantId}`);
+            const discountPriceInput = document.getElementById(`variantDiscountPrice${variantId}`);
+
+            if (!regularPriceInput || !discountPriceInput) {
+                console.error(`Price inputs not found for variant ${variantId}`);
+                return;
+            }
+
+            function calculateDiscount() {
+                const regularPrice = parseFloat(regularPriceInput.value) || 0;
+                const discountPrice = parseFloat(discountPriceInput.value) || 0;
+                if (regularPrice > 0 && discountPrice > 0 && discountPrice < regularPrice) {
+                    const discountPercentage = ((regularPrice - discountPrice) / regularPrice * 100).toFixed(1);
+                    console.log(`Variant ${variantId} Discount: ${discountPercentage}%`);
+                }
+            }
+
+            regularPriceInput.addEventListener('input', calculateDiscount);
+            discountPriceInput.addEventListener('input', calculateDiscount);
+        }
+
+        function initializeFormValidation() {
+            const form = document.getElementById('productForm');
+            if (!form) {
+                console.error('Product form not found');
+                return;
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (validateForm()) {
+                    submitForm();
+                }
+            });
+
+            function validateForm() {
+                let isValid = true;
+                const requiredFields = form.querySelectorAll('[required]');
+                const mainImageCount = document.querySelectorAll('#uploadedImages .uploaded-image').length;
+                const variantSections = document.querySelectorAll('.variant-container');
+
+                requiredFields.forEach(field => {
+                    if (!validateField({ target: field })) {
+                        isValid = false;
+                    }
+                });
+
+                if (mainImageCount < 3) {
+                    isValid = false;
+                    document.getElementById('imageError').style.display = 'block';
+                    document.getElementById('imageError').textContent = `Please upload at least ${3 - mainImageCount} more image(s)`;
+                } else {
+                    document.getElementById('imageError').style.display = 'none';
+                }
+
+                variantSections.forEach(section => {
+                    const variantId = section.id.replace('variant', '');
+                    const variantImageCount = section.querySelectorAll(`#variantUploadedImages${variantId} .uploaded-image`).length;
+                    const errorElement = document.getElementById(`variantImageError${variantId}`);
+                    if (variantImageCount < 3) {
+                        isValid = false;
+                        errorElement.style.display = 'block';
+                        errorElement.textContent = `Please upload at least ${3 - variantImageCount} more image(s) for variant`;
+                    } else {
+                        errorElement.style.display = 'none';
+                    }
+
+                    const variantRequiredFields = section.querySelectorAll('[required]');
+                    variantRequiredFields.forEach(field => {
+                        if (!validateField({ target: field })) {
+                            isValid = false;
+                        }
+                    });
+                });
+
+                return isValid;
+            }
+
+            function validateField(e) {
+                const field = e.target;
+                const value = field.value.trim();
+
+                clearFieldError({ target: field });
+
+                if (!value) {
+                    showFieldError(field, 'This field is required');
+                    return false;
+                }
+
+                if (field.type === 'number' && parseFloat(value) < 0) {
+                    showFieldError(field, 'Value must be greater than or equal to 0');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function clearFieldError(e) {
+                const field = e.target;
+                field.classList.remove('is-invalid');
+                const errorElement = field.parentNode.querySelector('.invalid-feedback');
+                if (errorElement) errorElement.remove();
+            }
+
+            function showFieldError(field, message) {
+                field.classList.add('is-invalid');
+                const errorElement = document.createElement('div');
+                errorElement.className = 'invalid-feedback';
+                errorElement.textContent = message;
+                field.parentNode.appendChild(errorElement);
+            }
+        }
+
+        function initializePriceCalculation() {
+            const regularPriceInput = document.getElementById('regularPrice');
+            const discountPriceInput = document.getElementById('discountPrice');
+
+            if (!regularPriceInput || !discountPriceInput) {
+                console.error('Main price inputs not found');
+                return;
+            }
+
+            function calculateDiscount() {
+                const regularPrice = parseFloat(regularPriceInput.value) || 0;
+                const discountPrice = parseFloat(discountPriceInput.value) || 0;
+                if (regularPrice > 0 && discountPrice > 0 && discountPrice < regularPrice) {
+                    const discountPercentage = ((regularPrice - discountPrice) / regularPrice * 100).toFixed(1);
+                    console.log(`Discount: ${discountPercentage}%`);
+                }
+            }
+
+            regularPriceInput.addEventListener('input', calculateDiscount);
+            discountPriceInput.addEventListener('input', calculateDiscount);
+        }
+
+        function initializeStatusToggle() {
+            const statusToggle = document.getElementById('status');
+            if (!statusToggle) return;
+
+            statusToggle.addEventListener('change', () => {
+                const statusLabel = statusToggle.nextElementSibling;
+                statusLabel.textContent = statusToggle.checked ? 'Active' : 'Inactive';
+            });
+        }
+
+        function initializeOfferStatusToggle() {
+            const offerStatusToggle = document.getElementById('offerStatus');
+            if (!offerStatusToggle) return;
+
+            offerStatusToggle.addEventListener('change', () => {
+                const statusLabel = offerStatusToggle.nextElementSibling;
+                statusLabel.textContent = offerStatusToggle.checked ? 'Active' : 'Inactive';
+            });
+        }
+
+        function submitForm() {
+            const form = document.getElementById('productForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            if (!submitBtn) {
+                console.error('Submit button not found');
+                return;
+            }
+
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                showNotification('Product saved successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin/products';
+                }, 1500);
+            }, 2000);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} notification-toast`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                animation: slideInRight 0.3s ease-out;
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+            if (!sidebar || !mainContent) {
+                console.error('Sidebar or main content not found');
+                return;
+            }
+
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                updateToggleIcon(true);
+            }
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    const isCollapsed = sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    updateToggleIcon(isCollapsed);
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                });
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            const currentPath = window.location.pathname;
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                const linkPath = new URL(link.href, window.location.origin).pathname;
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            function updateToggleIcon(isCollapsed) {
+                const icon = sidebarToggle?.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-left', 'fa-chevron-right');
+                    icon.classList.add(isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left');
+                }
+            }
+
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileMenuToggle?.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        }
+
+        function initializeVariantStatusToggles(variantId) {
+            const offerStatusToggle = document.getElementById(`variantOfferStatus${variantId}`);
+            const productStatusToggle = document.getElementById(`variantProductStatus${variantId}`);
+            
+            if (offerStatusToggle) {
+                offerStatusToggle.addEventListener('change', () => {
+                    const statusLabel = offerStatusToggle.nextElementSibling;
+                    statusLabel.textContent = offerStatusToggle.checked ? 'Active' : 'Inactive';
+                });
+            }
+            
+            if (productStatusToggle) {
+                productStatusToggle.addEventListener('change', () => {
+                    const statusLabel = productStatusToggle.nextElementSibling;
+                    statusLabel.textContent = productStatusToggle.checked ? 'Active' : 'Inactive';
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

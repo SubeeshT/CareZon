@@ -17,13 +17,13 @@ const categorySchema = new mongoose.Schema({
         type: Boolean,
         default: true 
     },
-    offer: {
+    Discounts: {
         type: Number,
         default: 0,
         min: 0,
         max: 100
     },
-    offerStatus: {
+    DiscountStatus: {
         type: Boolean,
         default: false 
     },

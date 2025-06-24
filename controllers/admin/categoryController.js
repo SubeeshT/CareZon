@@ -78,8 +78,8 @@ const addCategory = async (req, res) => {
       name: name.trim().toUpperCase(),
       description: description ? description.trim() : '',
       isListed: status === 'active',
-      offer: parseInt(discount) || 0,
-      offerStatus: parseInt(discount) > 0
+      Discounts: parseInt(discount) || 0,
+      DiscountStatus: parseInt(discount) > 0
     });
 
     await newCategory.save();
@@ -114,8 +114,8 @@ const updateCategory = async (req, res) => {
         name: name.trim().toUpperCase(),
         description: description ? description.trim() : '',
         isListed: status === 'active',
-        offer: parseInt(discount) || 0,
-        offerStatus: parseInt(discount) > 0
+        Discounts: parseInt(discount) || 0,
+        DiscountStatus: parseInt(discount) > 0
       },
       { new: true }
     );
@@ -155,22 +155,22 @@ const toggleCategoryStatus = async (req, res) => {
   }
 };
 
-const toggleOfferStatus = async (req, res) => {
+const toggleDiscountStatus = async (req, res) => {
   try {
     const categoryId = req.params.id;
-    const { offerStatus } = req.body;
+    const { DiscountStatus } = req.body;
 
     const category = await Category.findById(categoryId);
     if (!category) {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
 
-    category.offerStatus = offerStatus;
+    category.DiscountStatus = DiscountStatus;
     await category.save();
 
     res.json({ // Fixed from res.status to res.json
       success: true,
-      message: `Offer ${offerStatus ? 'activated' : 'deactivated'} successfully`,
+      message: `Offer ${DiscountStatus ? 'activated' : 'deactivated'} successfully`,
       category
     });
 
@@ -185,5 +185,5 @@ module.exports = {
   addCategory,
   updateCategory,
   toggleCategoryStatus,
-  toggleOfferStatus,
+  toggleDiscountStatus,
 };

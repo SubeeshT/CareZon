@@ -101,8 +101,8 @@
                                 <th>NO</th>
                                 <th>Category</th>
                                 <th>Description</th>
-                                <th>Discounts/Offers</th>
-                                <th>Offer Status</th>
+                                <th>Discounts</th>
+                                <th>Discounts Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -113,10 +113,10 @@
                                         <td><%= (typeof pagination !== 'undefined' ? (pagination.currentPage - 1) * pagination.limit : 0) + index + 1 %></td>
                                         <td class="category-name"><%= category.name %></td>
                                         <td class="category-description"><%= category.description || 'No description' %></td>
-                                        <td><span class="discount-badge"><%= category.offer %>%</span></td>
+                                        <td><span class="discount-badge"><%= category.Discounts %>%</span></td>
                                         <td>
                                             <label class="status-toggle">
-                                                <input type="checkbox" <%= category.offerStatus ? 'checked' : '' %> data-category-id="<%= category._id %>" class="offer-toggle">
+                                                <input type="checkbox" <%= category.DiscountStatus ? 'checked' : '' %> data-category-id="<%= category._id %>" class="offer-toggle">
                                                 <span class="toggle-slider"></span>
                                             </label>
                                         </td>
@@ -218,7 +218,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="discountPercentage" class="form-label">Discounts/Offers in %</label>
+                                    <label for="discountPercentage" class="form-label">Discounts in %</label>
                                     <select class="form-select" id="discountPercentage" name="discountPercentage" required>
                                         <option value="0" selected>0%</option>
                                         <option value="5">5%</option>
@@ -750,12 +750,12 @@
 
             function executeOfferStatusChange(action) {
                 showLoading(true);
-                fetch(`/admin/categories/${action.id}/offer-status`, {
+                fetch(`/admin/categories/${action.id}/discount-status`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ offerStatus: action.newStatus })
+                    body: JSON.stringify({ DiscountStatus: action.newStatus })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -888,10 +888,10 @@
                             <td>${((pagination.currentPage - 1) * pagination.limit) + index + 1}</td>
                             <td class="category-name">${category.name}</td>
                             <td class="category-description">${category.description || 'No description'}</td>
-                            <td><span class="discount-badge">${category.offer}%</span></td>
+                            <td><span class="discount-badge">${category.Discounts}%</span></td>
                             <td>
                                 <label class="status-toggle">
-                                    <input type="checkbox" ${category.offerStatus ? 'checked' : ''} data-category-id="${category._id}" class="offer-toggle">
+                                    <input type="checkbox" ${category.DiscountStatus ? 'checked' : ''} data-category-id="${category._id}" class="offer-toggle">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </td>
