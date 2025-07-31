@@ -1,0 +1,880 @@
+<%
+    const pageData = {
+        title: 'Customer Management - Carezon Admin',
+        pageTitle: 'Customer Management',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Customer Management', url: '/admin/users' }
+        ]
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/userManagement.css">
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="search-container">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="search-input" id="searchInput" placeholder="Search users by name, email, mobile, or date..." value="<%= search || '' %>" list="searchSuggestions">
+                                <datalist id="searchSuggestions"></datalist>
+                                <div class="search-actions">
+                                    <button type="button" class="search-btn history-btn" id="historyBtn" title="Search History">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                    <button type="button" class="search-btn clear-btn" id="clearBtn" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="search-history" id="searchHistory">
+                                <div class="search-history-empty">No search history</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <div class="sort-section">
+                                <label for="sortBy" class="form-label mb-0 me-2">Sort by:</label>
+                                <select class="sort-select" id="sortBy">
+                                    <option value="createdAt" <%= sortBy === 'createdAt' ? 'selected' : '' %>>Date Joined</option>
+                                    <option value="fullName" <%= sortBy === 'fullName' ? 'selected' : '' %>>Name</option>
+                                    <option value="email" <%= sortBy === 'email' ? 'selected' : '' %>>Email</option>
+                                    <option value="phone" <%= sortBy === 'phone' ? 'selected' : '' %>>Mobile</option>
+                                    <option value="active" <%= sortBy === 'active' ? 'selected' : '' %>>Active Users</option>
+                                    <option value="blocked" <%= sortBy === 'blocked' ? 'selected' : '' %>>Blocked Users</option>
+                                </select>
+                                <select class="sort-select ms-2" id="sortOrder">
+                                    <option value="desc" <%= sortOrder === 'desc' ? 'selected' : '' %>>Descending</option>
+                                    <option value="asc" <%= sortOrder === 'asc' ? 'selected' : '' %>>Ascending</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Table -->
+            <div class="customer-table position-relative">
+                <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="customerTable">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Date of Joining</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                            <% if (users && users.length > 0) { %>
+                                <% users.forEach((user) => { %>
+                                <tr data-user-id="<%= user._id %>">
+                                    <td><%= user.serialNo %></td>
+                                    <td><%= user.fullName %></td>
+                                    <td><%= user.email %></td>
+                                    <td><%= user.phone %></td>
+                                    <td><%= new Date(user.createdAt).toLocaleDateString() %></td>
+                                    <td>
+                                        <button class="status-badge <%= user.isBlocked ? 'status-blocked' : 'status-active' %>" 
+                                                data-user-id="<%= user._id %>" 
+                                                data-status="<%= user.isBlocked ? 'blocked' : 'active' %>"
+                                                data-user-name="<%= user.fullName %>">
+                                            <%= user.isBlocked ? 'Blocked' : 'Active' %>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="no-results">
+                                            <i class="fas fa-users"></i>
+                                            <h5>No customers found</h5>
+                                            <p>No customers match your criteria</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No Results Message -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <h5>No customers found</h5>
+                    <p>Try adjusting your search criteria</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-wrapper">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="pagination-info">
+                        <span class="pagination-stats">
+                            Showing <strong id="showingStart"><%= showingStart || 0 %></strong> 
+                            to <strong id="showingEnd"><%= showingEnd || 0 %></strong> 
+                            of <strong id="totalRecords"><%= totalUsers || 0 %></strong> customers
+                        </span>
+                        <span class="text-muted">
+                            Page <strong id="currentPage"><%= currentPage || 1 %></strong> 
+                            of <strong id="totalPages"><%= totalPages || 1 %></strong>
+                        </span>
+                    </div>
+                    <nav aria-label="Customer pagination">
+                        <ul class="pagination mb-0" id="paginationList">
+                            <li class="page-item <%= !hasPrevPage ? 'disabled' : '' %>">
+                                <a class="page-link" href="#" data-page="<%= prevPage || 1 %>">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+                                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                    <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            <li class="page-item <%= !hasNextPage ? 'disabled' : '' %>">
+                                <a class="page-link" href="#" data-page="<%= nextPage || totalPages %>">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-icon warning" id="modalIcon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="modal-message" id="modalMessage">
+                        Are you sure you want to block this user?
+                    </div>
+                    <div class="modal-submessage" id="modalSubmessage">
+                        This action can be reversed later.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Customer Management JavaScript
+        document.addEventListener("DOMContentLoaded", () => {
+            // Sidebar functionality
+            const sidebar = document.getElementById("sidebar")
+            const mainContent = document.getElementById("main-content")
+            const sidebarToggle = document.getElementById("sidebar-toggle")
+            const mobileMenuToggle = document.getElementById("mobile-menu-toggle")
+            const sidebarLinks = document.querySelectorAll(".sidebar-link")
+
+            // Search and pagination elements
+            const searchInput = document.getElementById("searchInput")
+            const searchSuggestions = document.getElementById("searchSuggestions")
+            const clearBtn = document.getElementById("clearBtn")
+            const historyBtn = document.getElementById("historyBtn")
+            const searchHistory = document.getElementById("searchHistory")
+            const sortBy = document.getElementById("sortBy")
+            const sortOrder = document.getElementById("sortOrder")
+            const loadingOverlay = document.getElementById("loadingOverlay")
+            const noResults = document.getElementById("noResults")
+            const customerTable = document.getElementById("customerTable")
+            const customerTableBody = document.getElementById("customerTableBody")
+
+            // Modal elements
+            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'))
+            const modalIcon = document.getElementById("modalIcon")
+            const modalMessage = document.getElementById("modalMessage")
+            const modalSubmessage = document.getElementById("modalSubmessage")
+            const confirmActionBtn = document.getElementById("confirmActionBtn")
+
+            // Search history management
+            let searchHistoryData = JSON.parse(localStorage.getItem('customerSearchHistory') || '[]'),
+                currentAction = null;
+            let currentSearch = '<%= search || "" %>';
+
+            // Initialize sidebar state
+            initializeSidebar()
+
+            // Sidebar event listeners
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", toggleSidebar)
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("show")
+                })
+            }
+
+            // Search functionality with debouncing
+            let searchTimeout
+            searchInput.addEventListener("input", (e) => {
+                const value = e.target.value.trim()
+                currentSearch = value
+                
+                // Show/hide clear button
+                clearBtn.style.display = value ? "flex" : "none"
+                
+                // Debounce suggestions
+                clearTimeout(searchTimeout)
+                searchTimeout = setTimeout(() => {
+                    if (value) {
+                        fetchSuggestions(value)
+                    } else {
+                        clearBtn.click()
+                    }
+                }, 300)
+            })
+
+            // Trigger search on Enter key
+            searchInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault()
+                    const value = searchInput.value.trim()
+                    if (value) {
+                        currentSearch = value
+                        performSearch(value)
+                    }
+                }
+            })
+
+            // Clear search
+            clearBtn.addEventListener("click", () => {
+                searchInput.value = ""
+                currentSearch = ""
+                clearBtn.style.display = "none"
+                searchHistory.classList.remove("show")
+                searchSuggestions.innerHTML = ''
+                loadCustomers()
+            })
+
+            // Search history toggle
+            historyBtn.addEventListener("click", (e) => {
+                e.stopPropagation()
+                searchHistory.classList.toggle("show")
+                updateSearchHistory()
+            })
+
+            // Close search history when clicking outside
+            document.addEventListener("click", (e) => {
+                if (!searchHistory.contains(e.target) && !historyBtn.contains(e.target)) {
+                    searchHistory.classList.remove("show")
+                }
+
+                // Close sidebar when clicking outside on mobile
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        sidebar.classList.remove("show")
+                    }
+                }
+            })
+
+            // Sort functionality
+            sortBy.addEventListener("change", () => {
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    fetchFilteredUsers()
+                } else {
+                    performSort()
+                }
+            })
+            sortOrder.addEventListener("change", () => {
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    fetchFilteredUsers()
+                } else {
+                    performSort()
+                }
+            })
+
+            // Status button click handlers
+            document.addEventListener("click", (e) => {
+                if (e.target.classList.contains("status-badge")) {
+                    const userId = e.target.dataset.userId
+                    const currentStatus = e.target.dataset.status
+                    const userName = e.target.dataset.userName || e.target.closest("tr").cells[1].textContent
+                    
+                    showConfirmationModal(userId, currentStatus, userName, e.target)
+                }
+
+                // Pagination click handlers
+                if (e.target.closest(".page-link")) {
+                    e.preventDefault()
+                    const page = e.target.closest(".page-link").dataset.page
+                    if (page && !e.target.closest(".page-item").classList.contains("disabled")) {
+                        loadPage(parseInt(page))
+                    }
+                }
+
+                // Search history item click
+                if (e.target.classList.contains("search-history-text")) {
+                    const searchTerm = e.target.textContent
+                    searchInput.value = searchTerm
+                    currentSearch = searchTerm
+                    clearBtn.style.display = "flex"
+                    searchHistory.classList.remove("show")
+                    performSearch(searchTerm)
+                }
+
+                // Remove search history item
+                if (e.target.closest(".search-history-remove")) {
+                    e.stopPropagation()
+                    const item = e.target.closest(".search-history-item")
+                    const searchTerm = item.querySelector(".search-history-text").textContent
+                    removeFromSearchHistory(searchTerm)
+                    updateSearchHistory()
+                }
+            })
+
+            // Confirm action button
+            confirmActionBtn.addEventListener("click", () => {
+                if (currentAction) {
+                    executeStatusChange(currentAction)
+                    confirmationModal.hide()
+                }
+            })
+
+            // Sidebar link highlighting
+            highlightActiveLink()
+
+            // Handle window resize
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove("show")
+                }
+            })
+
+            // Functions
+            function initializeSidebar() {
+                const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true"
+                if (isCollapsed) {
+                    sidebar.classList.add("collapsed")
+                    mainContent.classList.add("expanded")
+                    updateToggleIcon(true)
+                }
+            }
+
+            function toggleSidebar() {
+                const isCollapsed = sidebar.classList.toggle("collapsed")
+                mainContent.classList.toggle("expanded")
+                updateToggleIcon(isCollapsed)
+                localStorage.setItem("sidebarCollapsed", isCollapsed)
+            }
+
+            function updateToggleIcon(isCollapsed) {
+                const icon = sidebarToggle.querySelector("i")
+                if (icon) {
+                    if (isCollapsed) {
+                        icon.classList.remove("fa-chevron-left")
+                        icon.classList.add("fa-chevron-right")
+                    } else {
+                        icon.classList.remove("fa-chevron-right")
+                        icon.classList.add("fa-chevron-left")
+                    }
+                }
+            }
+
+            function highlightActiveLink() {
+                const currentPath = window.location.pathname
+
+                sidebarLinks.forEach((link) => {
+                    link.classList.remove("active")
+                })
+
+                sidebarLinks.forEach((link) => {
+                    const linkPath = new URL(link.href).pathname
+                    if (linkPath === currentPath || linkPath.includes("users") || linkPath.includes("customers")) {
+                        link.classList.add("active")
+                    }
+                })
+            }
+
+            function addToSearchHistory(searchTerm) {
+                if (searchTerm && !searchHistoryData.includes(searchTerm)) {
+                    searchHistoryData.unshift(searchTerm)
+                    if (searchHistoryData.length > 10) {
+                        searchHistoryData = searchHistoryData.slice(0, 10)
+                    }
+                    localStorage.setItem('customerSearchHistory', JSON.stringify(searchHistoryData))
+                }
+            }
+
+            function removeFromSearchHistory(searchTerm) {
+                searchHistoryData = searchHistoryData.filter(item => item !== searchTerm)
+                localStorage.setItem('customerSearchHistory', JSON.stringify(searchHistoryData))
+            }
+
+            function updateSearchHistory() {
+                if (searchHistoryData.length === 0) {
+                    searchHistory.innerHTML = '<div class="search-history-empty">No search history</div>'
+                } else {
+                    searchHistory.innerHTML = searchHistoryData.map(item => `
+                        <div class="search-history-item">
+                            <span class="search-history-text">${item}</span>
+                            <button class="search-history-remove" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('')
+                }
+            }
+
+            function fetchSuggestions(query) {
+                if (query.length < 2) {
+                    searchSuggestions.innerHTML = ''
+                    return
+                }
+
+                fetch(`/admin/users/suggestions?q=${encodeURIComponent(query)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.suggestions) {
+                        searchSuggestions.innerHTML = data.suggestions.map(suggestion => `
+                            <option value="${suggestion}">
+                        `).join('')
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error)
+                })
+            }
+
+            function showConfirmationModal(userId, currentStatus, userName, buttonElement) {
+                const isBlocking = currentStatus === "active"
+                
+                currentAction = {
+                    userId,
+                    currentStatus,
+                    newStatus: isBlocking ? "blocked" : "active",
+                    userName,
+                    buttonElement
+                }
+
+                // Update modal content
+                if (isBlocking) {
+                    modalIcon.innerHTML = '<i class="fas fa-ban"></i>'
+                    modalIcon.className = "modal-icon danger"
+                    modalMessage.textContent = `Block ${userName}?`
+                    modalSubmessage.textContent = "This user will not be able to access their account."
+                    confirmActionBtn.textContent = "Block User"
+                    confirmActionBtn.className = "btn btn-danger"
+                } else {
+                    modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>'
+                    modalIcon.className = "modal-icon warning"
+                    modalMessage.textContent = `Unblock ${userName}?`
+                    modalSubmessage.textContent = "This user will regain access to their account."
+                    confirmActionBtn.textContent = "Unblock User"
+                    confirmActionBtn.className = "btn btn-success"
+                }
+
+                confirmationModal.show()
+            }
+
+            function executeStatusChange(action) {
+                const { userId, newStatus, userName, buttonElement } = action
+                
+                showLoading(true)
+                
+                fetch(`/admin/users/${userId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        buttonElement.textContent = data.newStatus === "active" ? "Active" : "Blocked"
+                        buttonElement.className = `status-badge ${data.newStatus === "active" ? "status-active" : "status-blocked"}`
+                        buttonElement.dataset.status = data.newStatus
+                        
+                        showToast(data.message, data.newStatus === "active" ? "success" : "danger")
+                        if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                            fetchFilteredUsers()
+                        } else {
+                            loadCustomers()
+                        }
+                    } else {
+                        showToast(data.message || "Failed to update user status", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error)
+                    showToast("An error occurred while updating user status", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function performSearch(query) {
+                showLoading(true)
+                addToSearchHistory(query)
+                
+                const params = new URLSearchParams({
+                    q: query,
+                    page: 1
+                })
+                
+                if (sortBy.value !== 'active' && sortBy.value !== 'blocked') {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
+                } else {
+                    params.append('filter', sortBy.value)
+                }
+                
+                fetch(`/admin/users/search?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Search failed", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Search error:', error)
+                    showToast("An error occurred during search", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function performSort() {
+                showLoading(true)
+                
+                const params = new URLSearchParams({
+                    sort: sortBy.value,
+                    order: sortOrder.value,
+                    page: 1
+                })
+                
+                if (currentSearch) {
+                    params.append('q', currentSearch)
+                }
+                
+                fetch(`/admin/users?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Sort failed", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Sort error:', error)
+                    showToast("An error occurred during sorting", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function fetchFilteredUsers() {
+                showLoading(true)
+                
+                const params = new URLSearchParams({
+                    filter: sortBy.value,
+                    page: 1
+                })
+                
+                if (currentSearch) {
+                    params.append('q', currentSearch)
+                }
+                
+                fetch(`/admin/users?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Filter failed", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Filter error:', error)
+                    showToast("An error occurred during filtering", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function loadPage(page) {
+                showLoading(true)
+                
+                const params = new URLSearchParams({
+                    page: page
+                })
+                
+                if (currentSearch) {
+                    params.append('q', currentSearch)
+                }
+                
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    params.append('filter', sortBy.value)
+                } else {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
+                }
+                
+                fetch(`/admin/users?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Failed to load page", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Pagination error:', error)
+                    showToast("An error occurred while loading page", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function loadCustomers() {
+                showLoading(true)
+                
+                const params = new URLSearchParams({
+                    page: 1
+                })
+                
+                if (sortBy.value === 'active' || sortBy.value === 'blocked') {
+                    params.append('filter', sortBy.value)
+                } else {
+                    params.append('sort', sortBy.value)
+                    params.append('order', sortOrder.value)
+                }
+                
+                fetch(`/admin/users?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTable(data)
+                        updatePagination(data.pagination)
+                    } else {
+                        showToast(data.message || "Failed to load customers", "danger")
+                    }
+                })
+                .catch(error => {
+                    console.error('Load customers error:', error)
+                    showToast("An error occurred while loading customers", "danger")
+                })
+                .finally(() => {
+                    showLoading(false)
+                })
+            }
+
+            function updateTable(data) {
+                const tbody = customerTableBody
+                
+                if (data.users && data.users.length > 0) {
+                    tbody.innerHTML = data.users.map(user => `
+                        <tr data-user-id="${user._id}">
+                            <td>${user.serialNo}</td>
+                            <td>${user.fullName}</td>
+                            <td>${user.email}</td>
+                            <td>${user.phone}</td>
+                            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td>
+                                <button class="status-badge ${user.isBlocked ? 'status-blocked' : 'status-active'}" 
+                                        data-user-id="${user._id}" 
+                                        data-status="${user.isBlocked ? 'blocked' : 'active'}"
+                                        data-user-name="${user.fullName}">
+                                    ${user.isBlocked ? 'Blocked' : 'Active'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')
+                    
+                    noResults.style.display = 'none'
+                    customerTable.style.display = 'block'
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="no-results">
+                                    <i class="fas fa-users"></i>
+                                    <h5>No customers found</h5>
+                                    <p>No customers match your criteria</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `
+                }
+            }
+
+            function updatePagination(pagination) {
+                if (!pagination) return
+                
+                document.getElementById('showingStart').textContent = pagination.showingStart || 0
+                document.getElementById('showingEnd').textContent = pagination.showingEnd || 0
+                document.getElementById('totalRecords').textContent = pagination.totalUsers || 0
+                document.getElementById('currentPage').textContent = pagination.currentPage || 1
+                document.getElementById('totalPages').textContent = pagination.totalPages || 1
+                
+                const paginationList = document.getElementById('paginationList')
+                let paginationHTML = ''
+                
+                paginationHTML += `
+                    <li class="page-item ${!pagination.hasPrevPage ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${pagination.prevPage || 1}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                `
+                
+                const startPage = Math.max(1, pagination.currentPage - 2)
+                const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHTML += `
+                        <li class="page-item ${i === pagination.currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `
+                }
+                
+                paginationHTML += `
+                    <li class="page-item ${!pagination.hasNextPage ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${pagination.nextPage || pagination.totalPages}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                `
+                
+                paginationList.innerHTML = paginationHTML
+            }
+
+            function showLoading(show) {
+                loadingOverlay.style.display = show ? "flex" : "none"
+            }
+
+            function showToast(message, type = "success") {
+                const toast = document.createElement("div")
+                toast.className = `toast align-items-center text-white bg-${type} border-0`
+                toast.setAttribute("role", "alert")
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `
+
+                const toastContainer = document.getElementById('toastContainer')
+                toastContainer.appendChild(toast)
+
+                const bsToast = new bootstrap.Toast(toast)
+                bsToast.show()
+
+                toast.addEventListener("hidden.bs.toast", () => {
+                    toast.remove()
+                })
+            }
+
+            // Initialize page
+            loadCustomers()
+        })
+    </script>
+</body>
+</html>

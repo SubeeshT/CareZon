@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/login.css">
+    
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <!-- Main Login Container -->
+    <div class="login-container">
+        <div class="login-card">
+            <h2 class="login-title">Admin Login</h2>
+            
+            <div id="alertContainer"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email :</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                    <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password :</label>
+                    <div class="password-container">
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback"></div>
+                </div>
+
+                <button type="submit" class="btn btn-login" id="loginBtn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+        const toggleIcon = togglePassword.querySelector('i');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            // Toggle icon
+            if (type === 'password') {
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        });
+
+        // Form validation and submission
+        const loginForm = document.getElementById('loginForm');
+        const emailField = document.getElementById('email');
+        const loginButton = document.getElementById('loginBtn');
+        const alertContainer = document.getElementById('alertContainer');
+
+        // Show alert message
+        function showAlert(message, type = 'danger') {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}" role="alert">
+                    <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Email validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Password validation
+        function validatePassword(password) {
+            return password.length >= 8;
+        }
+
+        // Show error message
+        function showError(field, message) {
+            field.classList.add('is-invalid');
+            const container = field.closest('.form-group') || field.parentNode;
+            const feedback = container.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            }
+        }
+
+        // Clear error message
+        function clearError(field) {
+            field.classList.remove('is-invalid');
+            const container = field.closest('.form-group') || field.parentNode;
+            const feedback = container.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = '';
+            }
+        }
+
+        // Real-time validation
+        emailField.addEventListener('input', function() {
+            if (this.value && !validateEmail(this.value)) {
+                showError(this, 'Please enter a valid email address');
+            } else {
+                clearError(this);
+            }
+        });
+
+        passwordField.addEventListener('input', function() {
+            if (this.value && !validatePassword(this.value)) {
+                showError(this, 'Password must be at least 8 characters long');
+            } else {
+                clearError(this);
+            }
+        });
+
+        // Form submission with AJAX
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            
+            const email = emailField.value.trim();
+            const password = passwordField.value;
+            let isValid = true;
+
+            // Clear previous errors and alerts
+            clearError(emailField);
+            clearError(passwordField);
+            alertContainer.innerHTML = '';
+
+            // Validate email
+            if (!email) {
+                showError(emailField, 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError(emailField, 'Please enter a valid email address');
+                isValid = false;
+            }
+
+            // Validate password
+            if (!password) {
+                showError(passwordField, 'Password is required');
+                isValid = false;
+            } else if (!validatePassword(password)) {
+                showError(passwordField, 'Password must be at least 8 characters long');
+                isValid = false;
+            }
+
+            // Stop if validation fails
+            if (!isValid) {
+                return false;
+            }
+
+            // Show loading state
+            loginButton.classList.add('loading');
+            loginButton.disabled = true;
+            loginButton.textContent = 'Logging in...';
+
+
+            try {
+                const response = await fetch('/admin/signIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                 const data = await response.json();
+
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl || '/admin/dashboard';
+                    }, 1000);
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('An error occurred during login. Please try again.', 'danger');
+            } finally {
+                // Reset button state
+                loginButton.classList.remove('loading');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Login';
+            }
+        });
+
+        // Add smooth focus transitions
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                const formGroup = this.closest('.form-group');
+                if (formGroup) {
+                    formGroup.style.transform = 'scale(1.02)';
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const formGroup = this.closest('.form-group');
+                if (formGroup) {
+                    formGroup.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // Keyboard navigation enhancement
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                const inputs = Array.from(document.querySelectorAll('input[type="email"], input[type="password"]'));
+                const currentIndex = inputs.indexOf(e.target);
+                const nextInput = inputs[currentIndex + 1];
+                
+                if (nextInput) {
+                    e.preventDefault();
+                    nextInput.focus();
+                }
+            }
+        });
+
+        // Reset form state on page load
+        window.addEventListener('load', function() {
+            loginButton.classList.remove('loading');
+            loginButton.disabled = false;
+            loginButton.textContent = 'Login';
+        });
+    </script>
+</body>
+</html>

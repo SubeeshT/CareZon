@@ -1,0 +1,986 @@
+<% 
+    const pageData = {
+        title: 'Category Management - Carezon Admin',
+        pageTitle: 'Category Management',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Category Management', url: '/admin/categories' }
+        ]
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/category.css">
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Header -->
+            <div class="category-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="page-title"><%= pageData.pageTitle %></h3>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <% pageData.breadcrumb.forEach(function(item, index) { %>
+                                    <% if (index === pageData.breadcrumb.length - 1) { %>
+                                        <li class="breadcrumb-item active" aria-current="page"><%= item.name %></li>
+                                    <% } else { %>
+                                        <li class="breadcrumb-item"><a href="<%= item.url %>"><%= item.name %></a></li>
+                                    <% } %>
+                                <% }); %>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="search-container">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="search-input" id="searchInput" placeholder="Search categories..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+                                <div class="search-actions">
+                                    <button type="button" class="search-btn clear-btn" id="clearBtn" title="Clear Search">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <!-- Search History -->
+                                <div class="search-history" id="searchHistory" style="display: none;">
+                                    <div class="search-history-content" style="max-height: 200px; overflow-y: auto;">
+                                        <ul class="search-history-list list-group"></ul>
+                                    </div>
+                                    <div class="search-history-footer" style="position: sticky; bottom: 0; padding: 8px 12px; border-top: 1px solid #eee; background-color: #f8f9fa; z-index: 10;">
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100" id="clearHistoryBtn">
+                                            <i class="fas fa-trash-alt me-1"></i>Clear All History
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-primary" id="addCategoryBtn">
+                                <i class="fas fa-plus me-2"></i>Add Category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Table -->
+            <div class="category-table position-relative">
+                <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th>NO</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Discounts</th>
+                                <th>Discounts Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTableBody">
+                            <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                                <% categories.forEach(function(category, index) { %>
+                                    <tr data-category-id="<%= category._id %>" data-category-status="<%= category.isListed ? 'active' : 'block' %>">
+                                        <td><%= (typeof pagination !== 'undefined' ? (pagination.currentPage - 1) * pagination.limit : 0) + index + 1 %></td>
+                                        <td class="category-name"><%= category.name %></td>
+                                        <td class="category-description"><%= category.description || 'No description' %></td>
+                                        <td><span class="discount-badge"><%= category.Discounts %>%</span></td>
+                                        <td>
+                                            <label class="status-toggle">
+                                                <input type="checkbox" <%= category.DiscountStatus ? 'checked' : '' %> data-category-id="<%= category._id %>" class="offer-toggle">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <button class="action-btn <%= category.isListed ? 'active-btn' : 'block-btn' %>" 
+                                                    data-category-id="<%= category._id %>" 
+                                                    data-status="<%= category.isListed ? 'active' : 'block' %>" 
+                                                    title="Category Status">
+                                                <%= category.isListed ? 'Active' : 'Block' %>
+                                            </button>
+                                            <button class="action-btn edit-btn" data-category-id="<%= category._id %>" title="Edit Category">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="6" class="text-center">No categories found</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No Results Message -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <h5>No categories found</h5>
+                    <p>Try adjusting your search criteria</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <% if (typeof pagination !== 'undefined') { %>
+            <div class="pagination-wrapper">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="pagination-info">
+                        <span class="pagination-stats">
+                            Showing <strong id="showingStart"><%= Math.min(((pagination.currentPage - 1) * pagination.limit) + 1, pagination.totalRecords) %></strong> 
+                            to <strong id="showingEnd"><%= Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords) %></strong> 
+                            of <strong id="totalRecords"><%= pagination.totalRecords %></strong> categories
+                        </span>
+                        <span class="text-muted">Page <strong id="currentPage"><%= pagination.currentPage %></strong> of <strong id="totalPages"><%= pagination.totalPages %></strong></span>
+                    </div>
+                    <nav aria-label="Category pagination">
+                        <ul class="pagination mb-0" id="paginationList">
+                            <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="#" data-page="<%= pagination.currentPage - 1 %>">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                                <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                                    <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="#" data-page="<%= pagination.currentPage + 1 %>">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </main>
+
+    <!-- Add/Edit Category Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalLabel">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryId" name="categoryId">
+                        <div class="form-group">
+                            <label for="categoryName" class="form-label">Category Name</label>
+                            <input type="text" class="form-control" id="categoryName" name="categoryName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryDescription" class="form-label">Category Description</label>
+                            <textarea class="form-control" id="categoryDescription" name="categoryDescription" rows="3" placeholder="Write your description here..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="visibilityStatus" class="form-label">Visibility Status</label>
+                                    <select class="form-select" id="visibilityStatus" name="visibilityStatus" required>
+                                        <option value="active" selected>Active</option>
+                                        <option value="block">Block</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="discountPercentage" class="form-label">Discounts in %</label>
+                                    <select class="form-select" id="discountPercentage" name="discountPercentage" required>
+                                        <option value="0" selected>0%</option>
+                                        <option value="5">5%</option>
+                                        <option value="8">8%</option>
+                                        <option value="10">10%</option>
+                                        <option value="12">12%</option>
+                                        <option value="15">15%</option>
+                                        <option value="20">20%</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-save" id="saveCategoryBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Confirmation Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content confirmation-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusModalLabel">Confirm Status Change</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="confirmation-icon" id="statusIcon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="confirmation-message" id="statusMessage">
+                        Are you sure you want to change the status?
+                    </div>
+                    <div class="confirmation-submessage" id="statusSubmessage">
+                        This will affect the visibility of this item.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmStatusBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Sidebar functionality
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("main-content");
+            const sidebarToggle = document.getElementById("sidebar-toggle");
+            const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+            const sidebarLinks = document.querySelectorAll(".sidebar-link");
+
+            // Search elements
+            const searchInput = document.getElementById("searchInput");
+            const clearBtn = document.getElementById("clearBtn");
+            const loadingOverlay = document.getElementById("loadingOverlay");
+            const searchHistory = document.getElementById("searchHistory");
+            const searchHistoryList = searchHistory.querySelector(".search-history-list");
+
+            // Modal elements
+            const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            const categoryForm = document.getElementById("categoryForm");
+            const categoryModalLabel = document.getElementById("categoryModalLabel");
+            const saveCategoryBtn = document.getElementById("saveCategoryBtn");
+            const confirmStatusBtn = document.getElementById("confirmStatusBtn");
+            const statusMessage = document.getElementById("statusMessage");
+            const statusSubmessage = document.getElementById("statusSubmessage");
+            const statusIcon = document.getElementById("statusIcon");
+
+            // Form elements
+            const categoryId = document.getElementById("categoryId");
+            const categoryName = document.getElementById("categoryName");
+            const categoryDescription = document.getElementById("categoryDescription");
+            const visibilityStatus = document.getElementById("visibilityStatus");
+            const discountPercentage = document.getElementById("discountPercentage");
+
+            document.getElementById("clearHistoryBtn").addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearSearchHistory();
+            });
+
+            // Current action data
+            let isEditMode = false;
+            let currentStatusAction = null;
+            let searchTimeout;
+            let searchHistoryItems = JSON.parse(localStorage.getItem('categorySearchHistory')) || [];
+
+            // Initialize sidebar state
+            initializeSidebar();
+
+            // Set initial clear button visibility
+            clearBtn.style.display = searchInput.value.trim() ? "flex" : "none";
+
+            // Sidebar event listeners
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", toggleSidebar);
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("show");
+                });
+            }
+
+            // FIXED: Search functionality with proper focus handling
+            searchInput.addEventListener("input", (e) => {
+                const value = e.target.value.trim();
+                clearBtn.style.display = value ? "flex" : "none";
+                
+                // Clear existing timeout
+                clearTimeout(searchTimeout);
+                
+                // Set new timeout for search
+                searchTimeout = setTimeout(() => {
+                    if (value) {
+                        saveSearchHistory(value);
+                        performSearch(value);
+                    }
+                }, 500);
+                
+                // Update search history list while typing
+                updateSearchHistoryList(value);
+            });
+
+            // FIXED: Show search history on focus - simplified approach
+            searchInput.addEventListener("focus", () => {
+                updateSearchHistoryList(searchInput.value.trim());
+            });
+
+            // FIXED: Handle search history item selection with proper event delegation
+            searchHistoryList.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Handle individual item removal
+                if (e.target.closest(".remove-history-item")) {
+                    const term = e.target.closest(".remove-history-item").dataset.term;
+                    removeSearchHistoryItem(term);
+                    return;
+                }
+                
+                // Handle search term selection
+                if (e.target.classList.contains("search-history-item")) {
+                    const term = e.target.dataset.term;
+                    searchInput.value = term;
+                    clearBtn.style.display = "flex";
+                    searchHistory.style.display = "none";
+                    performSearch(term);
+                }
+            });
+
+            // Add this new function for removing individual items
+            function removeSearchHistoryItem(termToRemove) {
+                try {
+                    let history = JSON.parse(localStorage.getItem('categorySearchHistory')) || [];
+                    history = history.filter(term => term !== termToRemove);
+                    localStorage.setItem('categorySearchHistory', JSON.stringify(history));
+                    searchHistoryItems = history;
+                    
+                    // Update the display
+                    updateSearchHistoryList(searchInput.value.trim());
+                    
+                    if (history.length === 0) {
+                        searchHistory.style.display = "none";
+                    }
+                    
+                    showToast(`"${termToRemove}" removed from history`, "success");
+                } catch (error) {
+                    console.error('Error removing search history item:', error);
+                    showToast("Error removing item from history", "error");
+                }
+            }
+
+            // FIXED: Simplified click outside to hide search history
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest('.search-input-wrapper')) {
+                    searchHistory.style.display = "none";
+                }
+            });
+
+            // Clear search functionality
+            clearBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                searchInput.value = "";
+                clearBtn.style.display = "none";
+                searchHistory.style.display = "none";
+                window.location.href = '/admin/categories';
+            });
+
+            // Add category button
+            document.getElementById("addCategoryBtn").addEventListener("click", () => {
+                openAddModal();
+            });
+
+            // Save category button
+            saveCategoryBtn.addEventListener("click", () => {
+                saveCategory();
+            });
+
+            // Confirm status button
+            confirmStatusBtn.addEventListener("click", () => {
+                if (currentStatusAction) {
+                    if (currentStatusAction.type === 'offer') {
+                        executeOfferStatusChange(currentStatusAction);
+                    } else if (currentStatusAction.type === 'category') {
+                        executeCategoryStatusChange(currentStatusAction);
+                    }
+                    statusModal.hide();
+                }
+            });
+
+            // Event delegation for dynamic elements
+            document.addEventListener("click", (e) => {
+                // Edit button click
+                if (e.target.closest(".edit-btn")) {
+                    const categoryId = e.target.closest(".edit-btn").dataset.categoryId;
+                    openEditModal(categoryId);
+                }
+
+                // Active/Block button click (status toggle)
+                if (e.target.closest(".block-btn") || e.target.closest(".active-btn")) {
+                    e.preventDefault();
+                    const btn = e.target.closest(".block-btn") || e.target.closest(".active-btn");
+                    const categoryId = btn.dataset.categoryId;
+                    const currentStatus = btn.dataset.status;
+                    const categoryName = e.target.closest("tr").querySelector(".category-name").textContent;
+                    const newStatus = currentStatus === "active" ? "block" : "active";
+                    showCategoryStatusConfirmation(categoryId, newStatus, categoryName);
+                }
+
+                // Offer status toggle click
+                if (e.target.closest(".status-toggle")) {
+                    const checkbox = e.target.closest(".status-toggle").querySelector("input");
+                    if (checkbox && checkbox.classList.contains("offer-toggle")) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const categoryId = checkbox.dataset.categoryId;
+                        const isCurrentlyActive = checkbox.checked;
+                        const categoryName = e.target.closest("tr").querySelector(".category-name").textContent;
+                        showOfferStatusConfirmation(categoryId, isCurrentlyActive, categoryName);
+                        return false;
+                    }
+                }
+
+                // Pagination click handlers
+                if (e.target.closest(".page-link")) {
+                    e.preventDefault();
+                    const page = e.target.closest(".page-link").dataset.page;
+                    if (page && !e.target.closest(".page-item").classList.contains("disabled")) {
+                        loadPage(page);
+                    }
+                }
+
+                // Close sidebar when clicking outside on mobile
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        sidebar.classList.remove("show");
+                    }
+                }
+            });
+
+            // Modal event listeners
+            document.getElementById('categoryModal').addEventListener('hidden.bs.modal', () => {
+                resetForm();
+            });
+
+            // Sidebar link highlighting
+            highlightActiveLink();
+
+            // Handle window resize
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove("show");
+                }
+            });
+
+            // FIXED: Search history functions with better error handling
+            function saveSearchHistory(term) {
+                if (!term) return;
+                try {
+                    let history = JSON.parse(localStorage.getItem('categorySearchHistory')) || [];
+                    history = history.filter(item => item !== term);
+                    history.unshift(term);
+                    history = history.slice(0, 5); // Keep only last 5 searches
+                    localStorage.setItem('categorySearchHistory', JSON.stringify(history));
+                    searchHistoryItems = history;
+                } catch (error) {
+                    console.error('Error saving search history:', error);
+                }
+            }
+
+            function updateSearchHistoryList(currentTerm) {
+                try {
+                    const history = JSON.parse(localStorage.getItem('categorySearchHistory')) || [];
+                    const clearBtn = document.getElementById('clearHistoryBtn');
+                    
+                    if (history.length === 0) {
+                        searchHistory.style.display = "none";
+                        return;
+                    }
+                    
+                    const filteredHistory = history.filter(term => 
+                        !currentTerm || term.toLowerCase().includes(currentTerm.toLowerCase())
+                    );
+                    
+                    if (filteredHistory.length === 0) {
+                        searchHistory.style.display = "none";
+                        return;
+                    }
+                    
+                    searchHistoryList.innerHTML = filteredHistory
+                        .map(term => `
+                            <li class="list-group-item search-history-item-container" style="cursor: pointer; padding: 8px 12px; border: none; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                <span class="search-history-item" data-term="${term}">${term}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary remove-history-item" data-term="${term}" style="padding: 2px 6px; font-size: 10px;" title="Remove this item">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>
+                        `)
+                        .join('');
+                    
+                    // Show/hide clear button based on history length
+                    if (clearBtn) {
+                        clearBtn.parentElement.style.display = history.length > 0 ? "block" : "none";
+                    }
+                    
+                    searchHistory.style.display = "block";
+                } catch (error) {
+                    console.error('Error updating search history:', error);
+                    searchHistory.style.display = "none";
+                }
+            }
+
+            function clearSearchHistory() {
+                try {
+                    localStorage.removeItem('categorySearchHistory');
+                    searchHistoryItems = [];
+                    searchHistory.style.display = "none";
+                    showToast("Search history cleared", "success");
+                } catch (error) {
+                    console.error('Error clearing search history:', error);
+                    showToast("Error clearing search history", "error");
+                }
+            }
+
+            // Other functions remain the same
+            function initializeSidebar() {
+                const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+                if (isCollapsed) {
+                    sidebar.classList.add("collapsed");
+                    mainContent.classList.add("expanded");
+                    updateToggleIcon(true);
+                }
+            }
+
+            function toggleSidebar() {
+                const isCollapsed = sidebar.classList.toggle("collapsed");
+                mainContent.classList.toggle("expanded");
+                updateToggleIcon(isCollapsed);
+                localStorage.setItem("sidebarCollapsed", isCollapsed);
+            }
+
+            function updateToggleIcon(isCollapsed) {
+                const icon = sidebarToggle.querySelector("i");
+                if (isCollapsed) {
+                    icon.classList.remove("fa-chevron-left");
+                    icon.classList.add("fa-chevron-right");
+                } else {
+                    icon.classList.remove("fa-chevron-right");
+                    icon.classList.add("fa-chevron-left");
+                }
+            }
+
+            function highlightActiveLink() {
+                const currentPath = window.location.pathname;
+                sidebarLinks.forEach((link) => {
+                    link.classList.remove("active");
+                });
+                sidebarLinks.forEach((link) => {
+                    const linkPath = new URL(link.href).pathname;
+                    if (linkPath === currentPath || linkPath.includes("category")) {
+                        link.classList.add("active");
+                    }
+                });
+            }
+
+            function openAddModal() {
+                isEditMode = false;
+                categoryModalLabel.textContent = "Add New Category";
+                saveCategoryBtn.textContent = "Save";
+                resetForm();
+                visibilityStatus.value = "active";
+                discountPercentage.value = "0";
+                categoryModal.show();
+            }
+
+            function openEditModal(id) {
+                isEditMode = true;
+                categoryModalLabel.textContent = "Edit Category";
+                saveCategoryBtn.textContent = "Update";
+                const row = document.querySelector(`tr[data-category-id="${id}"]`);
+                const name = row.querySelector(".category-name").textContent;
+                const description = row.querySelector(".category-description").textContent;
+                const discount = row.querySelector(".discount-badge").textContent.replace('%', '');
+                const status = row.getAttribute('data-category-status');
+                categoryId.value = id;
+                categoryName.value = name;
+                categoryDescription.value = description === 'No description' ? '' : description;
+                discountPercentage.value = discount;
+                visibilityStatus.value = status;
+                categoryModal.show();
+            }
+
+            function showOfferStatusConfirmation(id, isCurrentlyActive, categoryName) {
+                currentStatusAction = {
+                    type: 'offer',
+                    id: id,
+                    newStatus: !isCurrentlyActive,
+                    categoryName: categoryName
+                };
+                statusIcon.innerHTML = !isCurrentlyActive ? 
+                    '<i class="fas fa-check-circle" style="color: #28a745;"></i>' : 
+                    '<i class="fas fa-ban" style="color: #dc3545;"></i>';
+                statusMessage.textContent = `${!isCurrentlyActive ? 'Activate' : 'Deactivate'} offer for "${categoryName}"?`;
+                statusSubmessage.textContent = !isCurrentlyActive ? 
+                    "This will enable discounts for this category." : 
+                    "This will disable discounts for this category.";
+                confirmStatusBtn.className = `btn ${!isCurrentlyActive ? 'btn-success' : 'btn-danger'}`;
+                confirmStatusBtn.textContent = !isCurrentlyActive ? "Activate" : "Deactivate";
+                statusModal.show();
+            }
+
+            function showCategoryStatusConfirmation(id, newStatus, categoryName) {
+                currentStatusAction = {
+                    type: 'category',
+                    id: id,
+                    newStatus: newStatus,
+                    categoryName: categoryName
+                };
+                statusIcon.innerHTML = newStatus === 'active' ? 
+                    '<i class="fas fa-check-circle" style="color: #28a745;"></i>' : 
+                    '<i class="fas fa-ban" style="color: #dc3545;"></i>';
+                statusMessage.textContent = `${newStatus === 'active' ? 'Activate' : 'Block'} category "${categoryName}"?`;
+                statusSubmessage.textContent = newStatus === 'active' ? 
+                    "This will make the category visible to customers." : 
+                    "This will hide the category from customers.";
+                confirmStatusBtn.className = `btn ${newStatus === 'active' ? 'btn-success' : 'btn-danger'}`;
+                confirmStatusBtn.textContent = newStatus === 'active' ? "Activate" : "Block";
+                statusModal.show();
+            }
+
+            function resetForm() {
+                categoryForm.reset();
+                categoryId.value = "";
+                visibilityStatus.value = "active";
+                discountPercentage.value = "0";
+                categoryForm.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+            }
+
+            function validateForm() {
+                let isValid = true;
+                const requiredFields = [categoryName, visibilityStatus, discountPercentage];
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+                return isValid;
+            }
+
+            function saveCategory() {
+                if (!validateForm()) {
+                    showToast("Please fill in all required fields", "error");
+                    return;
+                }
+                showLoading(true);
+                const formData = {
+                    name: categoryName.value.trim(),
+                    description: categoryDescription.value.trim(),
+                    status: visibilityStatus.value,
+                    discount: discountPercentage.value
+                };
+                const url = isEditMode ? `/admin/categories/${categoryId.value}` : '/admin/categories';
+                const method = isEditMode ? 'PUT' : 'POST';
+                
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        showToast(data.message, "success");
+                        categoryModal.hide();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Save category error:', error);
+                    showToast("An error occurred while saving the category", "error");
+                });
+            }
+
+            function executeOfferStatusChange(action) {
+                showLoading(true);
+                fetch(`/admin/categories/${action.id}/discount-status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ DiscountStatus: action.newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        const checkbox = document.querySelector(`input[data-category-id="${action.id}"]`);
+                        if (checkbox) {   
+                            checkbox.checked = action.newStatus;
+                        }
+                        showToast(data.message, "success");
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Offer status error:', error);
+                    showToast("An error occurred while changing offer status", "error");
+                });
+            }
+
+            function executeCategoryStatusChange(action) {
+                showLoading(true);
+                fetch(`/admin/categories/${action.id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: action.newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        const row = document.querySelector(`tr[data-category-id="${action.id}"]`);
+                        const btn = row.querySelector('.action-btn');
+                        if (btn) {
+                            btn.textContent = action.newStatus === 'active' ? 'Active' : 'Block';
+                            btn.className = `action-btn ${action.newStatus === 'active' ? 'active-btn' : 'block-btn'}`;
+                            btn.dataset.status = action.newStatus;
+                            row.setAttribute('data-category-status', action.newStatus);
+                        }
+                        showToast(data.message, "success");
+                    } else {
+                        showToast(data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Category status error:', error);
+                    showToast("An error occurred while changing category status", "error");
+                });
+            }
+
+            function performSearch(searchTerm) {
+                showLoading(true);
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('search', searchTerm);
+                currentUrl.searchParams.set('page', '1'); // Reset to first page on new search
+                
+                fetch(currentUrl.toString(), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        updateTable(data.categories, data.pagination);
+                        updatePagination(data.pagination);
+                        // Update URL without page reload
+                        window.history.pushState({}, '', currentUrl.toString());
+                    } else {
+                        showToast("Error performing search", "error");
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Search error:', error);
+                    showToast("An error occurred while searching", "error");
+                });
+            }
+
+            function loadPage(page) {
+                showLoading(true);
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('page', page);
+                
+                fetch(currentUrl.toString(), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        updateTable(data.categories, data.pagination);
+                        updatePagination(data.pagination);
+                        // Update URL without page reload
+                        window.history.pushState({}, '', currentUrl.toString());
+                    } else {
+                        showToast("Error loading page", "error");
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Pagination error:', error);
+                    showToast("An error occurred while loading page", "error");
+                });
+            }
+
+            function updateTable(categories, pagination) {
+                const tbody = document.getElementById("categoryTableBody");
+                const noResults = document.getElementById("noResults");
+                
+                if (categories.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No categories found</td></tr>';
+                    noResults.style.display = "block";
+                } else {
+                    noResults.style.display = "none";
+                    tbody.innerHTML = categories.map((category, index) => `
+                        <tr data-category-id="${category._id}" data-category-status="${category.isListed ? 'active' : 'block'}">
+                            <td>${((pagination.currentPage - 1) * pagination.limit) + index + 1}</td>
+                            <td class="category-name">${category.name}</td>
+                            <td class="category-description">${category.description || 'No description'}</td>
+                            <td><span class="discount-badge">${category.Discounts}%</span></td>
+                            <td>
+                                <label class="status-toggle">
+                                    <input type="checkbox" ${category.DiscountStatus ? 'checked' : ''} data-category-id="${category._id}" class="offer-toggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <button class="action-btn ${category.isListed ? 'active-btn' : 'block-btn'}" 
+                                        data-category-id="${category._id}" 
+                                        data-status="${category.isListed ? 'active' : 'block'}" 
+                                        title="Category Status">
+                                    ${category.isListed ? 'Active' : 'Block'}
+                                </button>
+                                <button class="action-btn edit-btn" data-category-id="${category._id}" title="Edit Category">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            function updatePagination(pagination) {
+                // Update pagination info
+                document.getElementById("showingStart").textContent = Math.min(((pagination.currentPage - 1) * pagination.limit) + 1, pagination.totalRecords);
+                document.getElementById("showingEnd").textContent = Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords);
+                document.getElementById("totalRecords").textContent = pagination.totalRecords;
+                document.getElementById("currentPage").textContent = pagination.currentPage;
+                document.getElementById("totalPages").textContent = pagination.totalPages;
+
+                // Update pagination controls
+                const paginationList = document.getElementById("paginationList");
+                let paginationHTML = `
+                    <li class="page-item ${pagination.currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${pagination.currentPage - 1}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                `;
+
+                for (let i = 1; i <= pagination.totalPages; i++) {
+                    paginationHTML += `
+                        <li class="page-item ${i === pagination.currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                }
+
+                paginationHTML += `
+                    <li class="page-item ${pagination.currentPage === pagination.totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${pagination.currentPage + 1}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                `;
+
+                paginationList.innerHTML = paginationHTML;
+            }
+
+            function showLoading(show) {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = show ? "flex" : "none";
+                }
+            }
+
+            function showToast(message, type = "info") {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+                const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+                
+                const toastHTML = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+                
+                // Remove toast element after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

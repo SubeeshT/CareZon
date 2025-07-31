@@ -1,0 +1,75 @@
+body {
+  background-image: url("sign%20in.png"); /* Replace this with the correct image path */
+  background-size: cover;
+  background-position: center;
+  font-family: "Roboto", sans-serif;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+}
+
+.form-control {
+  border-radius: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.btn-custom {
+  background-color: #555;
+  color: white;
+  border-radius: 25px;
+  padding: 10px 30px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-custom:hover {
+  background-color: #333;
+}
+
+.google-btn {
+  background-color: #db4437;
+  color: white;
+  margin-top: 10px;
+}
+
+.google-btn:hover {
+  background-color: #c23321;
+}
+
+.fade-in {
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+}
+
+.position-relative {
+  position: relative;
+}
+
+a {
+  text-decoration: none;
+}

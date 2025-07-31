@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTP Verification</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/user/css/OTP.css">
+</head>
+<body>
+  <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="glass-card text-center col-12 col-sm-10 col-md-6 fade-in">
+      <h4 class="mb-3">Confirm With OTP</h4>
+      <p>Please check your email for the OTP</p>
+
+      <% if (typeof error !== "undefined" && error) { %>
+        <div class="alert alert-danger py-2"><%= error %></div>
+      <% } %>
+
+      <!-- Custom Alert Modal -->
+      <div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title" id="alertModalTitle">Alert</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+              <div id="alertIcon" class="mb-3"></div>
+              <p id="alertMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OTP form -->
+      <form action="/verifyOtp" method="post" id="otpForm">
+        <input type="hidden" name="otp" id="otpFinalInput" />
+
+        <div class="d-flex justify-content-center mb-3">
+          <input type="text" maxlength="1" class="otp-input" required />
+          <input type="text" maxlength="1" class="otp-input" required />
+          <input type="text" maxlength="1" class="otp-input" required />
+          <input type="text" maxlength="1" class="otp-input" required />
+          <input type="text" maxlength="1" class="otp-input" required />
+          <input type="text" maxlength="1" class="otp-input" required />
+        </div>
+
+        <button type="submit" class="btn btn-dark px-4 mb-3 w-100">Confirm</button>
+      </form>
+
+      <!-- Resend OTP section -->
+      <div class="mb-2">
+        <small class="text-muted">Didn't receive OTP? 
+          <span class="resend-link" id="resendLink" onclick="resendOTP()">Resend OTP</span>
+        </small>
+      </div>
+      <div id="timer" class="mb-3 text-muted">
+        <span id="timerText">Resend in <span id="countdown">60</span>s</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const inputs = document.querySelectorAll('.otp-input');
+    const finalOtpInput = document.getElementById('otpFinalInput');
+    const otpForm = document.getElementById('otpForm');
+    const timerTextElement = document.getElementById('timerText');
+    const resendLink = document.getElementById('resendLink');
+    
+    let otpExpiresAt = new Date("<%= otpExpiresAt %>");
+    let timerInterval;
+
+    // Custom alert function
+    function showAlert(message, title = 'Alert', type = 'warning') {
+      const modal = new bootstrap.Modal(document.getElementById('alertModal'));
+      const alertIcon = document.getElementById('alertIcon');
+      const alertMessage = document.getElementById('alertMessage');
+      const alertTitle = document.getElementById('alertModalTitle');
+      
+      alertTitle.textContent = title;
+      alertMessage.textContent = message;
+      
+      let iconHTML = '';
+      switch(type) {
+        case 'success':
+          iconHTML = '<div style="font-size: 48px; color: #28a745;">✅</div>';
+          break;
+        case 'error':
+          iconHTML = '<div style="font-size: 48px; color: #dc3545;">❌</div>';
+          break;
+        case 'info':
+          iconHTML = '<div style="font-size: 48px; color: #17a2b8;">ℹ️</div>';
+          break;
+        default:
+          iconHTML = '<div style="font-size: 48px; color: #ffc107;">⚠️</div>';
+      }
+      alertIcon.innerHTML = iconHTML;
+      modal.show();
+    }
+
+    // Enhanced input handling
+    inputs.forEach((input, i) => {
+      input.addEventListener('input', (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        e.target.value = value;
+        
+        if (value.length === 1 && i < inputs.length - 1) {
+          inputs[i + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && input.value === '' && i > 0) {
+          inputs[i - 1].focus();
+        }
+      });
+
+      input.addEventListener('keypress', (e) => {
+        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    // Enhanced form validation
+    otpForm.addEventListener('submit', (e) => {
+      const otp = Array.from(inputs).map(input => input.value.trim()).join('');
+      
+      if (otp.length < 6) {
+        e.preventDefault();
+        
+        const emptyFields = Array.from(inputs).filter(input => !input.value.trim()).length;
+        
+        if (emptyFields === 6) {
+          showAlert('Please enter the OTP code sent to your email.', 'OTP Required', 'warning');
+        } else {
+          showAlert(`Please fill in all ${6 - otp.length} remaining OTP digits.`, 'Incomplete OTP', 'warning');
+        }
+        
+        const firstEmpty = Array.from(inputs).find(input => !input.value.trim());
+        if (firstEmpty) firstEmpty.focus();
+        return;
+      }
+
+      if (!/^\d{6}$/.test(otp)) {
+        e.preventDefault();
+        showAlert('OTP should contain only numbers. Please check your input.', 'Invalid Format', 'error');
+        return;
+      }
+
+      finalOtpInput.value = otp;
+    });
+
+    // Timer functionality
+    function startTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+
+      resendLink.style.pointerEvents = 'none';
+      resendLink.style.opacity = '0.6';
+      resendLink.textContent = 'Resend OTP';
+
+      timerInterval = setInterval(() => {
+        const now = new Date();
+        const timeLeft = Math.floor((otpExpiresAt - now) / 1000);
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          timerTextElement.textContent = "OTP expired";
+          resendLink.style.pointerEvents = 'auto';
+          resendLink.style.opacity = '1';
+          resendLink.textContent = 'Get New OTP';
+        } else {
+          const countdownElement = document.getElementById('countdown');
+          if (countdownElement) {
+            countdownElement.textContent = timeLeft;
+          }
+        }
+      }, 1000);
+
+      // Initial display
+      const now = new Date();
+      const initialTimeLeft = Math.floor((otpExpiresAt - now) / 1000);
+      if (initialTimeLeft > 0) {
+        const countdownElement = document.getElementById('countdown');
+        if (countdownElement) {
+          countdownElement.textContent = initialTimeLeft;
+        }
+      } else {
+        timerTextElement.textContent = "OTP expired";
+        resendLink.style.pointerEvents = 'auto';
+        resendLink.style.opacity = '1';
+        resendLink.textContent = 'Get New OTP';
+      }
+    }
+
+    function resendOTP() {
+      if (resendLink.style.pointerEvents === 'none') return;
+    
+      resendLink.style.pointerEvents = 'none';
+      resendLink.style.opacity = '0.6';
+      resendLink.textContent = 'Sending...';
+      
+      fetch('/resendOtp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.success && data.newExpiresAt) {
+          otpExpiresAt = new Date(data.newExpiresAt);
+          timerTextElement.innerHTML = 'Resend in <span id="countdown">60</span>s';
+          startTimer();
+          showAlert(data.message || 'New OTP has been sent to your email successfully!', 'OTP Sent', 'success');
+          
+          // Clear existing inputs
+          inputs.forEach(input => input.value = '');
+          inputs[0].focus();
+        } else {
+          showAlert(data.message || 'OTP sent successfully!', 'Success', 'success');
+        }
+      })
+      .catch(err => {
+        console.error('Resend OTP error:', err);
+        showAlert('Failed to resend OTP. Please check your internet connection and try again.', 'Network Error', 'error');
+        
+        resendLink.style.pointerEvents = 'auto';
+        resendLink.style.opacity = '1';
+        resendLink.textContent = 'Resend OTP';
+      });
+    }
+
+    // Initialize
+    startTimer();
+    window.addEventListener('load', () => {
+      inputs[0].focus();
+    });
+  </script>
+</body>
+</html>

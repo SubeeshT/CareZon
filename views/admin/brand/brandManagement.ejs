@@ -1,0 +1,821 @@
+<% 
+    const pageData = {
+        title: 'Brand Management - Carezon Admin',
+        pageTitle: 'Brand Management',
+        breadcrumb: [
+            { name: 'Home', url: '/admin' },
+            { name: 'Brand Management', url: '/admin/brands' }
+        ]
+    };
+
+    // Helper function to escape HTML attributes
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;')
+                 .replace(/"/g, '&quot;')
+                 .replace(/'/g, '&#39;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;');
+    }
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/brand.css">
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Brand Management Container -->
+            <div class="brand-management-container">
+                <!-- Header Section -->
+                <div class="brand-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h2 class="brand-title">Brand Management</h2>
+                        <button class="add-brand-btn" data-bs-toggle="modal" data-bs-target="#addBrandModal">
+                            <i class="fas fa-plus me-2"></i>Add Brand
+                        </button>
+                    </div>
+                </div>
+                <!-- Search Section -->
+                <div class="search-section">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" id="searchBrands" placeholder="Search Brands...">
+                        <button type="button" class="clear-search" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="spinner-border spinner-border-sm text-primary" id="searchSpinner" style="display: none;"></div>
+                    </div>
+                </div>
+                <!-- Table Section -->
+                <div class="table-responsive">
+                    <table class="table brand-table" id="brandsTable">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Brand Name</th>
+                                <th>Logo</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="brandsTableBody">
+                            <% if (brands && brands.length > 0) { %>
+                                <% brands.forEach((brand, index) => { %>
+                                    <tr data-brand-id="<%= brand._id %>">
+                                        <td><%= (currentPage - 1) * limit + index + 1 %></td>
+                                        <td><strong><%= escapeHtml(brand.name) %></strong></td>
+                                        <td>
+                                            <img src="<%= brand.logo || '/placeholder.svg?height=40&width=60' %>" alt="<%= escapeHtml(brand.name) %>" class="brand-logo">
+                                        </td>
+                                        <td>
+                                            <span class="status-badge <%= brand.status ? 'status-active' : 'status-inactive' %>">
+                                                <%= brand.status ? 'Active' : 'Inactive' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn <%= brand.status ? 'block-btn' : 'active-btn' %>"
+                                                        data-brand-id="<%= brand._id %>"
+                                                        data-action="<%= brand.status ? 'block' : 'activate' %>"
+                                                        data-brand-name="<%= escapeHtml(brand.name).replace(/'/g, '') %>"
+                                                        onclick="handleStatusToggle(this)">
+                                                    <%= brand.status ? 'Block' : 'Activate' %>
+                                                </button>
+                                                <button class="action-btn edit-btn" onclick="editBrand('<%= brand._id %>')">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">No brands found</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Section -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <p class="pagination-text">
+                            Showing <%= ((currentPage - 1) * limit + 1) %> to <%= Math.min(currentPage * limit, totalBrands) %> of <%= totalBrands %> brands
+                        </p>
+                        <div class="pagination-controls">
+                            <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+                            <nav aria-label="Brand pagination">
+                                <ul class="pagination custom-pagination">
+                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                        <a class="page-nav" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" aria-label="Previous">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    <% for(let i = 1; i <= totalPages; i++) { %>
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                            <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                                        </li>
+                                    <% } %>
+                                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                        <a class="page-nav" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>" aria-label="Next">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade confirmation-modal" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="confirmation-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p id="confirmationMessage">Are you sure you want to perform this action?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Brand Modal -->
+    <div class="modal fade" id="addBrandModal" tabindex="-1" aria-labelledby="addBrandModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addBrandModalLabel">Add New Brand</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addBrandForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brandName" class="form-label">Brand Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="brandName" name="brandName" required>
+                                    <div class="invalid-feedback" id="brandNameError"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brandStatus" class="form-label">Status</label>
+                                    <select class="form-select" id="brandStatus" name="status">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="brandLogo" class="form-label">Brand Logo</label>
+                            <input type="file" class="form-control" id="brandLogo" name="logo" accept="image/*">
+                            <div class="form-text">Upload brand logo (JPG, PNG, GIF - Max 5MB)</div>
+                            <div class="invalid-feedback" id="brandLogoError"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="brandDescription" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="brandDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="addBrandBtn">Add Brand</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Brand Modal -->
+    <div class="modal fade" id="editBrandModal" tabindex="-1" aria-labelledby="editBrandModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBrandModalLabel">Edit Brand</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editBrandForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" id="editBrandId" name="brandId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editBrandName" class="form-label">Brand Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editBrandName" name="brandName" required>
+                                    <div class="invalid-feedback" id="editBrandNameError"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editBrandStatus" class="form-label">Status</label>
+                                    <select class="form-select" id="editBrandStatus" name="status">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBrandLogo" class="form-label">Brand Logo</label>
+                            <input type="file" class="form-control" id="editBrandLogo" name="logo" accept="image/*">
+                            <div class="form-text">Upload new logo to replace current one (JPG, PNG, GIF - Max 5MB)</div>
+                            <div class="invalid-feedback" id="editBrandLogoError"></div>
+                            <div id="currentLogo" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBrandDescription" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="editBrandDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="editBrandBtn">Update Brand</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden data for JavaScript -->
+    <script id="serverData" type="application/json">
+        {
+            "limit": <%= JSON.stringify(limit || 8) %>,
+            "currentPage": <%= JSON.stringify(currentPage || 1) %>,
+            "totalPages": <%= JSON.stringify(totalPages || 1) %>,
+            "totalBrands": <%= JSON.stringify(totalBrands || 0) %>
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize global variables
+        let pendingAction = null;
+        let serverData = {};
+
+        // Parse server data
+        try {
+            const serverDataElement = document.getElementById('serverData');
+            if (serverDataElement) {
+                serverData = JSON.parse(serverDataElement.textContent);
+            }
+        } catch (e) {
+            console.error('Failed to parse server data:', e);
+            serverData = {
+                limit: 8,
+                currentPage: 1,
+                totalPages: 1,
+                totalBrands: 0
+            };
+        }
+
+        const limit = serverData.limit;
+        const currentPage = serverData.currentPage;
+
+        // Utility: Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Utility: Clear form errors
+        function clearFormErrors(formId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            form.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('is-invalid'));
+        }
+
+        // Utility: Show form error
+        function showFormError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            if (field) field.classList.add('is-invalid');
+            if (errorElement) errorElement.textContent = message;
+        }
+
+        // Utility: Show toast notification
+        function showToast(message, type = 'info') {
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastId = 'toast-' + Date.now();
+            const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            toast.show();
+            toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
+        }
+
+        // Utility: Validate file
+        function validateFile(file, maxSize = 5 * 1024 * 1024) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                return 'Please select a valid image file (JPG, PNG, GIF)';
+            }
+            if (file.size > maxSize) {
+                return 'File size must be less than 5MB';
+            }
+            return null;
+        }
+
+        // Utility: Fetch with timeout
+        async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (error) {
+                clearTimeout(id);
+                throw error;
+            }
+        }
+
+        // Initialize brand management
+        function initializeBrandManagement() {
+            console.log('Brand Management initialized');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-page') === 'brands') {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Search brands
+        async function searchBrands(searchTerm) {
+            const searchSpinner = document.getElementById('searchSpinner');
+            if (searchSpinner) searchSpinner.style.display = 'block';
+            try {
+                const response = await fetchWithTimeout(`/admin/brands/search?search=${encodeURIComponent(searchTerm)}&page=1&limit=${limit}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.success) {
+                    updateTable(data.brands, data.currentPage, data.totalBrands, data.totalPages);
+                } else {
+                    showToast(data.message || 'Failed to search brands', 'danger');
+                }
+            } catch (error) {
+                console.error('Search brands error:', error);
+                showToast('Failed to search brands. Please try again.', 'danger');
+            } finally {
+                if (searchSpinner) searchSpinner.style.display = 'none';
+            }
+        }
+
+        // Update table
+        function updateTable(brands, page, totalBrands, totalPages) {
+            const tbody = document.getElementById('brandsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            if (!brands || brands.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No brands found</td></tr>';
+            } else {
+                brands.forEach((brand, index) => {
+                    const escapedName = brand.name.replace(/'/g, '').replace(/"/g, '&quot;');
+                    const row = `
+                        <tr data-brand-id="${brand._id}">
+                            <td>${(page - 1) * limit + index + 1}</td>
+                            <td><strong>${escapedName}</strong></td>
+                            <td>
+                                <img src="${brand.logo || '/placeholder.svg?height=40&width=60'}" alt="${escapedName}" class="brand-logo">
+                            </td>
+                            <td>
+                                <span class="status-badge ${brand.status ? 'status-active' : 'status-inactive'}">
+                                    ${brand.status ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn ${brand.status ? 'block-btn' : 'active-btn'}" 
+                                            data-brand-id="${brand._id}" 
+                                            data-action="${brand.status ? 'block' : 'activate'}" 
+                                            data-brand-name="${escapedName}" 
+                                            onclick="handleStatusToggle(this)">
+                                        ${brand.status ? 'Block' : 'Activate'}
+                                    </button>
+                                    <button class="action-btn edit-btn" onclick="editBrand('${brand._id}')">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            updatePagination(page, totalPages, totalBrands);
+        }
+
+        // Update pagination
+        function updatePagination(page, totalPages, totalBrands) {
+            const paginationText = document.querySelector('.pagination-text');
+            const pageInfo = document.querySelector('.page-info');
+            const paginationControls = document.querySelector('.pagination.custom-pagination');
+
+            if (paginationText) {
+                paginationText.textContent = totalBrands === 0 
+                    ? 'No brands found'
+                    : `Showing ${(page - 1) * limit + 1} to ${Math.min(page * limit, totalBrands)} of ${totalBrands} brands`;
+            }
+
+            if (pageInfo) {
+                pageInfo.textContent = `Page ${page} of ${totalPages}`;
+            }
+
+            if (paginationControls) {
+                let paginationHTML = `
+                    <li class="page-item ${page === 1 ? 'disabled' : ''}">
+                        <a class="page-nav" href="?page=${page - 1}&limit=${limit}" aria-label="Previous">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                `;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `
+                        <li class="page-item ${page === i ? 'active' : ''}">
+                            <a class="page-link" href="?page=${i}&limit=${limit}">${i}</a>
+                        </li>
+                    `;
+                }
+
+                paginationHTML += `
+                    <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                        <a class="page-nav" href="?page=${page + 1}&limit=${limit}" aria-label="Next">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                `;
+
+                paginationControls.innerHTML = paginationHTML;
+            }
+        }
+
+        // Handle status toggle
+        function handleStatusToggle(button) {
+            const brandId = button.getAttribute('data-brand-id');
+            const action = button.getAttribute('data-action');
+            const brandName = button.getAttribute('data-brand-name');
+
+            if (!brandId) {
+                showToast('Invalid brand ID', 'danger');
+                return;
+            }
+
+            const confirmationMessage = document.getElementById('confirmationMessage');
+            const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+
+            confirmationMessage.textContent = `Are you sure you want to ${action} the brand "${brandName}"?`;
+
+            pendingAction = { type: 'toggleStatus', brandId, action, brandName };
+            modal.show();
+        }
+
+        // Execute action
+        async function executeAction(action) {
+            if (action.type === 'toggleStatus') {
+                await toggleBrandStatus(action.brandId, action.action, action.brandName);
+            }
+        }
+
+        // Toggle brand status
+        async function toggleBrandStatus(brandId, action, brandName) {
+            try {
+                const response = await fetchWithTimeout(`/admin/brands/${brandId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const row = document.querySelector(`tr[data-brand-id="${brandId}"]`);
+                    if (row && data.brand) {
+                        const brand = data.brand;
+                        const statusBadge = row.querySelector('.status-badge');
+                        const actionButton = row.querySelector('.action-btn:not(.edit-btn)');
+
+                        statusBadge.textContent = brand.status ? 'Active' : 'Inactive';
+                        statusBadge.className = `status-badge ${brand.status ? 'status-active' : 'status-inactive'}`;
+                        actionButton.textContent = brand.status ? 'Block' : 'Activate';
+                        actionButton.className = `action-btn ${brand.status ? 'block-btn' : 'active-btn'}`;
+                        actionButton.setAttribute('data-action', brand.status ? 'block' : 'activate');
+                        actionButton.setAttribute('data-brand-name', brand.name.replace(/'/g, ''));
+                    }
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update brand status', 'danger');
+                }
+            } catch (error) {
+                console.error('Toggle brand status error:', error);
+                showToast('Failed to update brand status. Please try again.', 'danger');
+            }
+        }
+
+        // Handle add brand
+        async function handleAddBrand(e) {
+            e.preventDefault();
+            clearFormErrors('addBrandForm');
+
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('addBrandBtn');
+            const originalText = submitBtn.textContent;
+
+            const brandName = formData.get('brandName');
+            if (!brandName || brandName.trim() === '') {
+                showFormError('brandName', 'Brand name is required');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+
+            try {
+                const response = await fetchWithTimeout('/admin/brands', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+               
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addBrandModal'));
+                    if (modal) modal.hide();
+                    e.target.reset();
+                    clearFormErrors('addBrandForm');
+
+                    const searchResponse = await fetchWithTimeout(`/admin/brands/search?page=1&limit=${limit}`);
+                    const searchData = await searchResponse.json();
+                    if (searchData.success) {
+                        updateTable(searchData.brands, searchData.currentPage, searchData.totalBrands, searchData.totalPages);
+                    }
+                } else {
+                    if (data.field) {
+                        showFormError(data.field, data.message);
+                    } else {
+                        showToast(data.message || 'Failed to create brand', 'danger');
+                    }
+                }
+            } catch (error) {
+                console.error('Add brand error:', error);
+                showToast("somthing went wrong", 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Edit brand
+        async function editBrand(brandId) {
+            if (!brandId) {
+                showToast('Invalid brand ID', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetchWithTimeout(`/admin/brands/${brandId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const brand = data.brand;
+                    clearFormErrors('editBrandForm');
+
+                    document.getElementById('editBrandId').value = brand._id;
+                    document.getElementById('editBrandName').value = brand.name;
+                    document.getElementById('editBrandStatus').value = brand.status ? 'true' : 'false';
+                    document.getElementById('editBrandDescription').value = brand.description || '';
+
+                    const currentLogoDiv = document.getElementById('currentLogo');
+                    currentLogoDiv.innerHTML = brand.logo 
+                        ? `<div class="current-logo-preview"><label class="form-label">Current Logo:</label><br><img src="${brand.logo}" alt="${brand.name.replace(/"/g, '&quot;')}" style="max-width: 100px; max-height: 100px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;"></div>`
+                        : '<p class="text-muted">No logo uploaded</p>';
+
+                    const modal = new bootstrap.Modal(document.getElementById('editBrandModal'));
+                    modal.show();
+                } else {
+                    showToast(data.message || 'Failed to fetch brand details', 'danger');
+                }
+            } catch (error) {
+                console.error('Edit brand error:', error);
+                showToast('Failed to fetch brand details. Please try again.', 'danger');
+            }
+        }
+
+        // Handle edit brand
+        async function handleEditBrand(e) {
+            e.preventDefault();
+            clearFormErrors('editBrandForm');
+
+            const formData = new FormData(e.target);
+            const brandId = formData.get('brandId');
+            const submitBtn = document.getElementById('editBrandBtn');
+            const originalText = submitBtn.textContent;
+
+            const brandName = formData.get('brandName');
+            if (!brandName || brandName.trim() === '') {
+                showFormError('editBrandName', 'Brand name is required');
+                return;
+            }
+
+            if (!brandId) {
+                showToast('Invalid brand ID', 'danger');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+
+            try {
+                const response = await fetchWithTimeout(`/admin/brands/${brandId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editBrandModal'));
+                    if (modal) modal.hide();
+
+                    const row = document.querySelector(`tr[data-brand-id="${brandId}"]`);
+                    if (row && data.brand) {
+                        const brand = data.brand;
+                        row.querySelector('td:nth-child(2) strong').textContent = brand.name;
+                        row.querySelector('.brand-logo').src = brand.logo || '/placeholder.svg?height=40&width=60';
+                        row.querySelector('.brand-logo').alt = brand.name.replace(/"/g, '&quot;');
+
+                        const statusBadge = row.querySelector('.status-badge');
+                        const actionButton = row.querySelector('.action-btn:not(.edit-btn)');
+
+                        statusBadge.textContent = brand.status ? 'Active' : 'Inactive';
+                        statusBadge.className = `status-badge ${brand.status ? 'status-active' : 'status-inactive'}`;
+                        actionButton.textContent = brand.status ? 'Block' : 'Activate';
+                        actionButton.className = `action-btn ${brand.status ? 'block-btn' : 'active-btn'}`;
+                        actionButton.setAttribute('data-action', brand.status ? 'block' : 'activate');
+                        actionButton.setAttribute('data-brand-name', brand.name.replace(/'/g, ''));
+                    }
+
+                    clearFormErrors('editBrandForm');
+                } else {
+                    if (data.field) {
+                        showFormError(data.field, data.message);
+                    } else {
+                        showToast(data.message || 'Failed to update brand', 'danger');
+                    }
+                }
+            } catch (error) {
+                console.error('Edit brand error:', error);
+                showToast('Failed to update brand. Please try again.', 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeBrandManagement();
+
+            const searchInput = document.getElementById('searchBrands');
+            const clearSearchBtn = document.getElementById('clearSearch');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function() {
+                    const value = this.value.trim();
+                    searchBrands(value);
+                    if (clearSearchBtn) clearSearchBtn.classList.toggle('show', !!value);
+                }, 500));
+            }
+
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchBrands('');
+                        clearSearchBtn.classList.remove('show');
+                        searchInput.focus();
+                    }
+                });
+            }
+
+            const addBrandForm = document.getElementById('addBrandForm');
+            if (addBrandForm) {
+                addBrandForm.addEventListener('submit', handleAddBrand);
+            }
+
+            const editBrandForm = document.getElementById('editBrandForm');
+            if (editBrandForm) {
+                editBrandForm.addEventListener('submit', handleEditBrand);
+            }
+
+            const confirmActionBtn = document.getElementById('confirmActionBtn');
+            if (confirmActionBtn) {
+                confirmActionBtn.addEventListener('click', () => {
+                    if (pendingAction) {
+                        executeAction(pendingAction);
+                        pendingAction = null;
+                    }
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+                    if (modal) modal.hide();
+                });
+            }
+
+            const brandLogoInput = document.getElementById('brandLogo');
+            if (brandLogoInput) {
+                brandLogoInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const error = validateFile(file);
+                        if (error) {
+                            showFormError('brandLogo', error);
+                            this.value = '';
+                        } else {
+                            this.classList.remove('is-invalid');
+                            document.getElementById('brandLogoError').textContent = '';
+                        }
+                    }
+                });
+            }
+
+            const editBrandLogoInput = document.getElementById('editBrandLogo');
+            if (editBrandLogoInput) {
+                editBrandLogoInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const error = validateFile(file);
+                        if (error) {
+                            showFormError('editBrandLogo', error);
+                            this.value = '';
+                        } else {
+                            this.classList.remove('is-invalid');
+                            document.getElementById('editBrandLogoError').textContent = '';
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
