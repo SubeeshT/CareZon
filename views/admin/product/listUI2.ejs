@@ -21,7 +21,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/dashboard.css">
     <link rel="stylesheet" href="/admin/css/product.css">
-    
 </head>
 <body>
     <!-- Header -->
@@ -96,7 +95,7 @@
                                 <th>Category</th>
                                 <th>Brand</th>
                                 <th>MRP</th>
-                                <th>S Price</th>
+                                <th>Sales Price</th>
                                 <th>Stock</th>
                                 <th>Actions</th>
                             </tr>
@@ -970,6 +969,8 @@
             }
         }
         
+        
+
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `alert alert-${type} notification-toast`;

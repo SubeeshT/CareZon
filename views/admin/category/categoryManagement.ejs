@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/dashboard.css">
     <link rel="stylesheet" href="/admin/css/category.css">
+    
 </head>
 <body>
     <!-- Header -->
@@ -121,15 +122,17 @@
                                             </label>
                                         </td>
                                         <td>
-                                            <button class="action-btn <%= category.isListed ? 'active-btn' : 'block-btn' %>" 
-                                                    data-category-id="<%= category._id %>" 
-                                                    data-status="<%= category.isListed ? 'active' : 'block' %>" 
-                                                    title="Category Status">
-                                                <%= category.isListed ? 'Active' : 'Block' %>
-                                            </button>
-                                            <button class="action-btn edit-btn" data-category-id="<%= category._id %>" title="Edit Category">
-                                                <i class="fas fa-edit me-1"></i>Edit
-                                            </button>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button class="action-btn <%= category.isListed ? 'active-btn' : 'block-btn' %>" 
+                                                        data-category-id="<%= category._id %>" 
+                                                        data-status="<%= category.isListed ? 'active' : 'block' %>" 
+                                                        title="Category Status">
+                                                    <%= category.isListed ? 'Active' : 'Block' %>
+                                                </button>
+                                                <button class="action-btn edit-btn" data-category-id="<%= category._id %>" title="Edit Category">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <% }); %>
@@ -335,7 +338,7 @@
                 });
             }
 
-            // FIXED: Search functionality with proper focus handling
+            // Search functionality with proper focus handling
             searchInput.addEventListener("input", (e) => {
                 const value = e.target.value.trim();
                 clearBtn.style.display = value ? "flex" : "none";
@@ -355,12 +358,12 @@
                 updateSearchHistoryList(value);
             });
 
-            // FIXED: Show search history on focus - simplified approach
+            // Show search history on focus
             searchInput.addEventListener("focus", () => {
                 updateSearchHistoryList(searchInput.value.trim());
             });
 
-            // FIXED: Handle search history item selection with proper event delegation
+            // Handle search history item selection with proper event delegation
             searchHistoryList.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -382,7 +385,7 @@
                 }
             });
 
-            // Add this new function for removing individual items
+            // Function for removing individual items
             function removeSearchHistoryItem(termToRemove) {
                 try {
                     let history = JSON.parse(localStorage.getItem('categorySearchHistory')) || [];
@@ -404,7 +407,7 @@
                 }
             }
 
-            // FIXED: Simplified click outside to hide search history
+            // Simplified click outside to hide search history
             document.addEventListener("click", (e) => {
                 if (!e.target.closest('.search-input-wrapper')) {
                     searchHistory.style.display = "none";
@@ -507,7 +510,7 @@
                 }
             });
 
-            // FIXED: Search history functions with better error handling
+            // Search history functions with better error handling
             function saveSearchHistory(term) {
                 if (!term) return;
                 try {
@@ -896,15 +899,17 @@
                                 </label>
                             </td>
                             <td>
-                                <button class="action-btn ${category.isListed ? 'active-btn' : 'block-btn'}" 
-                                        data-category-id="${category._id}" 
-                                        data-status="${category.isListed ? 'active' : 'block'}" 
-                                        title="Category Status">
-                                    ${category.isListed ? 'Active' : 'Block'}
-                                </button>
-                                <button class="action-btn edit-btn" data-category-id="${category._id}" title="Edit Category">
-                                    <i class="fas fa-edit me-1"></i>Edit
-                                </button>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="action-btn ${category.isListed ? 'active-btn' : 'block-btn'}" 
+                                            data-category-id="${category._id}" 
+                                            data-status="${category.isListed ? 'active' : 'block'}" 
+                                            title="Category Status">
+                                        ${category.isListed ? 'Active' : 'Block'}
+                                    </button>
+                                    <button class="action-btn edit-btn" data-category-id="${category._id}" title="Edit Category">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `).join('');

@@ -3,9 +3,9 @@ const bcrypt = require("bcryptjs");
 
 const loadSignIn = async (req, res) => {
   try {
-    if(req.session.isAdminAuth && req.session.admin){
-        return res.redirect('/admin/dashboard')
-    }
+    // if(req.session.isAdminAuth && req.session.admin){
+    //     return res.redirect('/admin/dashboard')
+    // }
     return res.render("auth/adminSignIn");
   } catch (error) {
     console.log("failed to load admin signin page", error);

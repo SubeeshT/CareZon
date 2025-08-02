@@ -2,11 +2,6 @@ const Category = require('../../models/categorySchema');
 
 const getCategories = async (req, res) => {
   try {
-    const admin = req.session.admin;
-    if (!admin) {
-      return res.redirect('/admin/signIn');
-    }
-
     const { search = "", page = 1, limit = 8 } = req.query; 
     const skip = (page - 1) * limit;
 
@@ -15,7 +10,6 @@ const getCategories = async (req, res) => {
       query = {
         $or: [
           { name: { $regex: search, $options: 'i' } },
-          //{ description: { $regex: search, $options: 'i' } },
         ]
       };
     }
@@ -41,7 +35,6 @@ const getCategories = async (req, res) => {
     }
 
     res.render('category/categoryManagement', {
-      admin,
       categories,
       pagination: {
         currentPage: parseInt(page),

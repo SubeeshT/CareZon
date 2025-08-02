@@ -5,10 +5,10 @@ const sanitizeHtml = require('sanitize-html');
 
 const loadBrand = async (req, res) => {
     try {
-        const admin = req.session.admin;
-        if (!admin) {
-            return res.redirect('/admin/signIn');
-        }
+        // const admin = req.session.admin;
+        // if (!admin) {
+        //     return res.redirect('/admin/signIn');
+        // }
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 8;

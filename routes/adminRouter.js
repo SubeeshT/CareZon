@@ -49,6 +49,8 @@ router.post('/products/add', uploadConfigs.productImage, productController.addPr
 router.get('/products/details/:id', productController.viewProductDetails);
 router.get('/products/edit/:id', productController.loadEditProductPage);
 router.put('/products/edit/:id', uploadConfigs.productImage, productController.editProduct);
+router.patch('/products/status/:id', productController.productStatus);
+router.get('/products/search', productController.searchProduct);
 
 
 module.exports = router;

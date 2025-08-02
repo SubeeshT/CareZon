@@ -10,6 +10,9 @@ const loadProductListPage = async (req, res) => {
         const limit = 10;
         const skip = (page - 1) * limit;
 
+        const brands = await Brand.find({ status: true }).select('_id name');
+        const categories = await Category.find({ isListed: true }).select('_id name');
+
         const totalProducts = await Product.countDocuments({});
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -44,6 +47,8 @@ const loadProductListPage = async (req, res) => {
             products: formattedProducts,
             currentPage: page, 
             totalPages,
+            categories,
+            brands
         });
 
     } catch (error) {
@@ -442,11 +447,88 @@ const viewProductDetails = async (req,res) => {
     }
 }
 
+
+const productStatus = async (req,res) => {
+    try {
+        const {id} = req.params;
+        const {variants} = req.body;
+        
+        const product = await Product.findById(id);
+        if(!product){
+            return res.status(404).json({success: false, message: "Product not found"});
+        }
+
+        //update individual variant statuses
+        let updatedCount = 0;
+        variants.forEach(variantUpdate => {
+            const variantIndex = product.variants.findIndex(v => v._id.toString() === variantUpdate.variantId.toString());
+
+            if(variantIndex !== -1){
+                product.variants[variantIndex].isListed = variantUpdate.isListed;
+                updatedCount++;
+            }
+        });
+        if(updatedCount === 0){
+            return res.status(400).json({success: false, message: "no variants were updated"});
+        }
+
+        await product.save();
+
+        return res.status(200).json({success: true, message: `${updatedCount} variant${updatedCount > 1 ? 's' : ''} updated successfully`, updatedCount});
+
+
+    } catch (error) {
+        console.error("Error updating variant statuses:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+const searchProduct =  async (req,res) => {
+    try {
+        const search = req.query.search?.trim() || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = search ? {name: {$regex: search, $options: 'i'}} : {};
+
+        const totalProducts = await Product.countDocuments(filter);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        const products = await Product.find(filter).sort({createdAt: -1}).skip(skip).limit(limit).populate('brand', 'name').populate('category', 'name').lean();
+        if(products.length === 0){
+            return res.status(404).json({success: false, message: "No Product found"});
+        }
+
+        const formattedProducts = products.map(product => {
+            const activeVariant = product.variants.find(v => v.isListed) || product.variants[0];
+
+            return {
+                _id: product._id,
+                name: product.name,
+                brand: product.brand,
+                category: product.category,
+                regularPrice: activeVariant.regularPrice,
+                salesPrice: activeVariant.salesPrice,
+                stock: activeVariant.stock
+            }
+        });
+
+        return res.status(200).json({success: true, products: formattedProducts, currentPage: page, totalPages, totalProducts});
+
+    } catch (error) {
+        console.error("product search get error", error);
+        return res.status(500).json({success: false, message: "Internal server error"});
+    }
+}
+
 module.exports = {
     loadProductListPage,
     loadAddProductPage,
     addProduct,
     loadEditProductPage,
     editProduct,
-    viewProductDetails
+    viewProductDetails,
+    productStatus,
+    searchProduct
 };

@@ -149,7 +149,7 @@
 .table thead th {
   background: #f3f4f6;
   border: none;
-  font-weight: 600;
+  font-weight: 800;
   color: #374151;
   padding: 1rem;
   font-size: 0.875rem;
@@ -161,8 +161,9 @@
   padding: 0.875rem;
   border-color: #f1f5f9;
   vertical-align: middle;
-  font-size: 0.8125rem;
-  color: #4b5563;
+  font-size: 0.9rem;
+  color: #00193c;
+   font-weight: 800;
 }
 
 .table tbody tr {
@@ -174,6 +175,22 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+.text-light-green {
+  color: #00ff00 !important;
+}
+
+.text-light-red {
+  color: #ff0026 !important;
+}
+
+.font-weight-bold {
+  font-weight: 700 !important;
+}
+
+.font-weight-semibold {
+  font-weight: 600 !important;
+}
+
 /* Action Buttons */
 .action-buttons {
   display: flex;
@@ -183,22 +200,21 @@
 }
 
 .action-buttons .status-btn {
-  padding: 0.375rem 1rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   text-transform: capitalize;
   transition: all 0.2s ease;
-}
-
-.action-buttons .status-btn.active {
-  background: #22c55e;
   color: #ffffff;
 }
 
-.action-buttons .status-btn.blocked {
-  background: #ef4444;
-  color: #ffffff;
+.action-buttons .status-btn.red {
+  background: #dc3545;
+}
+
+.action-buttons .status-btn.green {
+  background: #28a745;
 }
 
 .action-buttons .edit-btn,
@@ -206,17 +222,25 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  background: none;
-  border: none;
-  transition: color 0.2s ease;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+  transition: all 0.2s ease;
+  border-radius: 9999px;
+}
+
+.action-buttons .btn-blue {
+  background: #007bff;
+  color: #ffffff;
+}
+
+.action-buttons .btn-light-blue {
+  background: #87CEEB;
+  color: #ffffff;
 }
 
 .action-buttons .edit-btn:hover,
 .action-buttons .view-btn:hover {
-  color: #ef4444;
+  opacity: 0.9;
 }
 
 /* Pagination */
@@ -455,17 +479,11 @@
 }
 
 .price-highlight {
-  color: #22c55e;
   font-size: 0.875rem;
 }
 
 .stock-highlight {
-  color: #ef4444;
   font-size: 0.875rem;
-}
-
-.stock-highlight.in-stock {
-  color: #22c55e;
 }
 
 /* Lightbox */
@@ -637,6 +655,202 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Variant Status Modal Styles */
+.variant-status-modal .modal-dialog {
+  max-width: 900px;
+}
+
+.variant-status-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  margin: -1rem -1rem 1.5rem -1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.variant-status-header h5 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.variant-status-header p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.variants-grid {
+  display: grid;
+  gap: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.variant-status-card {
+  border: 2px solid #e9ecef;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.variant-status-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.variant-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.variant-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+.variant-current-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.variant-current-status.active {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.variant-current-status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.variant-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.variant-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.variant-detail-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.variant-detail-value {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.price-value {
+  font-size: 1.1rem;
+}
+
+.variant-attributes {
+  margin-bottom: 1rem;
+}
+
+.attributes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attribute-tag {
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  border: 1px solid #e9ecef;
+}
+
+.variant-action-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f3f4;
+}
+
+.variant-toggle-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.variant-toggle-btn.active {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.variant-toggle-btn.active:hover {
+  background: linear-gradient(135deg, #218838, #1ea781);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.variant-toggle-btn.inactive {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.variant-toggle-btn.inactive:hover {
+  background: linear-gradient(135deg, #5a6268, #495057);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.variant-info-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.changes-indicator {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.changes-indicator.hidden {
+  display: none;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .product-details-modal .modal-dialog {
@@ -675,14 +889,14 @@
 
   .table tbody td {
     padding: 0.5rem;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .action-buttons .status-btn,
   .action-buttons .edit-btn,
   .action-buttons .view-btn {
     padding: 0.25rem 0.5rem;
-    font-size: 0.6875rem;
+    font-size: 0.65rem;
   }
 
   .sort-filter-group {
@@ -699,3 +913,98 @@
     gap: 0.75rem;
   }
 }
+
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #productsTable {
+            width: 100%;
+            min-width: 800px; /* Ensures minimum width for content */
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        #productsTable th,
+        #productsTable td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #productsTable th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #productsTable td {
+            max-width: 150px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .action-buttons button {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            #productsTable {
+                min-width: 600px;
+            }
+
+            #productsTable th,
+            #productsTable td {
+                padding: 8px 4px;
+                font-size: 0.85rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-buttons button {
+                width: 100%;
+                text-align: left;
+            }
+
+            #productsTable td {
+                max-width: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #productsTable {
+                min-width: 400px;
+            }
+
+            #productsTable th,
+            #productsTable td {
+                font-size: 0.8rem;
+                padding: 6px 3px;
+            }
+
+            #productsTable td {
+                max-width: 80px;
+            }
+
+            .action-buttons button {
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+        }
+    

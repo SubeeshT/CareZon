@@ -1,0 +1,711 @@
+<%
+    const pageData = {
+        title: 'Products - Carezon Admin',
+        pageTitle: 'Products Management',
+        breadcrumb: [
+            { name: 'dashboard', url: '/admin/dashboard' },
+            { name: 'Products', url: '/admin/products' }
+        ],
+        pageActions: '<button class="btn btn-success" onclick="window.location.href=\'/admin/products/add\'"><i class="fas fa-plus"></i> Add Product</button>'
+    };
+%>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageData.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/product.css">
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <% pageData.breadcrumb.forEach(function(item, index) { %>
+                                    <li class="breadcrumb-item <%= index === pageData.breadcrumb.length - 1 ? 'active' : '' %>">
+                                        <% if (index < pageData.breadcrumb.length - 1) { %>
+                                            <a href="<%= item.url %>"><%= item.name %></a>
+                                        <% } else { %>
+                                            <%= item.name %>
+                                        <% } %>
+                                    </li>
+                                <% }); %>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="page-actions">
+                        <%- pageData.pageActions %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Content -->
+            <div class="page-content">
+                <!-- Search and Filter Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6 position-relative">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
+                            <button class="clear-btn" id="clearSearch" title="Clear search"><i class="fas fa-times"></i></button>
+                            <button class="history-toggle" id="historyToggle" title="Toggle search history"><i class="fas fa-history"></i></button>
+                        </div>
+                        <div class="search-history" id="searchHistory">
+                            <div class="search-history-header">
+                                <span>Recent Searches</span>
+                                <button class="clear-all-btn" id="clearAllHistory">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sort-filter-group justify-content-end">
+                            <label for="categorySort">Category:</label>
+                            <select class="form-select" id="categorySort">
+                                <option value="">All Categories</option>
+                                <option value="TAB">Tablets</option>
+                                <option value="Oil">Oil</option>
+                                <option value="SYP">Syrup</option>
+                                <option value="Food">Food</option>
+                                <option value="MOM">MOM</option>
+                                <option value="NRX">NRX</option>
+                                <option value="Drop">Drop</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>MRP</th>
+                                <th>Sales Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (products.length === 0) { %>
+                                <tr>
+                                    <td colspan="8" class="text-center">No Products found, Please Add Products</td>
+                                </tr>
+                            <% } else { %>
+                                <% products.forEach(pro => { %>
+                                    <tr data-product-id="<%= pro._id %>">
+                                        <td><%= pro.serialNo %></td>
+                                        <td><%= pro.name %></td>
+                                        <td><%= pro.category %></td>
+                                        <td><%= pro.brand %></td>
+                                        <td><%= pro.regularPrice %></td>
+                                        <td><%= pro.salesPrice %></td>
+                                        <td><%= pro.stock %></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="status-btn <%= pro.isListed ? 'active' : 'blocked' %>" onclick="showConfirmModal('action', '<%= pro._id %>')">
+                                                    <%= pro.isListed ? 'Active' : 'Blocked' %>
+                                                </button>
+                                                <button class="edit-btn" onclick="editProduct('<%= pro._id %>')">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="view-btn" onclick="viewProduct('<%= pro._id %>')">
+                                                    <i class="fas fa-eye"></i> View More
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-section">
+                    <div>Showing <%= ((currentPage - 1) * 10 + 1) %> to <%= Math.min(currentPage * 10, products.length + ((currentPage - 1) * 10)) %> of <%= totalPages * 10 %> products | Page <%= currentPage %> of <%= totalPages %></div>
+                    <div class="pagination-controls">
+                        <button class="btn" <%= currentPage === 1 ? 'disabled' : '' %> onclick="window.location.href='?page=<%= currentPage - 1 %>'"><i class="fas fa-chevron-left"></i></button>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <button class="btn <%= i === currentPage ? 'active' : '' %>" onclick="window.location.href='?page=<%= i %>'"><%= i %></button>
+                        <% } %>
+                        <button class="btn" <%= currentPage === totalPages ? 'disabled' : '' %> onclick="window.location.href='?page=<%= currentPage + 1 %>'"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Product Details Modal -->
+    <div class="modal fade product-details-modal" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalTitle">Product Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editCurrentProduct()">
+                        <i class="fas fa-edit"></i> Edit Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div class="image-lightbox" id="imageLightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+            <button class="lightbox-nav lightbox-prev" onclick="previousImage()"><i class="fas fa-chevron-left"></i></button>
+            <img class="lightbox-image" id="lightboxImage" src="/placeholder.svg" alt="Product Image">
+            <button class="lightbox-nav lightbox-next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Confirmation action Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmModalBody">
+                    Are you sure you want to proceed with this action?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn" data-bs-dismiss="modal">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        let isHistoryVisible = false;
+        let currentProductId = null;
+        let currentActionType = null;
+        let currentProductData = null;
+        let lightboxImages = [];
+        let currentImageIndex = 0;
+
+        // Debounce utility
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+
+        // Initialize page and sidebar
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("main-content");
+            const sidebarToggle = document.getElementById("sidebar-toggle");
+            const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+            const sidebarLinks = document.querySelectorAll(".sidebar-link");
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            const historyToggle = document.getElementById('historyToggle');
+            const clearAllHistoryBtn = document.getElementById('clearAllHistory');
+            const categorySort = document.getElementById('categorySort');
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmActionBtn = document.getElementById('confirmActionBtn');
+
+            // Sidebar initialization
+            const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+            if (isCollapsed) {
+                sidebar.classList.add("collapsed");
+                mainContent.classList.add("expanded");
+                sidebarToggle.querySelector("i").classList.replace("fa-chevron-left", "fa-chevron-right");
+            }
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener("click", () => {
+                    const isCollapsed = sidebar.classList.toggle("collapsed");
+                    mainContent.classList.toggle("expanded");
+                    const icon = sidebarToggle.querySelector("i");
+                    icon.classList.toggle("fa-chevron-left", !isCollapsed);
+                    icon.classList.toggle("fa-chevron-right", isCollapsed);
+                    localStorage.setItem("sidebarCollapsed", isCollapsed);
+                });
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("show");
+                });
+            }
+
+            const currentPath = window.location.pathname;
+            sidebarLinks.forEach(link => {
+                link.classList.toggle("active", new URL(link.href).pathname === currentPath);
+            });
+
+            document.addEventListener("click", (e) => {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                    sidebar.classList.remove("show");
+                }
+            });
+
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 768) sidebar.classList.remove("show");
+            });
+
+            // Products page initialization
+            document.querySelectorAll('#productsTable tbody tr').forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.classList.add('fade-in');
+            });
+            updateSearchButtons();
+
+            // Search functionality
+            if (searchInput) {
+                const debouncedSearch = debounce(handleSearch, 300);
+                searchInput.addEventListener('input', debouncedSearch);
+                searchInput.addEventListener('focus', () => isHistoryVisible && showSearchHistory());
+                searchInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if (!searchHistoryDiv.matches(':hover') && !historyToggle.matches(':hover')) {
+                            searchHistoryDiv.style.display = 'none';
+                        }
+                    }, 200);
+                });
+
+                clearSearch.addEventListener('click', () => {
+                    searchInput.value = '';
+                    handleSearch({ target: searchInput });
+                });
+
+                historyToggle.addEventListener('click', () => {
+                    isHistoryVisible = !isHistoryVisible;
+                    const icon = historyToggle.querySelector('i');
+                    icon.classList.toggle('fa-history');
+                    icon.classList.toggle('fa-times');
+                    searchHistoryDiv.style.display = isHistoryVisible && searchHistory.length > 0 ? 'block' : 'none';
+                });
+
+                clearAllHistoryBtn.addEventListener('click', () => {
+                    searchHistory = [];
+                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                    updateSearchHistoryUI();
+                    searchHistoryDiv.style.display = 'none';
+                });
+
+                updateSearchHistoryUI();
+            }
+
+            // Category sort
+            if (categorySort) categorySort.addEventListener('change', handleCategorySort);
+
+            // Confirmation modal
+            confirmActionBtn.addEventListener('click', () => {
+                if (currentProductId && currentActionType === 'action') {
+                    toggleList(currentProductId);
+                    currentProductId = null;
+                    currentActionType = null;
+                }
+            });
+
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', () => {
+                currentProductId = null;
+                currentActionType = null;
+            });
+
+            // Lightbox
+            document.addEventListener('keydown', (e) => {
+                const lightbox = document.getElementById('imageLightbox');
+                if (lightbox.style.display === 'flex') {
+                    if (e.key === 'Escape') closeLightbox();
+                    else if (e.key === 'ArrowLeft') previousImage();
+                    else if (e.key === 'ArrowRight') nextImage();
+                }
+            });
+
+            document.getElementById('imageLightbox').addEventListener('click', (e) => {
+                if (e.target.id === 'imageLightbox') closeLightbox();
+            });
+        });
+
+        function updateSearchButtons() {
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            clearSearch.classList.toggle('active', !!searchInput.value);
+        }
+
+        function showSearchHistory() {
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            if (searchHistory.length > 0) searchHistoryDiv.style.display = 'block';
+        }
+
+        function updateSearchHistoryUI() {
+            const searchHistoryDiv = document.getElementById('searchHistory');
+            const itemsContainer = searchHistoryDiv.querySelector('.search-history-header').parentNode;
+            itemsContainer.querySelectorAll('.search-history-item').forEach(item => item.remove());
+
+            searchHistory.forEach((term, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'search-history-item';
+                historyItem.innerHTML = `
+                    <span>${term}</span>
+                    <button class="clear-item-btn" title="Clear this search"><i class="fas fa-times"></i></button>
+                `;
+                historyItem.querySelector('span').addEventListener('click', () => {
+                    document.getElementById('searchInput').value = term;
+                    handleSearch({ target: document.getElementById('searchInput') });
+                });
+                historyItem.querySelector('.clear-item-btn').addEventListener('click', () => {
+                    searchHistory.splice(index, 1);
+                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                    updateSearchHistoryUI();
+                    if (searchHistory.length === 0) searchHistoryDiv.style.display = 'none';
+                });
+                itemsContainer.appendChild(historyItem);
+            });
+
+            document.getElementById('clearAllHistory').style.display = searchHistory.length > 0 ? 'block' : 'none';
+        }
+
+        function addToSearchHistory(term) {
+            if (term && !searchHistory.includes(term)) {
+                searchHistory.unshift(term);
+                if (searchHistory.length > 5) searchHistory.pop();
+                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                updateSearchHistoryUI();
+            }
+        }
+
+        function handleSearch(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#productsTable tbody tr');
+
+            if (searchTerm) addToSearchHistory(searchTerm);
+
+            tableRows.forEach(row => {
+                const productName = row.cells[1].textContent.toLowerCase();
+                const category = row.cells[2].textContent.toLowerCase();
+                const brand = row.cells[3].textContent.toLowerCase();
+                row.style.display = (productName.includes(searchTerm) || category.includes(searchTerm) || brand.includes(searchTerm)) ? '' : 'none';
+                if (!row.style.display) row.classList.add('slide-up');
+            });
+
+            updateTableVisibility();
+            updateSearchButtons();
+        }
+
+        function handleCategorySort() {
+            const category = document.getElementById('categorySort').value;
+            const tableRows = document.querySelectorAll('#productsTable tbody tr');
+
+            tableRows.forEach(row => {
+                row.style.display = !category || row.cells[2].textContent.trim() === category ? '' : 'none';
+                if (!row.style.display) row.classList.add('slide-up');
+            });
+
+            updateTableVisibility();
+        }
+
+        function updateTableVisibility() {
+            const visibleRows = document.querySelectorAll('#productsTable tbody tr:not([style*="display: none"])');
+            const tbody = document.querySelector('#productsTable tbody');
+            const noResultsRow = document.getElementById('noResultsRow');
+
+            if (visibleRows.length === 0) {
+                if (!noResultsRow) {
+                    const newRow = document.createElement('tr');
+                    newRow.id = 'noResultsRow';
+                    newRow.innerHTML = `<td colspan="8" class="text-center py-4"><i class="fas fa-search fa-2x text-muted mb-2"></i><p class="text-muted mb-0">No products found matching your criteria</p></td>`;
+                    tbody.appendChild(newRow);
+                }
+            } else {
+                if (noResultsRow) noResultsRow.remove();
+                visibleRows.forEach((row, index) => row.cells[0].textContent = index + 1);
+                const totalCount = document.querySelectorAll('#productsTable tbody tr').length;
+                document.querySelector('.pagination-section div:first-child').textContent = `Showing 1 to ${visibleRows.length} of ${totalCount} products | Page 1 of 1`;
+            }
+        }
+
+        function editProduct(productId) {
+            window.location.href = `/admin/products/edit/${productId}`;
+        }
+
+        function editCurrentProduct() {
+            if (currentProductData?.id) window.location.href = `/admin/products/edit/${currentProductData.id}`;
+        }
+
+        function showConfirmModal(actionType, productId) {
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmModalBody = document.getElementById('confirmModalBody');
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            const statusBtn = row.querySelector('.status-btn');
+            const isActive = statusBtn.classList.contains('active');
+            
+            confirmModalBody.textContent = `Are you sure you want to ${isActive ? 'block' : 'activate'} this product?`;
+            currentProductId = productId;
+            currentActionType = actionType;
+            confirmModal.show();
+        }
+
+        async function toggleList(productId) {
+            try {
+                const response = await fetch(`/admin/products/status/${productId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type' : 'application/json',
+                    }
+                });
+                const data = await response.json();
+
+                if(data.success){
+                    //Update UI only after successful API call
+                    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                    const statusBtn = row.querySelector('.status-btn');
+
+                    //Update button based on new status from server
+                    if(data.newStatus){
+                        statusBtn.className = 'status-btn active';
+                        statusBtn.textContent = 'Active';
+                    }else{
+                        statusBtn.className = 'status-btn blocked';
+                        statusBtn.textContent = 'Blocked';
+                    }
+
+                    showNotification(data.message, 'success');
+                }else{
+                    showNotification(data.message || 'Failed to update status', 'error');
+                }
+            } catch (error) {
+                console.error("Error changing product status : ", error);
+                showNotification("Failed to update product status : ", 'error');
+            }
+        }
+
+        async function viewProduct(productId) {
+            try {
+                const response = await fetch(`/admin/products/details/${productId}`);
+                const data = await response.json();
+                if (!data.success) throw new Error('Failed to load product details');
+
+                const product = data.product;
+                currentProductData = { id: product._id };
+                lightboxImages = [];
+
+                product.variants.forEach(variant => {
+                    if (variant.images?.length) {
+                        variant.images.forEach(img => {
+                            const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
+                            if (imageUrl) lightboxImages.push(imageUrl);
+                        });
+                    }
+                });
+
+                const variantsHtml = product.variants.length ? `
+                    <div class="variants-section">
+                        <div class="variants-header">
+                            <h4><i class="fas fa-layer-group"></i> Product Variants</h4>
+                            <span class="variants-count">${product.variants.length} Variants</span>
+                        </div>
+                        <div class="variants-container">
+                            ${product.variants.map(variant => `
+                                <div class="variant-card">
+                                    <div class="variant-header">
+                                        <div class="variant-name">${product.name || 'Default Variant'}</div>
+                                        <div class="variant-status ${variant.isListed ? 'active' : 'inactive'}">${variant.isListed ? 'ACTIVE' : 'INACTIVE'}</div>
+                                    </div>
+                                    <div class="variant-details">
+                                        ${variant.images?.length ? `
+                                            <div class="variant-images mb-3">
+                                                <div class="variant-images-label">Images:</div>
+                                                <div class="variant-images-grid">
+                                                    ${variant.images.slice(0, 4).map((img, index) => {
+                                                        const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
+                                                        const globalIndex = lightboxImages.findIndex(i => (typeof i === 'string' ? i : (i.url || i.secure_url || i)) === imageUrl);
+                                                        return `<img src="${imageUrl}" alt="Variant Image" onclick="openLightbox(${globalIndex >= 0 ? globalIndex : lightboxImages.length})" class="variant-thumbnail" onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">`;
+                                                    }).join('')}
+                                                    ${variant.images.length > 4 ? `<div class="more-images">+${variant.images.length - 4} more</div>` : ''}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">MRP:</span>
+                                            <span class="variant-detail-value price-highlight">₹${variant.regularPrice}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Sales Price:</span>
+                                            <span class="variant-detail-value price-highlight">₹${variant.salesPrice}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Stock:</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.stock > 0 ? 'in-stock' : ''}">${variant.stock} : ${variant.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">UOM:</span>
+                                            <span class="variant-detail-value">${variant.uom || 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Expiry Date:</span>
+                                            <span class="variant-detail-value">${variant.expiryDate ? new Date(variant.expiryDate).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Manufacturing Date:</span>
+                                            <span class="variant-detail-value">${variant.manufacturingDate ? new Date(variant.manufacturingDate).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Prescription Required:</span>
+                                            <span class="variant-detail-value">${variant.prescriptionRequired ? "Yes" : "No Need"}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Discount :</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.discountStatus ? 'in-stock' : ''}">${variant.discountStatus  ? 'Active' : 'Inactive'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Offer :</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.offerStatus ? 'in-stock' : ''}">${variant.offerStatus ? 'Active' : 'Inactive'}</span>
+                                        </div>
+                                        ${variant.attributes && Object.keys(variant.attributes).length ? `
+                                            <div class="variant-detail-item full-width">
+                                                <span class="variant-detail-label">Attributes:</span>
+                                                <div class="variant-detail-value">
+                                                    <div class="attributes-grid">
+                                                        ${Object.entries(variant.attributes).map(([key, value]) => `
+                                                            <div class="attribute-item">
+                                                                <span class="attribute-key">${key}:</span>
+                                                                <span class="attribute-value">${value}</span>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : '';
+
+                const modalBody = document.getElementById('viewModalBody');
+                const modalTitle = document.getElementById('productModalTitle');
+                modalTitle.textContent = `${product.name} - Complete Details`;
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <div class="product-info-section">
+                                <h3 class="mb-3">${product.name}</h3>
+                                <p class="text-muted mb-4"><span>Description : ><br></span> ${product.description || 'No description available'}</p>
+                                <div class="product-info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">Category</div>
+                                        <div class="info-value">${product.category?.name || product.category}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Brand</div>
+                                        <div class="info-value">${product.brand?.name || product.brand}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Created</div>
+                                        <div class="info-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Updated</div>
+                                        <div class="info-value">${product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Total Variants</div>
+                                        <div class="info-value">${product.variants.length}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${variantsHtml}
+                `;
+
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) {
+                console.error('Error loading product details:', error);
+                showNotification('Failed to load product details', 'error');
+            }
+        }
+
+        function openLightbox(imageIndex) {
+            if (!lightboxImages.length) return;
+            currentImageIndex = imageIndex;
+            const lightbox = document.getElementById('imageLightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            lightboxImage.src = lightboxImages[currentImageIndex];
+            lightbox.style.display = 'flex';
+            document.querySelector('.lightbox-prev').style.display = lightboxImages.length > 1 ? 'block' : 'none';
+            document.querySelector('.lightbox-next').style.display = lightboxImages.length > 1 ? 'block' : 'none';
+        }
+
+        function closeLightbox() {
+            document.getElementById('imageLightbox').style.display = 'none';
+        }
+
+        function previousImage() {
+            if (lightboxImages.length <= 1) return;
+            currentImageIndex = currentImageIndex > 0 ? currentImageIndex - 1 : lightboxImages.length - 1;
+            document.getElementById('lightboxImage').src = lightboxImages[currentImageIndex];
+        }
+
+        function nextImage() {
+            if (lightboxImages.length <= 1) return;
+            currentImageIndex = currentImageIndex < lightboxImages.length - 1 ? currentImageIndex + 1 : 0;
+            document.getElementById('lightboxImage').src = lightboxImages[currentImageIndex];
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} notification-toast`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+            
+    </script>
+</body>
+</html>
