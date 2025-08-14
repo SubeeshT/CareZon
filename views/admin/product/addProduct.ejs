@@ -1,20 +1,9 @@
-<% 
-    const pageData = {
-        title: 'Add Product - Carezon Admin',
-        pageTitle: 'Add New Product',
-        breadcrumb: [
-            { name: 'Home', url: '/admin' },
-            { name: 'Products', url: '/admin/products' },
-            { name: 'Add Product', url: '/admin/products/add' }
-        ]
-    };
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageData.title %></title>
+    <title>Add Product - Carezon Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,16 +27,12 @@
             <div class="page-header mb-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <h1 class="page-title">Add New Product</h1>
                         <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <% pageData.breadcrumb.forEach(function(item, index) { %>
-                                    <% if (index === pageData.breadcrumb.length - 1) { %>
-                                        <li class="breadcrumb-item active" aria-current="page"><%= item.name %></li>
-                                    <% } else { %>
-                                        <li class="breadcrumb-item"><a href="<%= item.url %>"><%= item.name %></a></li>
-                                    <% } %>
-                                <% }); %>
+                            <ol class="breadcrumb">                                       
+                                <li class="breadcrumb-item"><a href='/admin/dashboard'>Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href='/admin/products'>Products</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Add</li>
                             </ol>
                         </nav>
                     </div>
@@ -119,14 +104,7 @@
                                             </div>
                                             <div class="field-error" id="variantRegularPrice1-error"></div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="variantSalesPrice1" class="form-label">Sales Price</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">₹</span>
-                                                <input type="number" class="form-control" id="variantSalesPrice1" name="variants[0][salesPrice]" step="0.01" min="0">
-                                            </div>
-                                            <div class="field-error" id="variantSalesPrice1-error"></div>
-                                        </div>
+                                        
                                         <div class="col-md-6 mb-3">
                                             <label for="variantManufacturingDate1" class="form-label">Manufacturing Date <span class="text-danger">*</span></label>
                                             <input type="date" class="form-control" id="variantManufacturingDate1" name="variants[0][manufacturingDate]" required>
@@ -141,6 +119,9 @@
                                             <label for="variantUom1" class="form-label">Unit of Measure (UOM) <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="variantUom1" name="variants[0][uom]" required>
                                             <div class="field-error" id="variantUom1-error"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                           
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="variantPrescriptionRequired1" class="form-label">Prescription Required</label>
@@ -474,14 +455,7 @@
                         </div>
                         <div class="field-error" id="variantRegularPrice${variantId}-error"></div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="variantSalesPrice${variantId}" class="form-label">Sales Price</label>
-                        <div class="input-group">
-                            <span class="input-group-text">₹</span>
-                            <input type="number" class="form-control" id="variantSalesPrice${variantId}" name="variants[${variantIndex}][salesPrice]" step="0.01" min="0">
-                        </div>
-                        <div class="field-error" id="variantSalesPrice${variantId}-error"></div>
-                    </div>
+                    
                     <div class="col-md-6 mb-3">
                         <label for="variantManufacturingDate${variantId}" class="form-label">Manufacturing Date <span class="text-danger">*</span></label>
                         <input type="date" class="form-control" id="variantManufacturingDate${variantId}" name="variants[${variantIndex}][manufacturingDate]" required>
@@ -496,6 +470,9 @@
                         <label for="variantUom${variantId}" class="form-label">Unit of Measure (UOM) <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="variantUom${variantId}" name="variants[${variantIndex}][uom]" required>
                         <div class="field-error" id="variantUom${variantId}-error"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="variantPrescriptionRequired${variantId}" class="form-label">Prescription Required</label>
@@ -607,12 +584,6 @@
                             <input type="text" class="form-control" id="variant_attr_color${variantId}" name="variants[${variantIndex}][attributes][color]" required>
                             <div class="field-error" id="variant_attr_color${variantId}-error"></div>
                         </div>`,
-                    kg: `
-                        <div class="col-md-6 mb-3">
-                            <label for="variant_attr_kg${variantId}" class="form-label">Kilograms (kg) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="variant_attr_kg${variantId}" name="variants[${variantIndex}][attributes][kg]" step="0.01" min="0" required>
-                            <div class="field-error" id="variant_attr_kg${variantId}-error"></div>
-                        </div>`,
                     ml: `
                         <div class="col-md-6 mb-3">
                             <label for="variant_attr_ml${variantId}" class="form-label">Milliliters (ml) <span class="text-danger">*</span></label>
@@ -624,7 +595,31 @@
                             <label for="variant_attr_mg${variantId}" class="form-label">Milligrams (mg) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="variant_attr_mg${variantId}" name="variants[${variantIndex}][attributes][mg]" step="0.01" min="0" required>
                             <div class="field-error" id="variant_attr_mg${variantId}-error"></div>
-                        </div>`
+                        </div>`,
+                    size: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_size${variantId}" class="form-label">Size <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_size${variantId}" name="variants[${variantIndex}][attributes][size]" required>
+                            <div class="field-error" id="variant_attr_size${variantId}-error"></div>
+                        </div>`,    
+                    gm: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_gm${variantId}" class="form-label">gm <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_gm${variantId}" name="variants[${variantIndex}][attributes][gm]" required>
+                            <div class="field-error" id="variant_attr_gm${variantId}-error"></div>
+                        </div>`,    
+                    stage: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_stage${variantId}" class="form-label">Stage <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_stage${variantId}" name="variants[${variantIndex}][attributes][stage]" required>
+                            <div class="field-error" id="variant_attr_stage${variantId}-error"></div>
+                        </div>`  ,  
+                    kg: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_kg${variantId}" class="form-label">kg <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_kg${variantId}" name="variants[${variantIndex}][attributes][kg]" required>
+                            <div class="field-error" id="variant_attr_kg${variantId}-error"></div>
+                        </div>`    
                 };
 
                 attributes.forEach(attr => {
@@ -666,12 +661,13 @@
             const categoryAttributes = {
                 'TABLET': ['ingredients', 'mg'],
                 'CAPSULE': ['ingredients', 'mg'],
-                'NRX_TAB': ['ingredients', 'mg'],
-                'OINTMENT': ['ingredients', 'mg'],
-                'DROPS': ['ml', 'ingredients'],
-                'SYRUP': ['ml', 'ingredients'],
-                'FOOD': ['kg', 'ingredients'],
-                'MEDICAL EQUIPMENTS': ['material', 'color', 'ingredients']
+                'NRX TABLET': ['ingredients', 'mg'],
+                'OINTMENT': ['ingredients', 'gm'],
+                'DROP': [ 'ingredients' , 'ml'],
+                'SYRUP': ['ingredients', 'ml'],
+                'FOOD': ['ingredients', 'kg','stage'],
+                'MEDICAL EQUIPMENT': ['ingredients', 'material', 'color'],
+                'BODY SUPPORT': ['ingredients', 'size']
             };
             return categoryAttributes[categoryName] || [];
         }
@@ -866,11 +862,6 @@
 
                 // Log FormData for debugging
                 const formData = new FormData(form);
-                console.log('FormData contents:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}:`, value instanceof File ? value.name : value);
-                }
-
                 toggleFormDisabled(true);
                 document.getElementById('spinnerOverlay').style.display = 'block';
 

@@ -7,16 +7,91 @@ const fs = require('fs').promises;
 const loadProductListPage = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
+        const status = req.query.status;
 
-        const brands = await Brand.find({ status: true }).select('_id name');
+        const brands = await Brand.find({ isListed: true }).select('_id name');
         const categories = await Category.find({ isListed: true }).select('_id name');
 
-        const totalProducts = await Product.countDocuments({});
+        let products;
+        if (status === 'active') {
+            // Products with at least one active variant
+            products = await Product.aggregate([
+                {
+                    $lookup: {
+                        from: 'brands',
+                        localField: 'brand',
+                        foreignField: '_id',
+                        as: 'brand'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'category',
+                        foreignField: '_id',
+                        as: 'category'
+                    }
+                },
+                {
+                    $match: {
+                        'variants': { $elemMatch: { isListed: true } }
+                    }
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit }
+            ]);
+        } else if (status === 'blocked') {
+            // Products where ALL variants are inactive
+            products = await Product.aggregate([
+                {
+                    $lookup: {
+                        from: 'brands',
+                        localField: 'brand',
+                        foreignField: '_id',
+                        as: 'brand'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'category',
+                        foreignField: '_id',
+                        as: 'category'
+                    }
+                },
+                {
+                    $match: {
+                        'variants': { $not: { $elemMatch: { isListed: true } } }
+                    }
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit }
+            ]);
+        } else {
+            // All products
+            products = await Product.find({}).sort({createdAt: -1}).skip(skip).limit(limit).populate('brand', 'name').populate('category', 'name').lean();
+        }
+
+        // Count total for pagination
+        let totalProducts;
+        if (status === 'active') {
+            totalProducts = await Product.countDocuments({
+                'variants': { $elemMatch: { isListed: true } }
+            });
+        } else if (status === 'blocked') {
+            totalProducts = await Product.countDocuments({
+                'variants': { $not: { $elemMatch: { isListed: true } } }
+            });
+        } else {
+            totalProducts = await Product.countDocuments({});
+        }
+
         const totalPages = Math.ceil(totalProducts / limit);
 
-        const products = await Product.find({}).sort({createdAt: -1}).skip(skip).limit(limit).populate('brand', 'name').populate('category', 'name').lean();
         const formattedProducts = products.map((product, index) => {
             const activeVariant = product.variants.find(v => v.isListed) || product.variants[0];
 
@@ -46,9 +121,12 @@ const loadProductListPage = async (req, res) => {
         return res.render('product/productManagement', {
             products: formattedProducts,
             currentPage: page, 
+            totalProducts,
             totalPages,
             categories,
-            brands
+            brands,
+            currentLimit: limit,
+            currentStatus: status
         });
 
     } catch (error) {
@@ -60,7 +138,7 @@ const loadProductListPage = async (req, res) => {
 // Load Add Product Page
 const loadAddProductPage = async (req, res) => {
     try {
-        const brands = await Brand.find({ status: true }).select('_id name');
+        const brands = await Brand.find({ isListed: true }).select('_id name');
         const categories = await Category.find({ isListed: true }).select('_id name');
 
         return res.render('product/addProduct', { brands, categories }); 
@@ -87,9 +165,7 @@ const addProduct = async (req, res) => {
             return res.status(400).json({success: false,message: 'At least one variant is required'});
         }
 
-        const existingProduct = await Product.findOne({ 
-            name: new RegExp(`^${name}$`, 'i') 
-        });
+        const existingProduct = await Product.findOne({ name: new RegExp(`^${name}$`, 'i') });
         if (existingProduct) {
             return res.status(409).json({success: false,message: 'Product with this name already exists'});
         }
@@ -115,9 +191,6 @@ const addProduct = async (req, res) => {
             if (expDate && expDate <= mfgDate) {
                 return res.status(400).json({success: false,message: `Variant ${i + 1}: Expiry date must be after manufacturing date`});
             }
-            if (variant.salesPrice && parseFloat(variant.salesPrice) > parseFloat(variant.regularPrice)) {
-                return res.status(400).json({success: false,message: `Variant ${i + 1}: Sales price must be less than or equal to regular price`});
-            }
 
             const variantImages = [];
             const imageFiles = req.files.filter(file => 
@@ -130,7 +203,7 @@ const addProduct = async (req, res) => {
             for (const file of imageFiles) {
                 try {
                     const uploadResult = await uploadImage(file.path, {
-                        folder: `carezon/products/${name}/variant_${i + 1}`,
+                        folder: `carezon/products`,
                         transformation: [
                             { width: 800, height: 800, crop: 'limit' },
                             { quality: 'auto' }
@@ -166,27 +239,44 @@ const addProduct = async (req, res) => {
                     }
                 });
             }
+
+            //extract ingredients from attributes
+            const ingredients = [];
+            if (attributes.ingredients) {
+                ingredients.push(...attributes.ingredients
+                    .split(/[,;+&]/)
+                    .map(ingredient => ingredient.trim())
+                    .filter(ingredient => ingredient.length > 0));
+            }
+
+            const discount = parseFloat(variant.regularPrice) * parseFloat(categoryExists.Discounts) / 100
+            const discountPrice = parseFloat(variant.regularPrice) - discount
+
             // Build processed variant
             const processedVariant = {
                 quantity: parseInt(variant.quantity),
                 stock: parseInt(variant.quantity) ,
                 regularPrice: parseFloat(variant.regularPrice),
-                salesPrice: variant.salesPrice ? parseFloat(variant.salesPrice) : parseFloat(variant.regularPrice),
+                salesPrice: variant.discountStatus === 'true' ? discountPrice : parseFloat(variant.regularPrice),
                 manufacturingDate: mfgDate,
                 expiryDate: expDate,
-                uom: variant.uom.trim(),
-                // prescriptionRequired: variant.prescriptionRequired,
+                uom: variant.uom,
                 prescriptionRequired: variant.prescriptionRequired === 'true',
                 isListed: variant.isListed === 'true',
                 discountStatus: variant.discountStatus === 'true',
                 offerStatus: variant.offerStatus === 'true',
                 attributes: attributes,
+                ingredients: ingredients, 
                 images: variantImages
             };
 
             if (processedVariant.discountStatus && processedVariant.offerStatus) {
                 return res.status(400).json({success: false,message: `Variant ${i + 1}: Cannot have both discount and offer status active`});
             }
+            if (processedVariant.salesPrice && parseFloat(processedVariant.salesPrice) > parseFloat(processedVariant.regularPrice)) {
+                return res.status(400).json({success: false,message: `Variant ${i + 1}: Sales price must be less than or equal to regular price`});
+            }
+
             processedVariants.push(processedVariant);
         }
         
@@ -199,7 +289,7 @@ const addProduct = async (req, res) => {
         });
         const savedProduct = await newProduct.save();
 
-        return res.status(201).json({success: true,message: 'Product added successfully : ',product: {id: savedProduct._id,  name: savedProduct.name,  variantCount: savedProduct.variants.length}});
+        return res.status(201).json({success: true, message: 'Product added successfully : ',product: {id: savedProduct._id,  name: savedProduct.name,  variantCount: savedProduct.variants.length}});
 
     } catch (error) {
         console.error('Error adding product:', error);
@@ -227,7 +317,7 @@ const loadEditProductPage = async (req, res) => {
             return res.status(404).json({success: false,  message: 'Product not found'});
         }
 
-        const brands = await Brand.find({ status: true }).select('_id name');
+        const brands = await Brand.find({ isListed: true }).select('_id name');
         const categories = await Category.find({ isListed: true }).select('_id name');
     
         if(!product.brand || !product.category){
@@ -286,10 +376,6 @@ const editProduct = async (req, res) => {
                 return res.status(400).json({success: false, message: `Variant ${i + 1} : Expiry date must be greater than manufacturing date`});
             }
 
-            if(variant.salesPrice && parseFloat(variant.salesPrice) > parseFloat(variant.regularPrice)){
-                return res.status(400).json({success: false, message: `Variant ${i + 1} : Sales price must be less than or equal to regular price.`});
-            }
-
             const variantImages = [];
             const imageFiles = req.files.filter(file => file.fieldname === `variants[${i}][variant_${i}_images]`);
 
@@ -336,7 +422,7 @@ const editProduct = async (req, res) => {
             for(const file of imageFiles){
                 try {
                     const uploadResult = await uploadImage(file.path, {
-                        folder: `carezon/products/${name}/variant_${i + 1}`,
+                        folder: `carezon/products`,
                         transformation: [
                             {width: 800, height: 800, crop: 'limit'},
                             {quality: 'auto'}
@@ -371,12 +457,25 @@ const editProduct = async (req, res) => {
                     }
                 })
             }
+
+            //extract ingredients from attributes
+            const ingredients = [];
+            if (attributes.ingredients) {
+                ingredients.push(...attributes.ingredients
+                    .split(/[,;+&]/)
+                    .map(ingredient => ingredient.trim())
+                    .filter(ingredient => ingredient.length > 0));
+            }
+
+            const discount = parseFloat(variant.regularPrice) * parseFloat(categoryExists.Discounts) / 100
+            const discountPrice = parseFloat(variant.regularPrice) - discount
+
             //Build processed variant
             const processedVariant = {
                 quantity: parseInt(variant.quantity),
                 stock: parseInt(variant.quantity),
                 regularPrice: parseFloat(variant.regularPrice),
-                salesPrice: variant.salesPrice ? parseFloat(variant.salesPrice) : parseFloat(variant.regularPrice),
+                salesPrice: variant.discountStatus === 'true' ? discountPrice : parseFloat(variant.regularPrice),
                 manufacturingDate: mfgDate,
                 expiryDate: expDate,
                 uom: variant.uom,
@@ -385,8 +484,17 @@ const editProduct = async (req, res) => {
                 discountStatus: variant.discountStatus === 'true',
                 offerStatus: variant.offerStatus === 'true',
                 attributes: attributes,
+                ingredients: ingredients, 
                 images: variantImages
             };
+            
+            if (processedVariant.discountStatus && processedVariant.offerStatus) {
+                return res.status(400).json({success: false,message: `Variant ${i + 1}: Cannot have both discount and offer status active`});
+            }
+            if (processedVariant.salesPrice && parseFloat(processedVariant.salesPrice) > parseFloat(processedVariant.regularPrice)) {
+                return res.status(400).json({success: false,message: `Variant ${i + 1}: Sales price must be less than or equal to regular price`});
+            }
+
             processedVariants.push(processedVariant);
         }
 
@@ -522,6 +630,7 @@ const searchProduct =  async (req,res) => {
     }
 }
 
+
 module.exports = {
     loadProductListPage,
     loadAddProductPage,
@@ -530,5 +639,5 @@ module.exports = {
     editProduct,
     viewProductDetails,
     productStatus,
-    searchProduct
+    searchProduct,
 };

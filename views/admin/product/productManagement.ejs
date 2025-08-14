@@ -67,7 +67,7 @@
                             <i class="fas fa-search"></i>
                             <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
                             <button class="clear-btn" id="clearSearch" title="Clear search"><i class="fas fa-times"></i></button>
-                            <button class="history-toggle" id="historyToggle" title="Toggle search history"><i class="fas fa-history"></i></button>
+                            <button class="history-toggle" id="historyToggle" title="Toggle search history"></i></button>
                         </div>
                         <div class="search-history" id="searchHistory">
                             <div class="search-history-header">
@@ -76,11 +76,18 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 offset-md-4">
-                        <div class="sort-filter-group">
-                            <select class="form-select" id="sortOrder">
-                                <option value="asc">Sort: A to Z</option>
-                                <option value="desc">Sort: Z to A</option>
+                    <div class="col-md-4 offset-md-3">
+                        <div class="sort-filter-group d-flex gap-2">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Products</option>
+                                <option value="active" <%= currentStatus === 'active' ? 'selected' : '' %>>Active Products</option>
+                                <option value="blocked" <%= currentStatus === 'blocked' ? 'selected' : '' %>>Blocked Products</option>
+                            </select>
+                            <select class="form-select" id="limitSelect" style="max-width: 100px;">
+                                <option value="10" <%= currentLimit === 10 ? 'selected' : '' %>>10</option>
+                                <option value="30" <%= currentLimit === 30 ? 'selected' : '' %>>30</option>
+                                <option value="50" <%= currentLimit === 50 ? 'selected' : '' %>>50</option>
+                                <option value="100" <%= currentLimit === 100 ? 'selected' : '' %>>100</option>
                             </select>
                         </div>
                     </div>
@@ -138,13 +145,13 @@
 
                 <!-- Pagination -->
                 <div class="pagination-section">
-                    <div>Showing <%= ((currentPage - 1) * 10 + 1) %> to <%= Math.min(currentPage * 10, products.length + ((currentPage - 1) * 10)) %> of <%= totalPages * 10 %> products | Page <%= currentPage %> of <%= totalPages %></div>
+                   <div>Showing <%= ((currentPage - 1) * currentLimit + 1) %> to <%= Math.min(currentPage * currentLimit, products.length + ((currentPage - 1) * currentLimit)) %> of <%= totalProducts %> products | Page <%= currentPage %> of <%= totalPages %></div>
                     <div class="pagination-controls">
-                        <button class="btn" <%= currentPage === 1 ? 'disabled' : '' %> onclick="window.location.href='?page=<%= currentPage - 1 %>'"><i class="fas fa-chevron-left"></i></button>
+                       <button class="btn" <%= currentPage === 1 ? 'disabled' : '' %> onclick="navigateToPage(<%= currentPage - 1 %>)"><i class="fas fa-chevron-left"></i></button>
                         <% for (let i = 1; i <= totalPages; i++) { %>
-                            <button class="btn <%= i === currentPage ? 'active' : '' %>" onclick="window.location.href='?page=<%= i %>'"><%= i %></button>
+                            <button class="btn <%= i === currentPage ? 'active' : '' %>" onclick="navigateToPage(<%= i %>)"><%= i %></button>
                         <% } %>
-                        <button class="btn" <%= currentPage === totalPages ? 'disabled' : '' %> onclick="window.location.href='?page=<%= currentPage + 1 %>'"><i class="fas fa-chevron-right"></i></button>
+                        <button class="btn" <%= currentPage === totalPages ? 'disabled' : '' %> onclick="navigateToPage(<%= currentPage + 1 %>)"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -294,8 +301,11 @@
                 }
             });
 
-            if (categorySort) categorySort.addEventListener('change', handleCategorySort);
-            if (sortOrder) sortOrder.addEventListener('change', handleSortOrder);
+           if (categorySort) categorySort.addEventListener('change', handleCategorySort);
+            const statusFilter = document.getElementById('statusFilter');
+            const limitSelect = document.getElementById('limitSelect');
+            if (statusFilter) statusFilter.addEventListener('change', handleStatusFilter);
+            if (limitSelect) limitSelect.addEventListener('change', handleLimitChange);
 
             // Update status button colors based on variant status
             updateStatusButtonColors();
@@ -521,7 +531,7 @@
                     changesArray.forEach(([variantId, newStatus]) => {
                         const card = document.querySelector(`[data-variant-id="${variantId}"]`);
                         const variantName = card.querySelector('.variant-name').textContent;
-                        showNotification(`${variantName} ${newStatus ? 'activated' : 'blocked'}`, 'success');
+                        showNotification(`${variantName} Status Changed`);
                         
                         const button = card.querySelector('.variant-toggle-btn');
                         const statusIndicator = card.querySelector('.variant-current-status');
@@ -990,6 +1000,36 @@
                 notification.style.animation = 'slideOutRight 0.3s ease-out';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
+        }
+
+        function handleStatusFilter() {
+            const status = document.getElementById('statusFilter').value;
+            const currentUrl = new URL(window.location);
+            
+            if (status) {
+                currentUrl.searchParams.set('status', status);
+            } else {
+                currentUrl.searchParams.delete('status');
+            }
+            currentUrl.searchParams.set('page', '1'); // Reset to first page
+            
+            window.location.href = currentUrl.toString();
+        }
+
+        function handleLimitChange() {
+            const limit = document.getElementById('limitSelect').value;
+            const currentUrl = new URL(window.location);
+            
+            currentUrl.searchParams.set('limit', limit);
+            currentUrl.searchParams.set('page', '1'); // Reset to first page
+            
+            window.location.href = currentUrl.toString();
+        }
+
+        function navigateToPage(page) {
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('page', page);
+            window.location.href = currentUrl.toString();
         }
     </script>
 </body>

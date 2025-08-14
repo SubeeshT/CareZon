@@ -17,14 +17,9 @@ router.get('/logout', adminController.logout);
 // Dashboard section
 router.get('/dashboard', auth.isAdminLoggedIn, adminController.loadDashboard);
 
-
 // Users management section
 router.get('/users', auth.isAdminLoggedIn, userController.getUsers);
-router.get('/users/search', auth.isAdminLoggedIn, userController.searchUsers); 
-router.get('/users/suggestions', auth.isAdminLoggedIn, userController.getSearchSuggestions);
-router.patch('/users/:id/block', auth.isAdminLoggedIn, userController.blockUser);
-router.patch('/users/:id/unblock', auth.isAdminLoggedIn, userController.unblockUser);
-router.patch('/users/:id/status', auth.isAdminLoggedIn, userController.toggleUserStatus);
+router.patch('/users/status/:id', auth.isAdminLoggedIn, userController.toggleUserStatus);
 
 
 // Category management section
@@ -36,8 +31,6 @@ router.patch('/categories/:id/discount-status', auth.isAdminLoggedIn, categoryCo
 
 // Brand management section
 router.get('/brands', auth.isAdminLoggedIn, brandController.loadBrand);
-router.get('/brands/search', auth.isAdminLoggedIn, brandController.searchBrands);
-router.get('/brands/:brandId', auth.isAdminLoggedIn, brandController.getBrandById);
 router.post('/brands', auth.isAdminLoggedIn, uploadConfigs .brandLogo.single('logo'), brandController.createBrand);
 router.put('/brands/:brandId', auth.isAdminLoggedIn, uploadConfigs .brandLogo.single('logo'), brandController.updateBrand);
 router.patch('/brands/:brandId/status', auth.isAdminLoggedIn, brandController.toggleBrandStatus);

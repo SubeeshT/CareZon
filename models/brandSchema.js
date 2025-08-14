@@ -26,7 +26,7 @@ const brandSchema = new mongoose.Schema({
         maxlength: 500,
         default: ''
     },
-    status: {
+    isListed: {
         type: Boolean,
         default: true
     },
@@ -45,16 +45,16 @@ const brandSchema = new mongoose.Schema({
 
 // Method to get status text
 brandSchema.methods.getStatusText = function() {
-    return this.status ? 'Active' : 'Inactive';
+    return this.isListed ? 'Active' : 'Inactive';
 };
 
 // Static methods
 brandSchema.statics.findActive = function() {
-    return this.find({ status: true }).sort({ name: 1 });
+    return this.find({ isListed: true }).sort({ name: 1 });
 };
 
 brandSchema.statics.findInactive = function() {
-    return this.find({ status: false }).sort({ name: 1 });
+    return this.find({ isListed: false }).sort({ name: 1 });
 };
 
 module.exports = mongoose.model('Brand', brandSchema);

@@ -3,9 +3,6 @@ const bcrypt = require("bcryptjs");
 
 const loadSignIn = async (req, res) => {
   try {
-    // if(req.session.isAdminAuth && req.session.admin){
-    //     return res.redirect('/admin/dashboard')
-    // }
     return res.render("auth/adminSignIn");
   } catch (error) {
     console.log("failed to load admin signin page", error);
@@ -50,11 +47,7 @@ const signIn = async (req, res) => {
 
 const loadDashboard = async (req, res) => {
   try {
-    const admin = req.session.admin
-    if(!admin){
-        return res.redirect('/admin/signIn')
-    }
-    return res.render("dashboard/dashboard", {admin});
+    return res.render("dashboard/dashboard");
   } catch (error) {
     console.log("failed to load admin signin page", error);
     res.redirect('/admin/signIn')

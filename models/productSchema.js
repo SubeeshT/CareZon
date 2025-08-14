@@ -46,13 +46,18 @@ const variantSchema = new mongoose.Schema({
     default: false
   },
   uom: {
-    type: String,
+    type: Number,
     required: true
   },
   attributes: { //kg, mg, ml , color, material, ingredients,
     type: Map,
     of: String,
     default: {}
+  },
+   ingredients: { 
+    type: [String], 
+    required: false, 
+    index: true 
   },
   images: [
     {
@@ -69,6 +74,7 @@ const variantSchema = new mongoose.Schema({
   ],
  
 }, { timestamps: true });
+
 
 const productSchema = new mongoose.Schema({
   name: {
@@ -94,7 +100,13 @@ const productSchema = new mongoose.Schema({
   variants: [variantSchema]
 }, { timestamps: true });
 
-productSchema.index({ name: 'text', description: 'text', attributes: 'text' });
+//indexing for search
+productSchema.index({ 
+  name: 'text', 
+  description: 'text',
+  'variants.ingredients': 'text'
+});
 productSchema.index({ brand: 1, category: 1 });
+
 
 module.exports = mongoose.model('Product', productSchema);

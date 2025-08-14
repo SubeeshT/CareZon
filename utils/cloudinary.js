@@ -25,7 +25,7 @@ const uploadImage = async (filePath, options = {}) => {
         const defaultOptions = {
             resource_type: 'image',
             folder: 'carezon',
-            quality: 'auto',
+            quality: 'auto:good',
             fetch_format: 'auto'
         };
 

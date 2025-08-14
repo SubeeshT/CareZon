@@ -3,22 +3,13 @@ const User = require('../../models/userSchema')
 const bcrypt = require('bcryptjs')
 const sendOTPEmail = (require('../../utils/sendEmail'))
 
-const loadLanding = async (req,res) => {
-    try {
-        let user = null;
-        return res.render('userHome', {user})
-    } catch (error) {
-        console.log("home page not found",error)
-        res.status(500).send("failed to found home page")
-    }
-}
 
 const loadSignUp = async (req,res) => {
     try {
          if(req.session.userId){
             return res.redirect('/home')
         }
-        return res.render('userSignUp')
+        return res.render('auth/userSignUp')
     } catch (error) {
         console.log("failed to load signUP page", error)
         res.status(500).send("servor error")
@@ -36,7 +27,7 @@ const signUp = async (req,res) => {
         }
 
         if(password !== confirmPassword){
-            return res.status(400).json({message : "Passwords do not match"})
+            return res.status(400).json({message : "Passwords do not match"});
         }
 
         const existingUser = await User.findOne({ $or: [{email}, {phone}] })
@@ -63,7 +54,7 @@ const signUp = async (req,res) => {
 
         await sendOTPEmail(email, otp)
 
-        res.render('userOTP', {
+        res.render('auth/userOTP', {
             userId: null, 
             otpExpiresAt: otpExpires.toISOString(),
             error: null
@@ -78,7 +69,7 @@ const signUp = async (req,res) => {
 
 const loadOtp = async (req,res) => {
     try {
-        return res.render('userOTP')
+        return res.render('auth/userOTP')
     } catch (error) {
         console.log("failed to find userOTP page", error)
         res.status(500).send("failed find OTP page")
@@ -94,30 +85,28 @@ const verifyOTP = async (req,res) => {
             return res.status(400).json({message: "NO OTP session found"})
         }
 
-        // Convert expiresAt to Date object if it's a string
         const expiresAt = new Date(tempUser.otp.expiresAt);
 
         // Check if OTP has expired first
         if(expiresAt < new Date()){
-           return res.render('userOTP', {
+           return res.render('auth/userOTP', {
             otpExpiresAt: expiresAt.toISOString(),
             error: "OTP has expired. Please request a new one."
            })
         }
 
-        // Check OTP match
         if(!otp || tempUser.otp.code !== otp){
-            return res.render('userOTP', {
+            return res.render('auth/userOTP', {
                 otpExpiresAt: expiresAt.toISOString(),
                 error: "Invalid OTP. Please try again."
             })
         }
 
         const newUser = new User({
-            fullName: tempUser.fullName,
+            fullName: tempUser.fullName.trim(),
             email: tempUser.email.trim(),
-            phone: tempUser.phone,
-            password: tempUser.password,
+            phone: tempUser.phone.trim(),
+            password: tempUser.password.trim(),
             isVerified: true,
         });
         await newUser.save();
@@ -138,7 +127,7 @@ const resendOTP = async (req,res) => {
 
         if(!tempUser) {
             return res.status(400).json({
-                message: "No active session found. Please restart the registration processs.",
+                message: "No active session found. Please restart the registration process.",
                 success: false
             })
         }
@@ -151,8 +140,6 @@ const resendOTP = async (req,res) => {
             expiresAt: newExpiration,
         }
         console.log(`New OTP is : ${newOTP}`)
-
-        //req.session.tempUser = tempUser
         
         await sendOTPEmail(tempUser.email, newOTP)
 
@@ -176,7 +163,7 @@ const loadSignIn = async (req,res) => {
         if(req.session.userId){
             return res.redirect('/home')
         }
-        return res.render('userSignIn')
+        return res.render('auth/userSignIn')
     } catch (error) {
         console.log("failed to load user signin page", error)
         res.status(500).send("failed to load signin")
@@ -209,20 +196,7 @@ const signIn = async (req,res) => {
 
     } catch (error) {
         console.error("failed to signIn : ", error)
-        res.status(500).json({message: "failed to signIn, Please try agian"})
-    }
-}
-
-const loadHome = async (req, res) => {
-    try {
-        const user = await User.findById(req.session.userId)
-        if (!user) {
-            return res.redirect('/signIn')
-        }
-        res.render('userHome', { user }) 
-    } catch (error) {
-        console.error("Failed to load home : ",error)
-        res.redirect('/signIn')
+        res.status(500).json({message: "failed to signIn, Please try again"})
     }
 }
 
@@ -239,7 +213,7 @@ const logOut = (req,res) => {
 
 const loadForgotPassword = async (req,res) => {
     try {
-        return res.render('userForgotPassword')
+        return res.render('auth/userForgotPassword')
     } catch (error) {
         console.log('error found to load change password', error)
         res.status(500).send('failed to load change password page')
@@ -380,9 +354,7 @@ const resendOTPResetPassword = async (req,res) => {
     }
 }
 
-module.exports = {
-   // pageNotFound,
-    loadLanding,
+module.exports = { 
     loadSignUp,
     signUp,
     loadOtp,
@@ -390,7 +362,6 @@ module.exports = {
     resendOTP,
     loadSignIn,
     signIn,
-    loadHome,
     logOut,
     loadForgotPassword,
     forgotPassword,

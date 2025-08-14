@@ -13,20 +13,13 @@ const reviewSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    //required: true,
     min: 1,
     max: 5
   },
   review: {
     type: String,
-    //required: true,
     trim: true,
-    maxlength: 1000
-  },
-  helpfulVotes: {
-    type: Number,
-    default: 0,
-    min: 0
+    maxLength: 1000
   },
   images: [{
     public_id: String,

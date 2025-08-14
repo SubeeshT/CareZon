@@ -1,25 +1,26 @@
 const express = require('express')
 const router = express.Router()
-const controllers = require('../controllers/user/userController')
+const authController = require('../controllers/user/userController')
+const shopController = require('../controllers/user/productController')
+const productDetailsController = require('../controllers/user/productDetaliController');
 const auth = require('../middlewares/auth')
 const passport = require('passport')
 
 
 //auth section
-router.get('/', controllers.loadLanding);
-router.get('/signUp', controllers.loadSignUp);
-router.post('/signUp', controllers.signUp);
-router.get('/verifyOtp',controllers.loadOtp);
-router.post('/verifyOtp', controllers.verifyOTP);
-router.post('/resendOtp', controllers.resendOTP);
-router.get('/signIn', controllers.loadSignIn);
-router.post('/signIn', controllers.signIn);
-router.get('/home', auth.isUserLoggedIn, controllers.loadHome);
-router.get('/logOut', auth.isUserLoggedIn, controllers.logOut);
-router.get('/changePassword', controllers.loadForgotPassword)
-router.post('/changePassword', controllers.forgotPassword)
-router.patch('/changePassword', controllers.forgotPassword)
-router.post('/resendOTPResetPassword', controllers.resendOTPResetPassword)
+
+router.get('/signUp', authController.loadSignUp);
+router.post('/signUp', authController.signUp);
+router.get('/verifyOtp',authController.loadOtp);
+router.post('/verifyOtp', authController.verifyOTP);
+router.post('/resendOtp', authController.resendOTP);
+router.get('/signIn', authController.loadSignIn);
+router.post('/signIn', authController.signIn);
+router.get('/logOut', auth.isUserLoggedIn, authController.logOut);
+router.get('/changePassword', authController.loadForgotPassword)
+router.post('/changePassword', authController.forgotPassword)
+router.patch('/changePassword', authController.forgotPassword)
+router.post('/resendOTPResetPassword', authController.resendOTPResetPassword)
 router.get('/auth/google', passport.authenticate('google', {scope: ['profile', 'email']})); //start google oauth login
 router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/signUp'}), //google oauth callbak
 (req,res) => {
@@ -31,6 +32,15 @@ router.get('/auth/google/callback', passport.authenticate('google', {failureRedi
     res.redirect('/home')
 })
 
+//Landing page
+router.get('/', shopController.loadHomePage);
+//home page
+router.get('/home', shopController.loadHomePage);
+//Product sho page
+router.get('/products/shop', shopController.loadShopPage);
+router.get('/products/search-suggestions', shopController.getSearchSuggestions);
+//product details page
+router.get('/products/details/:id', productDetailsController.getProductDetails);
 
 
 

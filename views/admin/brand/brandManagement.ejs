@@ -1,12 +1,6 @@
 <% 
-    const pageData = {
-        title: 'Brand Management - Carezon Admin',
-        pageTitle: 'Brand Management',
-        breadcrumb: [
-            { name: 'Home', url: '/admin' },
-            { name: 'Brand Management', url: '/admin/brands' }
-        ]
-    };
+    // Get search parameter from query
+    const searchTerm = search || ''; 
 
     // Helper function to escape HTML attributes
     function escapeHtml(str) {
@@ -24,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageData.title %></title>
+    <title>Brand Management - Carezon Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -48,6 +42,7 @@
                 <div class="brand-header">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <h2 class="brand-title">Brand Management</h2>
+
                         <button class="add-brand-btn" data-bs-toggle="modal" data-bs-target="#addBrandModal">
                             <i class="fas fa-plus me-2"></i>Add Brand
                         </button>
@@ -57,7 +52,7 @@
                 <div class="search-section">
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="form-control" id="searchBrands" placeholder="Search Brands...">
+                        <input type="text" class="form-control" id="searchBrands" placeholder="Search Brands..." value="<%= escapeHtml(searchTerm) %>">
                         <button type="button" class="clear-search" id="clearSearch">
                             <i class="fas fa-times"></i>
                         </button>
@@ -79,25 +74,25 @@
                         <tbody id="brandsTableBody">
                             <% if (brands && brands.length > 0) { %>
                                 <% brands.forEach((brand, index) => { %>
-                                    <tr data-brand-id="<%= brand._id %>">
+                                    <tr data-brand-id="<%= brand._id %>" data-brand-description="<%= escapeHtml(brand.description || '') %>">
                                         <td><%= (currentPage - 1) * limit + index + 1 %></td>
                                         <td><strong><%= escapeHtml(brand.name) %></strong></td>
                                         <td>
                                             <img src="<%= brand.logo || '/placeholder.svg?height=40&width=60' %>" alt="<%= escapeHtml(brand.name) %>" class="brand-logo">
                                         </td>
                                         <td>
-                                            <span class="status-badge <%= brand.status ? 'status-active' : 'status-inactive' %>">
-                                                <%= brand.status ? 'Active' : 'Inactive' %>
+                                            <span class="status-badge <%= brand.isListed ? 'status-active' : 'status-inactive' %>">
+                                                <%= brand.isListed ? 'Listed' : 'Unlisted' %>
                                             </span>
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="action-btn <%= brand.status ? 'block-btn' : 'active-btn' %>"
+                                                <button class="action-btn <%= brand.isListed ? 'block-btn' : 'active-btn' %>"
                                                         data-brand-id="<%= brand._id %>"
-                                                        data-action="<%= brand.status ? 'block' : 'activate' %>"
+                                                        data-action="<%= brand.isListed ? 'unlist' : 'list' %>"
                                                         data-brand-name="<%= escapeHtml(brand.name).replace(/'/g, '') %>"
                                                         onclick="handleStatusToggle(this)">
-                                                    <%= brand.status ? 'Block' : 'Activate' %>
+                                                    <%= brand.isListed ? 'Unlist' : 'List' %>
                                                 </button>
                                                 <button class="action-btn edit-btn" onclick="editBrand('<%= brand._id %>')">
                                                     <i class="fas fa-edit me-1"></i>Edit
@@ -192,9 +187,9 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="brandStatus" class="form-label">Status</label>
-                                    <select class="form-select" id="brandStatus" name="status">
-                                        <option value="true">Active</option>
-                                        <option value="false">Inactive</option>
+                                    <select class="form-select" id="brandStatus" name="isListed">
+                                        <option value="true">Listed</option>
+                                        <option value="false">Unlisted</option>
                                     </select>
                                 </div>
                             </div>
@@ -241,9 +236,9 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="editBrandStatus" class="form-label">Status</label>
-                                    <select class="form-select" id="editBrandStatus" name="status">
-                                        <option value="true">Active</option>
-                                        <option value="false">Inactive</option>
+                                    <select class="form-select" id="editBrandStatus" name="isListed">
+                                        <option value="true">Listed</option>
+                                        <option value="false">Unlisted</option>
                                     </select>
                                 </div>
                             </div>
@@ -399,12 +394,37 @@
         async function searchBrands(searchTerm) {
             const searchSpinner = document.getElementById('searchSpinner');
             if (searchSpinner) searchSpinner.style.display = 'block';
+            
             try {
-                const response = await fetchWithTimeout(`/admin/brands/search?search=${encodeURIComponent(searchTerm)}&page=1&limit=${limit}`);
+                // Build URL with query parameters
+                const params = new URLSearchParams({
+                    page: '1',
+                    limit: limit.toString()
+                });
+                
+                if (searchTerm && searchTerm.trim()) {
+                    params.set('search', searchTerm.trim());
+                }
+                
+                // Add headers to identify this as an AJAX request
+                const response = await fetchWithTimeout(`/admin/brands?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
+                
                 if (data.success) {
                     updateTable(data.brands, data.currentPage, data.totalBrands, data.totalPages);
+                    
+                    // Update browser URL without reload
+                    const newUrl = searchTerm 
+                        ? `/admin/brands?search=${encodeURIComponent(searchTerm)}&page=1&limit=${limit}`
+                        : `/admin/brands?page=1&limit=${limit}`;
+                    window.history.replaceState({}, '', newUrl);
                 } else {
                     showToast(data.message || 'Failed to search brands', 'danger');
                 }
@@ -436,18 +456,18 @@
                                 <img src="${brand.logo || '/placeholder.svg?height=40&width=60'}" alt="${escapedName}" class="brand-logo">
                             </td>
                             <td>
-                                <span class="status-badge ${brand.status ? 'status-active' : 'status-inactive'}">
-                                    ${brand.status ? 'Active' : 'Inactive'}
+                                <span class="status-badge ${brand.isListed ? 'status-active' : 'status-inactive'}">
+                                    ${brand.isListed ? 'Listed' : 'Unlisted'}
                                 </span>
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="action-btn ${brand.status ? 'block-btn' : 'active-btn'}" 
+                                    <button class="action-btn ${brand.isListed ? 'block-btn' : 'active-btn'}" 
                                             data-brand-id="${brand._id}" 
-                                            data-action="${brand.status ? 'block' : 'activate'}" 
+                                            data-action="${brand.isListed ? 'unlist' : 'list'}" 
                                             data-brand-name="${escapedName}" 
                                             onclick="handleStatusToggle(this)">
-                                        ${brand.status ? 'Block' : 'Activate'}
+                                        ${brand.isListed ? 'Unlist' : 'List'}
                                     </button>
                                     <button class="action-btn edit-btn" onclick="editBrand('${brand._id}')">
                                         <i class="fas fa-edit me-1"></i>Edit
@@ -464,49 +484,52 @@
         }
 
         // Update pagination
-        function updatePagination(page, totalPages, totalBrands) {
-            const paginationText = document.querySelector('.pagination-text');
-            const pageInfo = document.querySelector('.page-info');
-            const paginationControls = document.querySelector('.pagination.custom-pagination');
+        // Replace your existing updatePagination function with this:
+function updatePagination(page, totalPages, totalBrands) {
+    const paginationText = document.querySelector('.pagination-text');
+    const pageInfo = document.querySelector('.page-info');
+    const paginationControls = document.querySelector('.pagination.custom-pagination');
+    const searchParam = new URLSearchParams(window.location.search).get('search');
+    const searchQuery = searchParam ? `&search=${encodeURIComponent(searchParam)}` : '';
 
-            if (paginationText) {
-                paginationText.textContent = totalBrands === 0 
-                    ? 'No brands found'
-                    : `Showing ${(page - 1) * limit + 1} to ${Math.min(page * limit, totalBrands)} of ${totalBrands} brands`;
-            }
+    if (paginationText) {
+        paginationText.textContent = totalBrands === 0 
+            ? 'No brands found'
+            : `Showing ${(page - 1) * limit + 1} to ${Math.min(page * limit, totalBrands)} of ${totalBrands} brands`;
+    }
 
-            if (pageInfo) {
-                pageInfo.textContent = `Page ${page} of ${totalPages}`;
-            }
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${page} of ${totalPages}`;
+    }
 
-            if (paginationControls) {
-                let paginationHTML = `
-                    <li class="page-item ${page === 1 ? 'disabled' : ''}">
-                        <a class="page-nav" href="?page=${page - 1}&limit=${limit}" aria-label="Previous">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                `;
+    if (paginationControls) {
+        let paginationHTML = `
+            <li class="page-item ${page === 1 ? 'disabled' : ''}">
+                <a class="page-nav" href="?page=${page - 1}&limit=${limit}${searchQuery}" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
 
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationHTML += `
-                        <li class="page-item ${page === i ? 'active' : ''}">
-                            <a class="page-link" href="?page=${i}&limit=${limit}">${i}</a>
-                        </li>
-                    `;
-                }
-
-                paginationHTML += `
-                    <li class="page-item ${page === totalPages ? 'disabled' : ''}">
-                        <a class="page-nav" href="?page=${page + 1}&limit=${limit}" aria-label="Next">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                `;
-
-                paginationControls.innerHTML = paginationHTML;
-            }
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHTML += `
+                <li class="page-item ${page === i ? 'active' : ''}">
+                    <a class="page-link" href="?page=${i}&limit=${limit}${searchQuery}">${i}</a>
+                </li>
+            `;
         }
+
+        paginationHTML += `
+            <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                <a class="page-nav" href="?page=${page + 1}&limit=${limit}${searchQuery}" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+
+        paginationControls.innerHTML = paginationHTML;
+    }
+}
 
         // Handle status toggle
         function handleStatusToggle(button) {
@@ -553,11 +576,11 @@
                         const statusBadge = row.querySelector('.status-badge');
                         const actionButton = row.querySelector('.action-btn:not(.edit-btn)');
 
-                        statusBadge.textContent = brand.status ? 'Active' : 'Inactive';
-                        statusBadge.className = `status-badge ${brand.status ? 'status-active' : 'status-inactive'}`;
-                        actionButton.textContent = brand.status ? 'Block' : 'Activate';
-                        actionButton.className = `action-btn ${brand.status ? 'block-btn' : 'active-btn'}`;
-                        actionButton.setAttribute('data-action', brand.status ? 'block' : 'activate');
+                        statusBadge.textContent = brand.isListed ? 'Listed' : 'Unlisted';
+                        statusBadge.className = `status-badge ${brand.isListed ? 'status-active' : 'status-inactive'}`;
+                        actionButton.textContent = brand.isListed ? 'Unlist' : 'List';
+                        actionButton.className = `action-btn ${brand.isListed ? 'block-btn' : 'active-btn'}`;
+                        actionButton.setAttribute('data-action', brand.isListed ? 'unlist' : 'list');
                         actionButton.setAttribute('data-brand-name', brand.name.replace(/'/g, ''));
                     }
                     showToast(data.message, 'success');
@@ -604,7 +627,14 @@
                     e.target.reset();
                     clearFormErrors('addBrandForm');
 
-                    const searchResponse = await fetchWithTimeout(`/admin/brands/search?page=1&limit=${limit}`);
+                    const currentSearch = document.getElementById('searchBrands')?.value.trim() || '';
+                    const params = new URLSearchParams({ page: '1', limit: limit.toString() });
+                    if (currentSearch) params.set('search', currentSearch);
+
+                    const searchResponse = await fetchWithTimeout(`/admin/brands?${params.toString()}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
                     const searchData = await searchResponse.json();
                     if (searchData.success) {
                         updateTable(searchData.brands, searchData.currentPage, searchData.totalBrands, searchData.totalPages);
@@ -626,41 +656,44 @@
         }
 
         // Edit brand
-        async function editBrand(brandId) {
-            if (!brandId) {
-                showToast('Invalid brand ID', 'danger');
-                return;
-            }
+function editBrand(brandId) {
+    if (!brandId) {
+        showToast('Invalid brand ID', 'danger');
+        return;
+    }
 
-            try {
-                const response = await fetchWithTimeout(`/admin/brands/${brandId}`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
+    // Find the brand row in the table
+    const row = document.querySelector(`tr[data-brand-id="${brandId}"]`);
+    if (!row) {
+        showToast('Brand data not found', 'danger');
+        return;
+    }
 
-                if (data.success) {
-                    const brand = data.brand;
-                    clearFormErrors('editBrandForm');
+    // Extract data from the table row
+    const brandName = row.querySelector('td:nth-child(2) strong').textContent.trim();
+    const logoSrc = row.querySelector('.brand-logo').src;
+    const isListed = row.querySelector('.status-badge').textContent.trim() === 'Listed';
+    const description = row.getAttribute('data-brand-description') || '';
+    document.getElementById('editBrandDescription').value = description;
+    clearFormErrors('editBrandForm');
 
-                    document.getElementById('editBrandId').value = brand._id;
-                    document.getElementById('editBrandName').value = brand.name;
-                    document.getElementById('editBrandStatus').value = brand.status ? 'true' : 'false';
-                    document.getElementById('editBrandDescription').value = brand.description || '';
+    // Populate the edit form
+    document.getElementById('editBrandId').value = brandId;
+    document.getElementById('editBrandName').value = brandName;
+    document.getElementById('editBrandStatus').value = isListed ? 'true' : 'false';
+    document.getElementById('editBrandDescription').value = ''; // Description not available in table
 
-                    const currentLogoDiv = document.getElementById('currentLogo');
-                    currentLogoDiv.innerHTML = brand.logo 
-                        ? `<div class="current-logo-preview"><label class="form-label">Current Logo:</label><br><img src="${brand.logo}" alt="${brand.name.replace(/"/g, '&quot;')}" style="max-width: 100px; max-height: 100px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;"></div>`
-                        : '<p class="text-muted">No logo uploaded</p>';
+    // Show current logo
+    const currentLogoDiv = document.getElementById('currentLogo');
+    if (logoSrc && !logoSrc.includes('placeholder.svg')) {
+        currentLogoDiv.innerHTML = `<div class="current-logo-preview"><label class="form-label">Current Logo:</label><br><img src="${logoSrc}" alt="${brandName.replace(/"/g, '&quot;')}" style="max-width: 100px; max-height: 100px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;"></div>`;
+    } else {
+        currentLogoDiv.innerHTML = '<p class="text-muted">No logo uploaded</p>';
+    }
 
-                    const modal = new bootstrap.Modal(document.getElementById('editBrandModal'));
-                    modal.show();
-                } else {
-                    showToast(data.message || 'Failed to fetch brand details', 'danger');
-                }
-            } catch (error) {
-                console.error('Edit brand error:', error);
-                showToast('Failed to fetch brand details. Please try again.', 'danger');
-            }
-        }
+    const modal = new bootstrap.Modal(document.getElementById('editBrandModal'));
+    modal.show();
+}
 
         // Handle edit brand
         async function handleEditBrand(e) {
@@ -710,11 +743,11 @@
                         const statusBadge = row.querySelector('.status-badge');
                         const actionButton = row.querySelector('.action-btn:not(.edit-btn)');
 
-                        statusBadge.textContent = brand.status ? 'Active' : 'Inactive';
-                        statusBadge.className = `status-badge ${brand.status ? 'status-active' : 'status-inactive'}`;
-                        actionButton.textContent = brand.status ? 'Block' : 'Activate';
-                        actionButton.className = `action-btn ${brand.status ? 'block-btn' : 'active-btn'}`;
-                        actionButton.setAttribute('data-action', brand.status ? 'block' : 'activate');
+                        statusBadge.textContent = brand.isListed ? 'Listed' : 'Unlisted';
+                        statusBadge.className = `status-badge ${brand.isListed ? 'status-active' : 'status-inactive'}`;
+                        actionButton.textContent = brand.isListed ? 'Unlist' : 'List';
+                        actionButton.className = `action-btn ${brand.isListed ? 'block-btn' : 'active-btn'}`;
+                        actionButton.setAttribute('data-action', brand.isListed ? 'unlist' : 'list');
                         actionButton.setAttribute('data-brand-name', brand.name.replace(/'/g, ''));
                     }
 
@@ -743,6 +776,11 @@
             const clearSearchBtn = document.getElementById('clearSearch');
 
             if (searchInput) {
+                const initialValue = searchInput.value.trim();
+                if (initialValue && clearSearchBtn) {
+                    clearSearchBtn.classList.add('show');
+                }
+
                 searchInput.addEventListener('input', debounce(function() {
                     const value = this.value.trim();
                     searchBrands(value);

@@ -1,23 +1,21 @@
 <!-- Header -->
-<header>
+<header class="fixed-top">
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <img src="/user/images/logo.png" alt="CareZon Logo" class="img-fluid">
-            </a>
+            <a class="navbar-brand" href="#">CareZon</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Home</a>
+                        <a class="nav-link active" href="/home">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/product">Products</a>
+                        <a class="nav-link" href="/products/shop">Shop</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Contact</a>
@@ -25,28 +23,30 @@
                 </ul>
                 
                 <!-- Header Right Section -->
-                <div class="header-right d-flex align-items-center gap-3">
+                <div class="header-right d-flex align-items-center">
                     <!-- Search Field -->
-                    <div class="search-container">
+                    <div class="search-container me-3">
                         <form class="search-form">
                             <div class="search-input-wrapper">
-                                <input type="text" class="form-control search-input" placeholder="Search products...">
+                                <input type="text" class="form-control search-input" placeholder="Search for products, brands and more" id="searchInput">
                                 <button type="submit" class="search-btn">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
+                            <div class="search-suggestions" id="searchSuggestions"></div>
                         </form>
                     </div>
                     
                     <!-- Sign Up Button -->
                     <% if (!locals.user) { %>
-                        <a href="/signUp" class="btn btn-outline-primary signup-btn">Sign Up</a>
+                        <a href="/signUp" class="btn btn-outline-primary signup-btn me-3">Sign Up</a>
                     <% } %>
                     
                     <!-- User Profile Dropdown -->
-                    <div class="dropdown">
-                        <a href="#" class="text-dark dropdown-toggle profile-icon" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="dropdown me-3">
+                        <a href="#" class="text-dark dropdown-toggle profile-icon d-flex flex-column align-items-center" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle fs-4"></i>
+                            <span class="icon-label">Account</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                             <!-- Show different menu items based on login status -->
@@ -106,8 +106,148 @@
                             <% } %>
                         </ul>
                     </div>
+                    
+                    <!-- Cart and Wishlist Icons (Visible only when signed in) -->
+                    <% if (locals.user) { %>
+                        <div class="icon-container me-3">
+                            <a href="/cart" class="text-dark cart-icon d-flex flex-column align-items-center">
+                                <i class="fas fa-shopping-cart fs-4"></i>
+                                <span class="icon-label">Cart</span>
+                            </a>
+                        </div>
+                        <div class="icon-container">
+                            <a href="/wishlist" class="text-dark wishlist-icon d-flex flex-column align-items-center">
+                                <i class="fas fa-heart fs-4"></i>
+                                <span class="icon-label">Wishlist</span>
+                            </a>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>
     </nav>
 </header>
+
+<script>
+    if (!document.body.classList.contains('shop-page')) {
+        // Mock search history data
+        const searchHistory = [
+            { term: "men casual shoes", category: "Men's Casual Shoes" },
+            { term: "mobiles", category: null },
+            { term: "laptop", category: "Laptops" }
+        ];
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Mock product data
+        const products = [
+            { id: 1, name: "Product 1", image: "/user/images/product1.jpg", price: 29.99 },
+            { id: 2, name: "Product 2", image: "/user/images/product2.jpg", price: 39.99 },
+            { id: 3, name: "Product 3", image: "/user/images/product3.jpg", price: 19.99 },
+        ];
+
+        function showSearchHistory() {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            suggestionsContainer.innerHTML = '';
+            
+            if (searchHistory.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            suggestionsContainer.style.display = 'block';
+            
+            searchHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'search-history-item';
+                historyItem.innerHTML = `
+                    <i class="far fa-clock history-icon"></i>
+                    <div class="history-content">
+                        <div class="history-term">${item.term}</div>
+                        ${item.category ? `<div class="history-category">in ${item.category}</div>` : ''}
+                    </div>
+                `;
+                historyItem.addEventListener('click', () => {
+                    document.getElementById('searchInput').value = item.term;
+                    suggestionsContainer.style.display = 'none';
+                });
+                suggestionsContainer.appendChild(historyItem);
+            });
+        }
+
+        const performSearch = debounce((query) => {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            suggestionsContainer.innerHTML = '';
+
+            if (query.length < 2) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            const filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filteredProducts.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            suggestionsContainer.style.display = 'block';
+            filteredProducts.forEach(product => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="suggestion-image">
+                    <div class="suggestion-details">
+                        <span class="suggestion-name">${product.name}</span>
+                        <span class="suggestion-price">$${product.price.toFixed(2)}</span>
+                    </div>
+                `;
+                suggestionItem.addEventListener('click', () => {
+                    document.getElementById('searchInput').value = product.name;
+                    suggestionsContainer.style.display = 'none';
+                });
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+        }, 300);
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            if (e.target.value.trim() === '') {
+                showSearchHistory();
+            } else {
+                performSearch(e.target.value);
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('focus', (e) => {
+            if (e.target.value.trim() === '') {
+                showSearchHistory();
+            } else if (e.target.value.length >= 2) {
+                performSearch(e.target.value);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            const searchContainer = document.querySelector('.search-container');
+            if (!searchContainer.contains(e.target)) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+
+
