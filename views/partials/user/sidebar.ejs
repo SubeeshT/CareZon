@@ -1,0 +1,229 @@
+<!-- Reusable Profile Sidebar Partial -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-avatar-container">
+            <img src="<%= user.profileImage ? '/' + user.profileImage : '/user/images/logo.png' %>" alt="Profile Picture" class="sidebar-profile-avatar" id="sidebarProfileAvatar">
+            <div class="sidebar-avatar-upload-btn" id="sidebarAvatarUploadBtn">
+                <i class="fas fa-camera"></i>
+            </div>
+            <input type="file" id="profileImageInput" accept="image/*">
+        </div>
+        <h6 class="mb-0" id="sidebarDisplayName"> <%= user.fullName ? user.fullName : "Carzon User" %> </h6>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'profile' ? 'active' : '' %>" href="/profile">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'address' ? 'active' : '' %>" href="/account/address">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Manage Address
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'orders' ? 'active' : '' %>" href="/orders">
+                    <i class="fas fa-shopping-bag"></i>
+                    My Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'wishlist' ? 'active' : '' %>" href="/wishlists">
+                    <i class="fas fa-heart"></i>
+                    Wishlist
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'wallet' ? 'active' : '' %>" href="/wallet">
+                    <i class="fas fa-wallet"></i>
+                    Wallet
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= locals.activePage === 'coupons' ? 'active' : '' %>" href="/coupons">
+                    <i class="fas fa-ticket-alt"></i>
+                    Coupons
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+// Reusable Sidebar JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSidebar();
+});
+
+function initializeSidebar() {
+    const mobileToggle = document.getElementById('mobileToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    // Profile image upload functionality
+    const sidebarAvatarUploadBtn = document.getElementById('sidebarAvatarUploadBtn');
+    const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');
+    const profileImageInput = document.getElementById('profileImageInput');
+    
+    // Mobile toggle functionality
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle('show');
+            }
+        });
+    }
+
+    // Close sidebar when clicking overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+    } 
+    
+    if (sidebarAvatarUploadBtn) {
+        sidebarAvatarUploadBtn.addEventListener('click', function() {
+            profileImageInput.click();
+        });
+    }
+
+    if (sidebarProfileAvatar) {
+        sidebarProfileAvatar.addEventListener('click', function() {
+            profileImageInput.click();
+        });
+    }
+
+    if (profileImageInput) {
+        profileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                console.log("File selected:", file.name);
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    showAlert('Please select a valid image file', 'error');
+                    return;
+                }
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showAlert('Image size should be less than 5MB', 'error');
+                    return;
+                }
+                
+                uploadProfileImage(file);
+            }
+        });
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768 && 
+            sidebar && sidebar.classList.contains('show') &&
+            !sidebar.contains(e.target) && 
+            (!mobileToggle || !mobileToggle.contains(e.target))) {
+            sidebar.classList.remove('show');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+            }
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && sidebar && sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+            }
+        }
+    });
+
+    //click feedback for navigation links
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // active state temporarily for visual feedback
+            this.style.background = 'rgba(0, 135, 189, 0.2)';
+            setTimeout(() => {
+                this.style.background = '';
+            }, 150);
+        });
+    });
+}
+
+async function uploadProfileImage(file) {
+    console.log("=== ROUTE HIT ===");
+    console.log("uploadProfileImage function called with:", file.name);
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    
+    console.log("Uploading file:", file.name, file.size); // Debug log
+    
+    // Show loading state
+    const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');
+    const uploadBtn = document.getElementById('sidebarAvatarUploadBtn');
+    
+    if (uploadBtn) {
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        uploadBtn.style.pointerEvents = 'none';
+    }
+    
+    try {
+        const response = await fetch('/profile/uploadImage', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        console.log("Server response:", result); // Debug log
+        
+        if (result.success) {
+            // Update the image with the server URL
+            if (sidebarProfileAvatar) {
+                sidebarProfileAvatar.src = result.imageUrl;
+            }
+            showAlert('Profile picture updated successfully!', 'success');
+        } else {
+            showAlert(result.message || 'Failed to upload image', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        showAlert('Failed to upload image. Please try again.', 'error');
+    } finally {
+        // Reset upload button
+        if (uploadBtn) {
+            uploadBtn.innerHTML = '<i class="fas fa-camera"></i>';
+            uploadBtn.style.pointerEvents = 'auto';
+        }
+    }
+}
+
+// Utility function for showing alerts (if not already defined)
+if (typeof showAlert === 'undefined') {
+    function showAlert(message, type) {
+        // Create alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 100px; right: 20px; z-index: 9999; max-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+}
+</script>

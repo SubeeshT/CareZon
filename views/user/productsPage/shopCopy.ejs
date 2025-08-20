@@ -199,20 +199,21 @@
         font-size: 12px;
         color: #007bff;
     }
-   .filter-section {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    margin-bottom: 30px;
-    animation: fadeInLeft 0.8s ease 0.3s both;
-    height: auto; 
-    max-height: none; 
-    overflow: visible; 
-    position: static;
-    top: auto;
-    z-index: 1;
-}
+    .filter-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        animation: fadeInLeft 0.8s ease 0.3s both;
+        height: fit-content;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: relative;
+        top: 100px;
+        z-index: 1;
+    }
     .filter-header {
         display: flex;
         justify-content: space-between;

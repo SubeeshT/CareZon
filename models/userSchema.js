@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
       required: false,
-      //default: null,
     },
     password: {
       type: String,
@@ -35,8 +34,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    otp: {
+      otp: {
       code: String,
       expiresAt: Date,
     },
@@ -49,12 +47,27 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
-      //default: null,
     },
 
     isGoogleUser: { 
       type: Boolean,
       default: false
+    },
+    DOB:{
+      type: Date,
+      require: false,
+    },
+    gender:{
+      type: String,
+      enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
+    },
+    profileImage: {
+      type: String,
+      default: null, 
+    },
+    addresses:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Address'
     },
 
     cart: [

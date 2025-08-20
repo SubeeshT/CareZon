@@ -40,7 +40,6 @@ const loadShopPage = async (req, res) => {
                 searchConditions.category = { $in: validCategories };
             }
         }
-
         // Handle multiple brands for filter
         if (brands.length > 0) {
             const validBrands = brands
@@ -52,7 +51,7 @@ const loadShopPage = async (req, res) => {
             }
         }
 
-        // Build sort options
+        //sort options
         let sortOptions = {};
         let needsCollection = false;
         switch (sort) {
@@ -125,7 +124,7 @@ const loadShopPage = async (req, res) => {
             }
         ];
 
-        // Add rating filter
+        //rating filter
         if (rating > 0) {
             pipeline.push(
                 {
@@ -151,7 +150,7 @@ const loadShopPage = async (req, res) => {
             );
         }
 
-        // Add final projection
+        //final projection
         pipeline.push({
             $project: {
                 _id: 1,

@@ -3,427 +3,1294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - CareZon</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/user/css/profile.css">
+    <title>Profile Page</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/user/css/headerAndFooter.css">
+    <link rel="stylesheet" href="/user/css/sidebar.css">
+    <style>
+        /* Profile Page Specific Styles */
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-body {
+            padding: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+       .field-display small {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            color: #495057;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 135, 189, 0.25);
+            border-color: #0087bd;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            font-size: 0.875rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        .password-input-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .btn-primary {
+            background: #0087bd;
+            border: #0087bd;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        
+        .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            background: #0087bd;
+            border-color: #0087bd;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        
+        .field-display {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .edit-mode {
+            display: none;
+        }
+        
+        .view-mode {
+            display: block;
+        }
+        
+        /* OTP Styles */
+        .otp-container {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .otp-input,
+        .otp-input-new {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        
+        .otp-input:focus,
+        .otp-input-new:focus {
+            border-color: #0087bd;
+            box-shadow: 0 0 0 0.2rem rgba(0, 135, 189, 0.25);
+        }
+        
+        .otp-timer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #dc3545;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        
+        .resend-link {
+            color: #0087bd;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .resend-link:hover {
+            color: #28a745;
+            text-decoration: underline;
+        }
+        
+        .resend-link.disabled {
+            color: #6c757d !important;
+            cursor: not-allowed !important;
+            text-decoration: none !important;
+            pointer-events: none; /* This prevents clicking */
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+        }
+        
+        .modal-header {
+            background: #0087bd;
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .profile-body {
+                padding: 1rem;
+            }
+            
+            .form-section {
+                padding: 1rem;
+            }
+            
+            .otp-input,
+            .otp-input-new {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            
+            .otp-container {
+                gap: 0.3rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .otp-container {
+                justify-content: space-between;
+                max-width: 250px;
+                margin: 1rem auto;
+            }
+        }
+        /* Toast positioning and colors */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .alert-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: #000000 !important;
+            border: 2px solid #28a745 !important;
+        }
+
+        .alert-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: #000000 !important;
+            border: 2px solid #dc3545 !important;
+        }
+
+        .alert-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: #000000 !important;
+            border: 2px solid #ffc107 !important;
+        }
+
+        .alert-info {
+            background-color: #abacff !important;
+            border-color: #c7c7c7 !important;
+            color: #000000 !important;
+            border: 2px solid #c7c7c7 !important;
+        }
+        #changeEmailBtn {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        #changeEmailBtn:hover {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+
+        #changePasswordBtn {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        #changePasswordBtn:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+        .password-strength {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .password-strength .strength-weak {
+            color: #dc3545;
+        }
+
+        .password-strength .strength-medium {
+            color: #ffc107;
+        }
+
+        .password-strength .strength-strong {
+            color: #28a745;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <div class="container">
-                <a class="navbar-brand" href="#">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/drop%20down%20profile-fI19gaGVTROUjv4EMd8AOynhiXjey9.png" alt="CareZon Logo" class="img-fluid">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.html">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">About</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Products</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Contact</a>
-                        </li>
-                    </ul>
-                    <div class="search-box me-3">
-                        <i class="fas fa-search"></i>
-                        <input type="text" class="form-control" placeholder="Search...">
-                    </div>
-                    <a href="#" class="btn btn-outline-primary me-3">Sign Up</a>
-                    <div class="d-flex align-items-center">
-                        <a href="#" class="me-3" title="Wishlist">
-                            <i class="far fa-heart fs-5"></i>
-                        </a>
-                        <a href="#" class="me-3" title="Cart">
-                            <i class="fas fa-shopping-cart fs-5"></i>
-                        </a>
-                        <div class="dropdown">
-                            <a href="#" class="text-dark dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle fs-5"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-user me-2"></i> Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-shopping-bag me-2"></i> My Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-map-marker-alt me-2"></i> Manage Address
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-heart me-2"></i> Favorites
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-wallet me-2"></i> Wallet
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-ticket-alt me-2"></i> My Coupons
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
 
-    <!-- Profile Section -->
-    <section class="profile-section">
-        <div class="container">
-            <div class="profile-container">
-                <div class="row">
-                    <!-- Profile Sidebar -->
-                    <div class="col-md-3">
-                        <div class="profile-sidebar">
-                            <div class="user-info">
-                                <div class="profile-image-container">
-                                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/drop%20down%20profile-fI19gaGVTROUjv4EMd8AOynhiXjey9.png" alt="Subeesh" class="profile-image">
-                                    <div class="edit-profile-image">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </div>
-                                </div>
-                                <h5>Subeesh</h5>
-                            </div>
-                            
-                            <ul class="profile-nav">
-                                <li>
-                                    <a href="#" class="active">
-                                        <i class="fas fa-user"></i> Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-shopping-bag"></i> My Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-map-marker-alt"></i> Manage Address
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-heart"></i> Favorites
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-wallet"></i> Wallet
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-ticket-alt"></i> My Coupons
-                                    </a>
-                                </li>
-                            </ul>
-                            
-                            <button class="btn btn-logout">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Profile Content -->
-                    <div class="col-md-9">
-                        <div class="profile-content">
-                            <h3>Personal Information</h3>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>First Name</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" value="Subeesh" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Last Name</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" value="" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Date of Birth</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="date" class="form-control" value="2000-04-23" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Gender</label>
-                                        <div class="d-flex align-items-center">
-                                            <select class="form-control" disabled>
-                                                <option selected>Male</option>
-                                                <option>Female</option>
-                                                <option>Other</option>
-                                            </select>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Email</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="email" class="form-control" value="subeesh2020@gmail.com" readonly>
-                                              value="subeesh2020@gmail.com" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Phone</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="tel" class="form-control" value="+91 9048042970" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>State</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" value="Kerala" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>District/City/Town</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" value="Calicut" readonly>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Address</label>
-                                        <div class="d-flex align-items-center">
-                                            <textarea class="form-control" readonly>Calicut, Kerala, 673602</textarea>
-                                            <button class="btn btn-link ms-2">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="profile-field">
-                                        <label>Password</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="password" class="form-control" value="************" readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-actions">
-                                <button class="btn btn-edit">
-                                    Edit
-                                </button>
-                                <button class="btn btn-change-password">
-                                    Change Password
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <div class="footer-logo">
-                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/drop%20down%20profile-fI19gaGVTROUjv4EMd8AOynhiXjey9.png" alt="CareZon Logo" class="img-fluid">
-                    </div>
-                    <div class="social-icons">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <div class="footer-links">
-                        <h5>Quick Links</h5>
-                        <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">Shop by Category</a></li>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Contact Us</a></li>
-                            <li><a href="#">Upload Prescription</a></li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <div class="footer-links">
-                        <h5>Policies</h5>
-                        <ul>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Terms & Conditions</a></li>
-                            <li><a href="#">Return & Refund Policy</a></li>
-                            <li><a href="#">Shipping Policy</a></li>
-                            <li><a href="#">Prescription Policy</a></li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <div class="footer-links">
-                        <h5>CONTACT US</h5>
-                        <ul class="contact-info">
-                            <li><i class="fas fa-phone"></i> Phone: +91-9048042970</li>
-                            <li><i class="far fa-clock"></i> Working Hours: Mon–Sat, 9 AM – 8 PM</li>
-                            <li>
-                                <i class="fas fa-map-marker-alt"></i> Address: CareZon Healthcare Pvt. Ltd.<br>
-                                2nd Floor, Q2 Building,<br>
-                                TechnoPark Campus,<br>
-                                Calicut, Kerala - 673602<br>
-                                India
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="copyright">
-                <p>© 2023 CareZon. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Bootstrap JS and Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-    <!-- Font Awesome -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <!-- Header from partial file -->
+    <%- include('../../views/partials/user/header.ejs') %>
     
-    <!-- Custom JS -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Edit profile field functionality
-            const editButtons = document.querySelectorAll('.profile-field .btn-link');
+    <!-- Profile Page Wrapper -->
+    <div class="account-page-wrapper">
+        <!-- Mobile Toggle Button -->
+        <button class="mobile-toggle" id="mobileToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar Overlay for mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <div class="main-container">
+            <!-- Sidebar from partial file -->
+            <%- include('../../views/partials/user/sidebar.ejs') %>
             
-            editButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const inputField = this.previousElementSibling;
-                    inputField.readOnly = !inputField.readOnly;
-                    inputField.disabled = !inputField.disabled;
+            <!-- Content Area -->
+            <div class="content-area">
+                <div class="profile-container">
+                    <div class="profile-card">                    
+                        <div class="profile-body">
+                            <!-- Personal Information Section -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <span><i class="fas fa-user me-2"></i>Personal Information</span>
+                                    <button class="btn btn-outline-primary btn-sm" id="editPersonalBtn">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                </div>
+                                
+                                <!-- View Mode -->
+                                <div id="personalViewMode" class="view-mode">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="field-display">
+                                                <small class="text-muted">Full Name</small>
+                                                <div id="displayFullName"><%= user.fullName %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-display">
+                                                <small class="text-muted">Date of Birth</small>
+                                                <div id="displayDOB"><%= user.DOB ? new Date(user.DOB).toLocaleDateString('en-GB') : 'Not set' %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-display">
+                                                <small class="text-muted">Phone</small>
+                                                <div id="displayPhone"><%= user.phone || 'Not set' %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-display">
+                                                <small class="text-muted">Gender</small>
+                                                <div id="displayGender"><%= user.gender || 'Not set' %></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Edit Mode -->
+                                <div id="personalEditMode" class="edit-mode">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" id="editFullName" value="<%= user.fullName %>">
+                                            <div class="invalid-feedback" id="fullNameError"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Date of Birth</label>
+                                            <input type="date" class="form-control" id="editDOB" value="<%= user.DOB ? user.DOB.toISOString().split('T')[0] : '' %>">
+                                            <div class="invalid-feedback" id="dobError"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" id="editPhone" value="<%= user.phone || '' %>" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+                                            <div class="invalid-feedback" id="phoneError"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Gender</label>
+                                            <select class="form-control" id="editGender">
+                                                <option value="Prefer not to say" <%= user.gender === 'Prefer not to say' ? 'selected' : '' %>>Prefer not to say</option>
+                                                <option value="Male" <%= user.gender === 'Male' ? 'selected' : '' %>>Male</option>
+                                                <option value="Female" <%= user.gender === 'Female' ? 'selected' : '' %>>Female</option>
+                                                <option value="Other" <%= user.gender === 'Other' ? 'selected' : '' %>>Other</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="genderError"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-primary me-2" id="savePersonalBtn">
+                                            <i class="fas fa-save"></i> Save
+                                        </button>
+                                        <button class="btn btn-outline-secondary" id="cancelPersonalBtn">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <!-- Email Section -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                <span><i class="fas fa-envelope me-2"></i>Email Address</span>
+                            </div>
+
+                            <div class="field-display">
+                                <small class="text-muted">Current Email</small>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div id="displayEmail"><%= user.email %></div>
+                                    <% if(!googleUser) {%>
+                                    <button class="btn btn-outline-primary btn-sm" id="changeEmailBtn">
+                                        <i class="fas fa-key"></i> Change Email
+                                    </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                            </div>
+                            <% if(!googleUser) {%>
+                            <!-- Password Section -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <span><i class="fas fa-lock me-2"></i>Security</span>
+                                </div>
+                                
+                                <button class="btn btn-danger" id="changePasswordBtn">
+                                    <i class="fas fa-key"></i> Change Password
+                                </button>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Email Modal -->
+    <div class="modal fade" id="changeEmailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Email Address</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Verify Current Email -->
+                    <div id="emailStep1">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                            <h6>Verify Current Email</h6>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong>Current Email:</strong> <span id="currentEmailDisplay"><%= user.email %></span>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100 mb-3" id="sendCurrentEmailOTP">Send Verification Code</button>
+                        
+                        <div id="currentEmailOTPSection" style="display: none;">
+                            <label class="form-label">Enter 6-digit OTP sent to your email</label>
+                            <div class="otp-container">
+                                <input type="text" class="otp-input" maxlength="1" data-index="0">
+                                <input type="text" class="otp-input" maxlength="1" data-index="1">
+                                <input type="text" class="otp-input" maxlength="1" data-index="2">
+                                <input type="text" class="otp-input" maxlength="1" data-index="3">
+                                <input type="text" class="otp-input" maxlength="1" data-index="4">
+                                <input type="text" class="otp-input" maxlength="1" data-index="5">
+                            </div>
+                            
+                            <div class="otp-timer" id="otpTimer1"></div>
+                            
+                            <div class="text-center mb-3">
+                                <a href="#" class="resend-link" id="resendOTP1">Resend OTP</a>
+                            </div>
+                            
+                            <div class="invalid-feedback" id="otp1Error"></div>
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-primary w-100" id="verifyCurrentEmailBtn">Verify</button>
+                            </div>
+                        </div>
+                    </div>
                     
-                    if (!inputField.readOnly || !inputField.disabled) {
-                        inputField.focus();
-                        this.innerHTML = '<i class="fas fa-check"></i>';
+                    <!-- Step 2: Enter New Email -->
+                    <div id="emailStep2" style="display: none;">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-envelope-open fa-3x text-success mb-3"></i>
+                            <h6>Enter New Email</h6>
+                        </div>
+                        
+                        <label class="form-label">New Email Address</label>
+                        <input type="email" class="form-control mb-2" id="newEmailInput" placeholder="Enter new email address">
+                        <div class="invalid-feedback" id="newEmailError"></div>
+                        
+                        <button class="btn btn-primary w-100 mb-3" id="sendNewEmailOTP">Send Verification Code</button>
+                        
+                        <div id="newEmailOTPSection" style="display: none;">
+                            <label class="form-label">Enter 6-digit OTP sent to your new email</label>
+                            <div class="otp-container">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="0">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="1">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="2">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="3">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="4">
+                                <input type="text" class="otp-input-new" maxlength="1" data-index="5">
+                            </div>
+                            
+                            <div class="otp-timer" id="otpTimer2"></div>
+                            
+                            <div class="text-center mb-3">
+                                <a href="#" class="resend-link" id="resendOTP2">Resend OTP</a>
+                            </div>
+                            
+                            <div class="invalid-feedback" id="otp2Error"></div>
+                            
+                            <button class="btn btn-success w-100" id="saveNewEmailBtn">Save New Email</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                        <h6>Update Your Password</h6>
+                    </div>
+                    
+                    <form id="passwordForm">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <div class="password-input-container">
+                                <input type="password" class="form-control" id="currentPassword" required>
+                                <button type="button" class="password-toggle" data-target="currentPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="currentPasswordError"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <div class="password-input-container">
+                                <input type="password" class="form-control" id="newPassword" required>
+                                <button type="button" class="password-toggle" data-target="newPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <small class="text-muted">Password must be at least 8 characters with uppercase, lowercase, number, and symbol</small>
+                            <div class="invalid-feedback" id="newPasswordError"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <div class="password-input-container">
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                                <button type="button" class="password-toggle" data-target="confirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="confirmPasswordError"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" id="updatePasswordBtn">Update Password</button>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer from partial file -->
+    <%- include('../../views/partials/user/footer.ejs') %>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let otpTimer1, otpTimer2;
+        let otpTime1 = 0, otpTime2 = 0;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+             const mobileToggle = document.getElementById('mobileToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarAvatarUploadBtn = document.getElementById('sidebarAvatarUploadBtn');
+            const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');
+            const profileImageInput = document.getElementById('profileImageInput');
+            
+            // Initialize form functionality
+            initializeFormHandlers();
+            
+            // Initialize OTP inputs
+            setupOTPInputs('.otp-input');
+            setupOTPInputs('.otp-input-new');
+        });
+
+        // Form handlers
+        function initializeFormHandlers() {
+            // Personal Information Edit
+            document.getElementById('editPersonalBtn').addEventListener('click', function() {
+                document.getElementById('personalViewMode').style.display = 'none';
+                document.getElementById('personalEditMode').style.display = 'block';
+            });
+
+            document.getElementById('cancelPersonalBtn').addEventListener('click', function() {
+                clearErrors();
+                document.getElementById('personalEditMode').style.display = 'none';
+                document.getElementById('personalViewMode').style.display = 'block';
+            });
+
+            document.getElementById('savePersonalBtn').addEventListener('click', async function() {
+                if (!validatePersonalForm()) {
+                    return;
+                }
+
+                const formData = {
+                    fullName: document.getElementById('editFullName').value.trim(),
+                    phone: document.getElementById('editPhone').value.trim(),
+                    DOB: document.getElementById('editDOB').value,
+                    gender: document.getElementById('editGender').value
+                };
+
+                try {
+                    const response = await fetch('/profile/editDetails', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Update display values
+                        document.getElementById('displayFullName').textContent = formData.fullName;
+                        document.getElementById('sidebarDisplayName').textContent = formData.fullName;
+                        
+                        const dobFormatted = new Date(formData.DOB).toLocaleDateString('en-GB');
+                        document.getElementById('displayDOB').textContent = dobFormatted;
+                        
+                        document.getElementById('displayPhone').textContent = formData.phone;
+                        document.getElementById('displayGender').textContent = formData.gender;
+                        
+                        // Switch back to view mode
+                        document.getElementById('personalEditMode').style.display = 'none';
+                        document.getElementById('personalViewMode').style.display = 'block';
+                        
+                        showAlert(result.message, 'success');
                     } else {
-                        this.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                        showAlert(result.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    showAlert('An error occurred while updating profile', 'danger');
+                }
+            });
+
+            // Email change handlers
+            document.getElementById('changeEmailBtn').addEventListener('click', async function() {
+                try {
+                    // First initiate the email change process
+                    const response = await fetch('/profile/initialEmailChange', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const modal = new bootstrap.Modal(document.getElementById('changeEmailModal'));
+                        modal.show();
+                        
+                        // Reset modal to step 1
+                        document.getElementById('emailStep1').style.display = 'block';
+                        document.getElementById('emailStep2').style.display = 'none';
+                        document.querySelectorAll('.otp-input, .otp-input-new').forEach(input => input.value = '');
+                        clearErrors();
+                    } else {
+                        showAlert(result.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error initiating email change:', error);
+                    showAlert('An error occurred while initiating email change', 'danger');
+                }
+            });
+
+            document.getElementById('sendCurrentEmailOTP').addEventListener('click', async function() {
+                document.getElementById('currentEmailOTPSection').style.display = 'block';
+                startOTPTimer(1, 'otpTimer1', 'resendOTP1');
+                showAlert('Sending OTP to your email...', 'info');
+                try {
+                    const response = await fetch('/profile/sendOtp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ type: 'current-email' })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert(result.message, 'success');
+                    } else {
+                        document.getElementById('currentEmailOTPSection').style.display = 'none';
+                        if (otpTimer1) {
+                            clearInterval(otpTimer1);
+                            document.getElementById('otpTimer1').textContent = '';
+                            document.getElementById('resendOTP1').classList.remove('disabled');
+                        }
+                        showAlert(result.message, 'danger');
+                    }
+                } catch (error) {
+                    document.getElementById('currentEmailOTPSection').style.display = 'none';
+                    if (otpTimer1) {
+                        clearInterval(otpTimer1);
+                        document.getElementById('otpTimer1').textContent = '';
+                        document.getElementById('resendOTP1').classList.remove('disabled');
+                    }
+                    console.error('Error sending OTP:', error);
+                    showAlert('An error occurred while sending OTP', 'danger');
+                }
+            });
+
+            document.getElementById('verifyCurrentEmailBtn').addEventListener('click', async function() {
+                const otpValues = Array.from(document.querySelectorAll('.otp-input')).map(input => input.value);
+                const otp = otpValues.join('');
+                
+                if (otp.length !== 6) {
+                    document.getElementById('otp1Error').textContent = 'Please enter complete 6-digit OTP';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/profile/verifyCurrentEmail', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ otp })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('otp1Error').textContent = '';
+                        document.getElementById('emailStep1').style.display = 'none';
+                        document.getElementById('emailStep2').style.display = 'block';
+                        
+                        if (otpTimer1) {
+                            clearInterval(otpTimer1);
+                        }
+                        showAlert(result.message, 'success');
+                    } else {
+                        document.getElementById('otp1Error').textContent = result.message;
+                    }
+                } catch (error) {
+                    console.error('Error verifying current email:', error);
+                    document.getElementById('otp1Error').textContent = 'An error occurred while verifying email';
+                }
+            });
+
+            document.getElementById('sendNewEmailOTP').addEventListener('click', async function() {
+                const newEmail = document.getElementById('newEmailInput').value.trim();
+                
+                if (!newEmail) {
+                    document.getElementById('newEmailInput').classList.add('is-invalid');
+                    document.getElementById('newEmailError').textContent = 'Please enter your new email address';
+                    return;
+                }
+                
+                if (!isValidEmail(newEmail)) {
+                    document.getElementById('newEmailInput').classList.add('is-invalid');
+                    document.getElementById('newEmailError').textContent = 'Please enter a valid email address';
+                    return;
+                }
+
+                document.getElementById('newEmailOTPSection').style.display = 'block';
+              
+                startOTPTimer(2, 'otpTimer2', 'resendOTP2');
+              
+                showAlert('Sending OTP to your new email...', 'info');
+
+                try {
+                    const response = await fetch('/profile/sendOtp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ type: 'new-email', newEmail })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('newEmailInput').classList.remove('is-invalid');
+                        document.getElementById('newEmailError').textContent = '';
+                        showAlert(result.message, 'success');
+                    } else {
+                        // Hide OTP section and stop timer on failure
+                        document.getElementById('newEmailOTPSection').style.display = 'none';
+                        if (otpTimer2) {
+                            clearInterval(otpTimer2);
+                            document.getElementById('otpTimer2').textContent = '';
+                            document.getElementById('resendOTP2').classList.remove('disabled');
+                        }
+                        document.getElementById('newEmailInput').classList.add('is-invalid');
+                        document.getElementById('newEmailError').textContent = result.message;
+                    }
+                } catch (error) {
+                    // Handle error same as above
+                    document.getElementById('newEmailOTPSection').style.display = 'none';
+                    if (otpTimer2) {
+                        clearInterval(otpTimer2);
+                        document.getElementById('otpTimer2').textContent = '';
+                        document.getElementById('resendOTP2').classList.remove('disabled');
+                    }
+                    console.error('Error sending new email OTP:', error);
+                    showAlert('An error occurred while sending OTP', 'danger');
+                }
+            });
+
+            document.getElementById('saveNewEmailBtn').addEventListener('click', async function() {
+                const otpValues = Array.from(document.querySelectorAll('.otp-input-new')).map(input => input.value);
+                const otp = otpValues.join('');
+                
+                if (otp.length !== 6) {
+                    document.getElementById('otp2Error').textContent = 'Please enter complete 6-digit OTP';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/profile/verifyNewEmail', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ otp })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('otp2Error').textContent = '';
+                        document.getElementById('displayEmail').textContent = result.newEmail;
+                        document.getElementById('currentEmailDisplay').textContent = result.newEmail;
+                        
+                        bootstrap.Modal.getInstance(document.getElementById('changeEmailModal')).hide();
+                        
+                        if (otpTimer2) {
+                            clearInterval(otpTimer2);
+                        }
+                        
+                        showAlert(result.message, 'success');
+                    } else {
+                        document.getElementById('otp2Error').textContent = result.message;
+                    }
+                } catch (error) {
+                    console.error('Error verifying new email:', error);
+                    document.getElementById('otp2Error').textContent = 'An error occurred while verifying email';
+                }
+            });
+
+            // Password change handlers
+            document.getElementById('changePasswordBtn').addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                modal.show();
+                
+                document.getElementById('passwordForm').reset();
+                clearErrors();
+            });
+
+            document.getElementById('updatePasswordBtn').addEventListener('click', async function() {
+                if (!validatePasswordForm()) {
+                    return;
+                }
+
+                const passwordData = {
+                    currentPassword: document.getElementById('currentPassword').value,
+                    newPassword: document.getElementById('newPassword').value,
+                    confirmPassword: document.getElementById('confirmPassword').value
+                };
+
+                try {
+                    const response = await fetch('/profile/changePassword', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(passwordData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                        document.getElementById('passwordForm').reset();
+                        clearErrors();
+                        showAlert(result.message, 'success');
+                    } else {
+                        showAlert(result.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error changing password:', error);
+                    showAlert('An error occurred while changing password', 'danger');
+                }
+            });
+
+            // Resend OTP handlers 1
+            document.getElementById('resendOTP1').addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (!this.classList.contains('disabled')) {
+                    try {
+                        const response = await fetch('/profile/resendOtp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ type: 'current-email' })
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            startOTPTimer(1, 'otpTimer1', 'resendOTP1');
+                            showAlert(result.message, 'info');
+                        } else {
+                            showAlert(result.message, 'danger');
+                        }
+                    } catch (error) {
+                        console.error('Error resending OTP:', error);
+                        showAlert('An error occurred while resending OTP', 'danger');
+                    }
+                }
+            });
+
+            // Resend OTP handlers 2
+            document.getElementById('resendOTP2').addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (!this.classList.contains('disabled')) {
+                    try {
+                        const response = await fetch('/profile/resendOtp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ type: 'new-email' })
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            startOTPTimer(2, 'otpTimer2', 'resendOTP2');
+                            showAlert(result.message, 'info');
+                        } else {
+                            showAlert(result.message, 'danger');
+                        }
+                    } catch (error) {
+                        console.error('Error resending OTP:', error);
+                        showAlert('An error occurred while resending OTP', 'danger');
+                    }
+                }
+            });
+
+           
+
+            // Password toggle functionality
+            document.querySelectorAll('.password-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
                     }
                 });
             });
+        }
+
+        // OTP Input Handling
+        function setupOTPInputs(containerClass) {
+            const otpInputs = document.querySelectorAll(containerClass);
             
-            // Edit button functionality
-            const editButton = document.querySelector('.btn-edit');
-            
-            editButton.addEventListener('click', function() {
-                const inputFields = document.querySelectorAll('.profile-field input, .profile-field select, .profile-field textarea');
-                
-                inputFields.forEach(field => {
-                    field.readOnly = false;
-                    field.disabled = false;
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    // Auto-focus next input
+                    if (this.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
                 });
                 
-                this.innerHTML = 'Save';
-                this.classList.remove('btn-edit');
-                this.classList.add('btn-primary');
+                input.addEventListener('keydown', function(e) {
+                    // Handle backspace
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
                 
-                this.addEventListener('click', function() {
-                    inputFields.forEach(field => {
-                        field.readOnly = true;
-                        field.disabled = true;
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text');
+                    const digits = pasteData.replace(/\D/g, '').slice(0, 6);
+                    
+                    digits.split('').forEach((digit, i) => {
+                        if (i < otpInputs.length) {
+                            otpInputs[i].value = digit;
+                        }
                     });
                     
-                    this.innerHTML = 'Edit';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-edit');
-                    
-                    // Here you would typically send the updated data to the server
-                    alert('Profile updated successfully!');
-                }, { once: true });
+                    if (digits.length > 0) {
+                        otpInputs[Math.min(digits.length - 1, otpInputs.length - 1)].focus();
+                    }
+                });
             });
+        }
+
+        // Form validation functions
+        function clearErrors() {
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('.invalid-feedback').forEach(error => {
+                error.textContent = '';
+            });
+        }
+
+        function validatePersonalForm() {
+            clearErrors();
+            let isValid = true;
+
+            const fullName = document.getElementById('editFullName').value.trim();
+            const dob = document.getElementById('editDOB').value;
+            const phone = document.getElementById('editPhone').value.trim();
+            const gender = document.getElementById('editGender').value;
+
+            if (!fullName) {
+                document.getElementById('editFullName').classList.add('is-invalid');
+                document.getElementById('fullNameError').textContent = 'Full name is required';
+                isValid = false;
+            }
+
+            if (!dob) {
+                document.getElementById('editDOB').classList.add('is-invalid');
+                document.getElementById('dobError').textContent = 'Date of birth is required';
+                isValid = false;
+            }
+
+            if (!phone) {
+                document.getElementById('editPhone').classList.add('is-invalid');
+                document.getElementById('phoneError').textContent = 'Phone number is required';
+                isValid = false;
+            } else if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('editPhone').classList.add('is-invalid');
+                document.getElementById('phoneError').textContent = 'Please enter a valid 10-digit phone number';
+                isValid = false;
+            }
+
+            if (!gender) {
+                document.getElementById('editGender').classList.add('is-invalid');
+                document.getElementById('genderError').textContent = 'Gender is required';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validatePasswordForm() {
+            clearErrors();
+            let isValid = true;
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword) {
+                document.getElementById('currentPassword').classList.add('is-invalid');
+                document.getElementById('currentPasswordError').textContent = 'Current password is required';
+                isValid = false;
+            }
+
+            if (!newPassword) {
+                document.getElementById('newPassword').classList.add('is-invalid');
+                document.getElementById('newPasswordError').textContent = 'New password is required';
+                isValid = false;
+            } else {
+                const passwordValidation = validatePasswordStrength(newPassword);
+                if (!passwordValidation.isValid) {
+                    document.getElementById('newPassword').classList.add('is-invalid');
+                    document.getElementById('newPasswordError').textContent = 'Password must be at least 8 characters with uppercase, lowercase, number, and symbol';
+                    isValid = false;
+                }
+            }
+
+            if (!confirmPassword) {
+                document.getElementById('confirmPassword').classList.add('is-invalid');
+                document.getElementById('confirmPasswordError').textContent = 'Please confirm your new password';
+                isValid = false;
+            } else if (newPassword !== confirmPassword) {
+                document.getElementById('confirmPassword').classList.add('is-invalid');
+                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // OTP Timer function
+        function startOTPTimer(timerId, displayId, resendId, duration = 60) {
+            // Clear any existing timer first
+            if (timerId === 1 && otpTimer1) {
+                clearInterval(otpTimer1);
+            } else if (timerId === 2 && otpTimer2) {
+                clearInterval(otpTimer2);
+            }
+            
+            let timeLeft = duration;
+            const timerDisplay = document.getElementById(displayId);
+            const resendLink = document.getElementById(resendId);
+            
+            // Disable resend link immediately
+            resendLink.classList.add('disabled');
+            
+            const timer = setInterval(() => {
+                if (timeLeft > 0) {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerDisplay.textContent = `Resend OTP in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    timeLeft--;
+                } else {
+                    // Timer expired
+                    clearInterval(timer);
+                    timerDisplay.textContent = 'OTP expired. Please request a new one.';
+                    resendLink.classList.remove('disabled');
+                    resendLink.textContent = 'Resend OTP';
+                    
+                    // Clear the timer reference
+                    if (timerId === 1) {
+                        otpTimer1 = null;
+                    } else {
+                        otpTimer2 = null;
+                    }
+                }
+            }, 1000);
+            
+            // Store timer reference
+            if (timerId === 1) {
+                otpTimer1 = timer;
+            } else {
+                otpTimer2 = timer;
+            }
+        }
+
+        // Utility functions
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showAlert(message, type) {
+            const existingAlerts = document.querySelectorAll('.toast-container .alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            toastContainer.appendChild(alertDiv);
+            
+            //Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function validatePasswordStrength(password) {
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSymbol = /[@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            const hasMinLength = password.length >= 8;
+            
+            return {
+                isValid: hasUppercase && hasLowercase && hasNumber && hasSymbol && hasMinLength,
+                hasUppercase,
+                hasLowercase,
+                hasNumber,
+                hasSymbol,
+                hasMinLength
+            };
+        }
+
+        document.getElementById('newPassword').addEventListener('input', function() {
+            const password = this.value;
+            const validation = validatePasswordStrength(password);
+            const strengthDiv = document.getElementById('passwordStrength');
+            
+            let strengthText = '';
+            let strengthClass = '';
+            
+            if (password.length === 0) {
+                strengthDiv.innerHTML = '';
+                return;
+            }
+            
+            const criteria = [];
+            if (!validation.hasMinLength) criteria.push('8+ characters');
+            if (!validation.hasUppercase) criteria.push('uppercase letter');
+            if (!validation.hasLowercase) criteria.push('lowercase letter');
+            if (!validation.hasNumber) criteria.push('number');
+            if (!validation.hasSymbol) criteria.push('symbol');
+            
+            if (validation.isValid) {
+                strengthText = 'Strong password!';
+                strengthClass = 'strength-strong';
+            } else if (criteria.length <= 2) {
+                strengthText = `Almost there! Missing: ${criteria.join(', ')}`;
+                strengthClass = 'strength-medium';
+            } else {
+                strengthText = `Missing: ${criteria.join(', ')}`;
+                strengthClass = 'strength-weak';
+            }
+            
+            strengthDiv.innerHTML = `<span class="${strengthClass}">${strengthText}</span>`;
         });
     </script>
 </body>
 </html>
-

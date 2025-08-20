@@ -1,6 +1,6 @@
 :root {
-  --primary-color: #007bff; /* Blue for medical theme */
-  --secondary-color: #264653;
+  --primary-color: #000000;
+  --secondary-color: #0087bd;
   --light-color: #f8f9fa;
   --dark-color: #212529;
 }
@@ -8,12 +8,19 @@
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   padding-top: 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ==========================================
+   HEADER STYLES
+   ========================================== */
 .navbar {
   padding: 15px 0;
   background-color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: 80px;
 }
 
 .navbar-brand {
@@ -34,14 +41,32 @@ body {
   color: var(--primary-color);
 }
 
+/* More specific selector for header nav only */
+.account-page-wrapper .navbar .nav-link:hover {
+  color: var(--dark-color) !important;
+  cursor: default;
+}
+
+.account-page-wrapper .navbar .nav-link {
+  pointer-events: none;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
+/* ==========================================
+   SEARCH CONTAINER STYLES
+   ========================================== */
 .search-container {
   position: relative;
+}
+
+/* Hide search container on account pages */
+.account-page-wrapper .search-container {
+  display: none !important;
 }
 
 .search-input-wrapper {
@@ -90,6 +115,38 @@ body {
 
 .search-btn i {
   font-size: 14px;
+}
+
+.cancel-btn {
+  position: absolute;
+  right: 45px;
+  background: transparent;
+  border: none;
+  color: #999;
+  width: 30px;
+  height: 30px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.cancel-btn:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.cancel-btn i {
+  font-size: 12px;
+}
+
+/* Adjust search input padding when cancel button is visible */
+.search-input.has-text {
+  padding-right: 80px;
 }
 
 .signup-btn {
@@ -145,6 +202,9 @@ header.fixed-top {
   white-space: nowrap;
 }
 
+/* ==========================================
+   SEARCH SUGGESTIONS STYLES
+   ========================================== */
 .search-suggestions {
   position: absolute;
   top: 100%;
@@ -246,10 +306,14 @@ header.fixed-top {
   font-size: 0.9rem;
 }
 
+/* ==========================================
+   FOOTER STYLES
+   ========================================== */
 footer {
   background-color: #000;
   color: #fff;
   padding: 50px 0 20px;
+  margin-top: auto;
 }
 
 .footer-logo img {
@@ -318,11 +382,48 @@ footer {
   font-size: 0.9rem;
 }
 
-body.shop-page .navbar .search-container {
-    display: none !important;
+/* Hide search on shop pages */
+body.shop-page .search-container {
+  display: none !important;
 }
 
-/* Responsive Design for Header and Footer */
+/* Hide browser autocomplete and other dropdowns */
+input[type="text"]::-webkit-search-cancel-button,
+input[type="text"]::-webkit-search-decoration {
+  display: none;
+}
+
+.search-input {
+  autocomplete: off;
+}
+
+/* Hide any bootstrap dropdowns that might interfere */
+.search-container .dropdown-menu,
+.search-container .show {
+  display: none !important;
+}
+
+/* Ensure only our search suggestions show */
+.search-container > *:not(.search-form):not(.search-suggestions) {
+  display: none !important;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+/* Large tablets and small laptops (1024px and below) */
+@media (max-width: 1024px) {
+  .search-input {
+    width: 240px;
+  }
+  
+  .header-right {
+    gap: 12px;
+  }
+}
+
+/* Tablets (992px and below) */
 @media (max-width: 992px) {
   .header-right {
     flex-wrap: wrap;
@@ -330,65 +431,274 @@ body.shop-page .navbar .search-container {
     gap: 15px;
     margin-top: 15px;
   }
+  
   .search-container {
     order: 1;
     width: 100%;
     margin-bottom: 10px;
   }
+  
+  .search-input {
+    width: 100%;
+    max-width: 400px;
+  }
+  
   .dropdown {
     order: 2;
   }
+  
   .icon-container {
     order: 3;
   }
+  
   .signup-btn {
     order: 4;
     width: auto;
   }
+  
+  body {
+    padding-top: 70px;
+  }
+  
+  .navbar {
+    height: auto;
+    min-height: 70px;
+  }
 }
 
+/* Small tablets and large phones (768px and below) */
 @media (max-width: 768px) {
   .navbar-nav {
     text-align: center;
     margin-bottom: 15px;
   }
+  
   .header-right {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     gap: 15px;
+    width: 100%;
   }
+  
   .search-container {
     width: 100%;
     margin-bottom: 15px;
   }
+  
+  .search-input {
+    width: 100%;
+    max-width: 350px;
+  }
+  
   .signup-btn {
     text-align: center;
     min-width: 100px;
   }
+  
   .icon-container {
     margin: 0;
   }
+  
   .navbar {
     padding: 10px 0;
+    min-height: 65px;
+  }
+  
+  body {
+    padding-top: 65px;
+  }
+  
+  /* Adjust navbar toggler */
+  .navbar-toggler {
+    border: none;
+    padding: 4px 8px;
+  }
+  
+  .navbar-toggler:focus {
+    box-shadow: none;
   }
 }
 
+/* Mobile phones (576px and below) */
 @media (max-width: 576px) {
   .navbar-brand {
     font-size: 1.3rem;
   }
+  
   .icon-label {
     font-size: 0.65rem;
   }
+  
   .profile-icon i, .cart-icon i, .wishlist-icon i {
     font-size: 1.2rem;
   }
+  
   .header-right {
     gap: 10px;
   }
+  
   .search-container {
     margin-bottom: 10px;
+  }
+  
+  .search-input {
+    font-size: 13px;
+    padding: 7px 40px 7px 12px;
+  }
+  
+  .search-btn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .search-btn i {
+    font-size: 12px;
+  }
+  
+  .cancel-btn {
+    width: 25px;
+    height: 25px;
+    right: 38px;
+  }
+  
+  .cancel-btn i {
+    font-size: 10px;
+  }
+  
+  .signup-btn {
+    padding: 6px 16px;
+    font-size: 0.9rem;
+  }
+  
+  /* Adjust container padding */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* Extra small phones (375px and below) */
+@media (max-width: 375px) {
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .search-input {
+    font-size: 12px;
+    padding: 6px 35px 6px 10px;
+  }
+  
+  .search-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .search-btn i {
+    font-size: 11px;
+  }
+  
+  .cancel-btn {
+    width: 22px;
+    height: 22px;
+    right: 33px;
+  }
+  
+  .signup-btn {
+    padding: 5px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .icon-label {
+    font-size: 0.6rem;
+  }
+  
+  .profile-icon i, .cart-icon i, .wishlist-icon i {
+    font-size: 1.1rem;
+  }
+}
+
+/* ==========================================
+   LANDSCAPE ORIENTATION FIXES
+   ========================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  body {
+    padding-top: 60px;
+  }
+  
+  .navbar {
+    min-height: 60px;
+    padding: 8px 0;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+}
+
+/* ==========================================
+   HIGH DPI SCREEN OPTIMIZATIONS
+   ========================================== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .search-btn,
+  .cancel-btn {
+    transform: translateZ(0);
+  }
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+@media print {
+  header,
+  .navbar,
+  .search-container {
+    display: none !important;
+  }
+  
+  body {
+    padding-top: 0 !important;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY IMPROVEMENTS
+   ========================================== */
+
+/* Focus styles */
+.search-input:focus,
+.search-btn:focus,
+.cancel-btn:focus {
+  outline: 2px solid #0087bd;
+  outline-offset: 2px;
+}
+
+.nav-link:focus {
+  outline: 2px solid #0087bd;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .navbar {
+    border-bottom: 2px solid #000;
+  }
+  
+  .search-input {
+    border-color: #000;
+  }
+  
+  .search-btn {
+    background: #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

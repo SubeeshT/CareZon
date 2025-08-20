@@ -172,42 +172,42 @@ const loadSignIn = async (req,res) => {
 
 const signIn = async (req,res) => {
     try {
-        const {emailOrPhone, password} = req.body
+        const {emailOrPhone, password} = req.body;
 
-        const user = await User.findOne({$or: [{email: emailOrPhone}, {phone: emailOrPhone}]})
+        const user = await User.findOne({$or: [{email: emailOrPhone}, {phone: emailOrPhone}]});
 
         if(!user){
-            return res.status(401).json({message: "Not have an account, Please signUP first"})
+            return res.status(401).json({message: "Not have an account, Please signUP first"});
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password)
         if(!isPasswordMatch){
-            return res.status(401).json({message: "Email & Password is not matching"})
+            return res.status(401).json({message: "Email & Password is not matching"});
         }
 
         if(user.isBlocked){
-            return res.status(403).json({message: "This account is blocked, please contact us."})
+            return res.status(403).json({message: "This account is blocked, please contact us."});
         }
 
         req.session.userId = user._id 
-        console.log(`Loged user is : ${user.fullName}`)
+        console.log(`Loged user is : ${user.fullName}`);
 
-        res.redirect('/home')
+        return res.redirect('/home');
 
     } catch (error) {
-        console.error("failed to signIn : ", error)
-        res.status(500).json({message: "failed to signIn, Please try again"})
+        console.error("failed to signIn : ", error);
+        return res.status(500).json({message: "failed to signIn, Please try again"});
     }
 }
 
 const logOut = (req,res) => {
     req.session.destroy((err) => {
         if(err){
-            console.error("Failed to logout : ",err)
-            return res.status(500).send("failed to log out, Please try again")
+            console.error("Failed to logout : ",err);
+            return res.status(500).send("failed to log out, Please try again");
         }
-        res.clearCookie('connect.sid')
-        res.redirect('/')
+        res.clearCookie('connect.sid');
+       return res.redirect('/');
     })
 }
 
@@ -216,7 +216,7 @@ const loadForgotPassword = async (req,res) => {
         return res.render('auth/userForgotPassword')
     } catch (error) {
         console.log('error found to load change password', error)
-        res.status(500).send('failed to load change password page')
+        return res.status(500).send('failed to load change password page')
     }
 }
 
