@@ -1,0 +1,511 @@
+/* Address Management Styles */
+.address-header {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  padding: 2rem 0 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.address-header h2 {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.address-header p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.add-address-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(40, 167, 69, 0.2);
+}
+
+.add-address-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.add-address-btn i {
+  margin-right: 8px;
+}
+
+.address-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.address-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.address-type-badge {
+  background: #0087bd;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.address-type-badge.home {
+  background: #28a745;
+}
+
+.address-type-badge.work {
+  background: #ffc107;
+  color: #212529;
+}
+
+.address-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.address-phone {
+  color: #495057;
+  font-weight: 500;
+  margin-bottom: 0.8rem;
+}
+
+.address-details {
+  color: #6c757d;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.address-actions {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.dropdown-toggle-custom {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 1.2rem;
+  padding: 5px 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.dropdown-toggle-custom:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.dropdown-menu-custom {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  min-width: 140px;
+}
+
+.dropdown-item-custom {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item-custom:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-item-custom.edit {
+  color: #ffc107;
+}
+
+.dropdown-item-custom.delete {
+  color: #dc3545;
+}
+
+.form-section {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  display: none;
+}
+
+.form-section.show {
+  display: block;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section h4 {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control-custom {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control-custom:focus {
+  border-color: #0087bd;
+  box-shadow: 0 0 0 0.2rem rgba(0, 135, 189, 0.1);
+  outline: none;
+}
+
+.location-btn {
+  background: #0087bd;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.location-btn:hover {
+  background: #006a94;
+  transform: translateY(-1px);
+}
+
+.address-type-options {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.radio-option:hover {
+  border-color: #0087bd;
+  background: rgba(0, 135, 189, 0.05);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 8px;
+  accent-color: #0087bd;
+}
+
+.radio-option input[type="radio"]:checked + label {
+  color: #0087bd;
+  font-weight: 600;
+}
+
+.radio-option.selected {
+  border-color: #0087bd !important;
+  background: rgba(0, 135, 189, 0.1) !important;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-save {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background: #545b62;
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  background: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+  transform: translateY(-1px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #dee2e6;
+}
+
+.empty-state h4 {
+  color: #495057;
+  margin-bottom: 1rem;
+}
+
+/* Modal Styles */
+.modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 1.5rem;
+}
+
+.modal-title {
+  font-weight: 700;
+}
+
+.btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.modal-body {
+  padding: 2rem;
+  text-align: center;
+}
+
+.modal-body i {
+  font-size: 3rem;
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.modal-body h5 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.modal-body p {
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+.modal-footer {
+  padding: 1rem 2rem 2rem;
+  border-top: none;
+  justify-content: center;
+}
+
+.btn-delete-confirm {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-right: 1rem;
+}
+
+.btn-delete-confirm:hover {
+  background: #c82333;
+}
+
+.btn-delete-cancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn-delete-cancel:hover {
+  background: #545b62;
+}
+
+/* Animation for fadeOut */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .address-header {
+    padding: 1.5rem 0 1rem;
+  }
+
+  .address-card {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .address-type-options {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .radio-option {
+    flex: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .add-address-btn {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .address-actions {
+    position: static;
+    text-align: right;
+    margin-top: 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    padding: 1rem 1.5rem 1.5rem;
+  }
+
+  .btn-delete-confirm,
+  .btn-delete-cancel {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+  }
+}
+.default-indicator {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  background: #28a745;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.dropdown-item-custom.default-btn {
+  color: #28a745 !important;
+}
+
+.dropdown-item-custom.default-btn:hover {
+  background-color: #e8f5e8;
+  color: #28a745 !important;
+}
+.form-control-custom.error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1) !important;
+}
+
+.field-error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}

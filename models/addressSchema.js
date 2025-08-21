@@ -3,60 +3,50 @@ const mongoose = require('mongoose');
 const addressSchema = new mongoose.Schema({
     fullName: {
         type: String,
-        require: true,
+        required: true,
     },
     phoneOne:{
         type: String,
-        require: true
+        required: true
     },
     phoneTwo:{
         type: String,
-        require: false,
+        required: false,
         default: null,
     },
     pin:{
         type: String,
-        require: true
+        required: true
     },
     locality:{
         type: String,
-        require: true
+        required: true
     },
     area:{
         type: String,
-        require: true,
+        required: true,
     },
     district:{
         type: String,
-        require: true
+        required: true
     },
     state:{
         type: String,
-        require: true
+        required: true
     },
     country:{
         type: String,
-        require: true,
+        required: true,
     },
     landmark:{
         type: String,
-        require: false,
+        required: false,
         default: null,
     },
-    home:{
+    addressType: {
         type: String,
-        require: false,
-        default: null
-    },
-    work:{
-        type: String,
-        require: false,
-        default: null
-    },
-    other:{
-        type: String,
-        require: false,
-        default: null
+        required: true,
+        enum: ['home', 'work', 'other']
     },
     isDefault: {
         type: Boolean,
@@ -65,7 +55,7 @@ const addressSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true
+        required: true
     },
     createdAt: {
         type: Date,

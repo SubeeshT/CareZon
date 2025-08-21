@@ -60,10 +60,10 @@ router.post('/profile/uploadImage', auth.getUserData, uploadConfigs.generalImage
 
 //user account/address section
 router.get('/account/address', auth.getUserData, addressController.loadAddress);
-// router.post('/account/address/add', auth.getUserData, addressController.addAddress);
-// router.put('/account/address/edit', auth.getUserData, addressController.editAddress);
-// router.delete('/account/address/delete', auth.getUserData, addressController.deleteAddress);
-// router.patch('/account/address/default', auth.getUserData, addressController.setDefaultAddress);
+router.post('/account/address/add', auth.getUserData, addressController.addAddress);
+router.put('/account/address/edit/:addressId', auth.getUserData, addressController.editAddress);
+router.patch('/account/address/default/:addressId', auth.getUserData, addressController.setDefaultAddress);
+router.delete('/account/address/delete/:addressId', auth.getUserData, addressController.deleteAddress);
 
 
 

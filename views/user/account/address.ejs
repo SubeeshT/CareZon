@@ -8,489 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/user/css/headerAndFooter.css">
     <link rel="stylesheet" href="/user/css/sidebar.css">
-    
-    <style>
-        /* Address Management Styles */
-        .address-header {
-            background: linear-gradient(135deg, #f8f9fa, #ffffff);
-            padding: 2rem 0 1.5rem;
-            border-bottom: 1px solid #e9ecef;
-            margin-bottom: 2rem;
-        }
-
-        .address-header h2 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .address-header p {
-            color: #6c757d;
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-        .add-address-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.2);
-        }
-
-        .add-address-btn:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-        }
-
-        .add-address-btn i {
-            margin-right: 8px;
-        }
-
-        .address-card {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        .address-card:hover {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .address-type-badge {
-            background: #0087bd;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-
-        .address-type-badge.home {
-            background: #28a745;
-        }
-
-        .address-type-badge.work {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        .address-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .address-phone {
-            color: #495057;
-            font-weight: 500;
-            margin-bottom: 0.8rem;
-        }
-
-        .address-details {
-            color: #6c757d;
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-
-        .address-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-
-        .dropdown-toggle-custom {
-            background: none;
-            border: none;
-            color: #6c757d;
-            font-size: 1.2rem;
-            padding: 5px 10px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-toggle-custom:hover {
-            background: #f8f9fa;
-            color: #495057;
-        }
-
-        .dropdown-menu-custom {
-            border: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            border-radius: 8px;
-            padding: 0.5rem 0;
-            min-width: 140px;
-        }
-
-        .dropdown-item-custom {
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .dropdown-item-custom:hover {
-            background: #f8f9fa;
-        }
-
-        .dropdown-item-custom.edit {
-            color: #ffc107;
-        }
-
-        .dropdown-item-custom.delete {
-            color: #dc3545;
-        }
-
-        .form-section {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            display: none;
-        }
-
-        .form-section.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-section h4 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control-custom {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 12px 15px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control-custom:focus {
-            border-color: #0087bd;
-            box-shadow: 0 0 0 0.2rem rgba(0, 135, 189, 0.1);
-            outline: none;
-        }
-
-        .location-btn {
-            background: #0087bd;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .location-btn:hover {
-            background: #006a94;
-            transform: translateY(-1px);
-        }
-
-        .address-type-options {
-            display: flex;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-        }
-
-        .radio-option:hover {
-            border-color: #0087bd;
-            background: rgba(0, 135, 189, 0.05);
-        }
-
-        .radio-option input[type="radio"] {
-            margin-right: 8px;
-            accent-color: #0087bd;
-        }
-
-        .radio-option input[type="radio"]:checked + label {
-            color: #0087bd;
-            font-weight: 600;
-        }
-
-        .radio-option.selected {
-            border-color: #0087bd !important;
-            background: rgba(0, 135, 189, 0.1) !important;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .btn-save {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-save:hover {
-            background: #218838;
-            transform: translateY(-1px);
-        }
-
-        .btn-cancel {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-cancel:hover {
-            background: #545b62;
-            transform: translateY(-1px);
-        }
-
-        .btn-edit {
-            background: #ffc107;
-            color: #212529;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-edit:hover {
-            background: #e0a800;
-            transform: translateY(-1px);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #6c757d;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #dee2e6;
-        }
-
-        .empty-state h4 {
-            color: #495057;
-            margin-bottom: 1rem;
-        }
-
-        /* Modal Styles */
-        .modal-content {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            border-radius: 12px 12px 0 0;
-            padding: 1.5rem;
-        }
-
-        .modal-title {
-            font-weight: 700;
-        }
-
-        .btn-close {
-            filter: brightness(0) invert(1);
-        }
-
-        .modal-body {
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .modal-body i {
-            font-size: 3rem;
-            color: #dc3545;
-            margin-bottom: 1rem;
-        }
-
-        .modal-body h5 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .modal-body p {
-            color: #6c757d;
-            margin-bottom: 0;
-        }
-
-        .modal-footer {
-            padding: 1rem 2rem 2rem;
-            border-top: none;
-            justify-content: center;
-        }
-
-        .btn-delete-confirm {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-right: 1rem;
-        }
-
-        .btn-delete-confirm:hover {
-            background: #c82333;
-        }
-
-        .btn-delete-cancel {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .btn-delete-cancel:hover {
-            background: #545b62;
-        }
-
-        /* Animation for fadeOut */
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .address-header {
-                padding: 1.5rem 0 1rem;
-            }
-
-            .address-card {
-                padding: 1rem;
-            }
-
-            .form-section {
-                padding: 1.5rem;
-                margin-top: 1rem;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .form-actions button {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-
-            .address-type-options {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .radio-option {
-                flex: none;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .add-address-btn {
-                width: 100%;
-                padding: 15px;
-            }
-
-            .address-actions {
-                position: static;
-                text-align: right;
-                margin-top: 1rem;
-            }
-
-            .modal-body {
-                padding: 1.5rem;
-            }
-
-            .modal-footer {
-                flex-direction: column;
-                padding: 1rem 1.5rem 1.5rem;
-            }
-
-            .btn-delete-confirm,
-            .btn-delete-cancel {
-                width: 100%;
-                margin-bottom: 0.5rem;
-                margin-right: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/user/css/address.css">  
 </head>
 <body>
     <%- include('../../views/partials/user/header.ejs') %>
@@ -521,76 +39,90 @@
 
                     <!-- Existing Addresses -->
                     <div class="addresses-list" id="addressesList">
-                        <!-- Work Address -->
-                        <div class="address-card" data-address-id="1">
-                            <div class="address-type-badge work">WORK</div>
-                            <div class="address-actions">
-                                <div class="dropdown">
-                                    <button class="dropdown-toggle-custom" data-bs-toggle="dropdown">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-custom dropdown-menu-end">
-                                        <li><button class="dropdown-item dropdown-item-custom edit" onclick="editAddress(1)">
-                                            <i class="fas fa-edit me-2"></i> Edit
-                                        </button></li>
-                                        <li><button class="dropdown-item dropdown-item-custom delete" onclick="deleteAddress(1, 'Subeesh')">
-                                            <i class="fas fa-trash me-2"></i> Delete
-                                        </button></li>
-                                    </ul>
+                        <% if (addresses && addresses.length > 0) { %>
+                            <% addresses.forEach(address => { %>
+                                <div class="address-card" data-address-id="<%= address._id %>">
+                                    <% if (address.isDefault) { %>
+                                        <div class="default-indicator">
+                                            <i class="fas fa-star"></i> Default
+                                        </div>
+                                    <% } %>
+                                    <div class="address-type-badge <%= address.addressType %>">
+                                        <%= address.addressType.toUpperCase() %>
+                                    </div>
+                                    <div class="address-actions">
+                                        <div class="dropdown">
+                                            <button class="dropdown-toggle-custom" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-custom dropdown-menu-end">
+                                                <% if (!address.isDefault) { %>
+                                                    <li><button class="dropdown-item dropdown-item-custom default-btn" onclick="setDefaultAddress('<%= address._id %>')">
+                                                        <i class="fas fa-star me-2"></i> Set as Default
+                                                    </button></li>
+                                                <% } %>
+                                                <li><button class="dropdown-item dropdown-item-custom edit" onclick="editAddress('<%= address._id %>')">
+                                                    <i class="fas fa-edit me-2"></i> Edit
+                                                </button></li>
+                                                <li><button class="dropdown-item dropdown-item-custom delete" onclick="deleteAddress('<%= address._id %>', '<%= address.fullName %>')">
+                                                    <i class="fas fa-trash me-2"></i> Delete
+                                                </button></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="address-name"><%= address.fullName %></div>
+                                    <div class="address-phone"><%= address.phoneOne %></div>
+                                    <div class="address-details">
+                                        <%= address.area %>, <%= address.locality %>, <%= address.district %>, <%= address.state %> - <%= address.pin %> 
+                                        <% if (address.landmark) { %>
+                                            , Near <%= address.landmark %>
+                                        <% } %>
+                                        (<%= address.phoneTwo ? address.phoneTwo : '' %>)
+                                    </div>
+                                    
+                                    <!-- Hidden data for JavaScript access -->
+                                    <script type="application/json" class="address-data">
+                                        {
+                                            "id": "<%= address._id %>",
+                                            "fullName": "<%= address.fullName %>",
+                                            "phoneOne": "<%= address.phoneOne %>",
+                                            "phoneTwo": "<%= address.phoneTwo || '' %>",
+                                            "pin": "<%= address.pin %>",
+                                            "locality": "<%= address.locality %>",
+                                            "area": "<%= address.area %>",
+                                            "district": "<%= address.district %>",
+                                            "state": "<%= address.state %>",
+                                            "country": "<%= address.country %>",
+                                            "landmark": "<%= address.landmark || '' %>",
+                                            "addressType": "<%= address.addressType %>"
+                                        }
+                                    </script>
                                 </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h4>No Addresses Found</h4>
+                                <p>You haven't added any addresses yet. Add your first address to get started.</p>
                             </div>
-                            <div class="address-name">Subeesh</div>
-                            <div class="address-phone">9048042970</div>
-                            <div class="address-details">
-                                Brototype, Near Kundannoor, Brototype, Maradu, Kerala - 682304
-                            </div>
-                        </div>
-
-                        <!-- Home Address -->
-                        <div class="address-card" data-address-id="2">
-                            <div class="address-type-badge home">HOME</div>
-                            <div class="address-actions">
-                                <div class="dropdown">
-                                    <button class="dropdown-toggle-custom" data-bs-toggle="dropdown">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-custom dropdown-menu-end">
-                                        <li><button class="dropdown-item dropdown-item-custom edit" onclick="editAddress(2)">
-                                            <i class="fas fa-edit me-2"></i> Edit
-                                        </button></li>
-                                        <li><button class="dropdown-item dropdown-item-custom delete" onclick="deleteAddress(2, 'Subeesh')">
-                                            <i class="fas fa-trash me-2"></i> Delete
-                                        </button></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="address-name">Subeesh</div>
-                            <div class="address-phone">9048042970</div>
-                            <div class="address-details">
-                                42, Kozhikode, Mukkam, Akkottu Challi, Kozhikode, Kerala - 673602
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
 
                     <!-- Add Address Form -->
                     <div class="form-section" id="addAddressForm">
                         <h4>Add A New Address</h4>
                         <form>
-                            <!-- <button type="button" class="location-btn" onclick="useCurrentLocation()">
-                                <i class="fas fa-location-arrow me-2"></i> Use my current location
-                            </button> -->
-                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Name</label>
-                                        <input type="text" class="form-control form-control-custom" name="fullName" placeholder="Enter your name">
+                                        <input type="text" class="form-control form-control-custom" name="fullName" placeholder="Enter your name" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">10-digit mobile number</label>
-                                        <input type="tel" class="form-control form-control-custom" name="phoneOne" placeholder="Enter mobile number">
+                                        <input type="tel" class="form-control form-control-custom" name="phoneOne" placeholder="Enter mobile number" required>
                                     </div>
                                 </div>
                             </div>
@@ -599,33 +131,33 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Pincode</label>
-                                        <input type="text" class="form-control form-control-custom" name="pin" placeholder="Enter pincode">
+                                        <input type="text" class="form-control form-control-custom" name="pin" placeholder="Enter pincode" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Locality</label>
-                                        <input type="text" class="form-control form-control-custom" name="locality" placeholder="Enter locality">
+                                        <input type="text" class="form-control form-control-custom" name="locality" placeholder="Enter locality" required>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Address (Area and Street)</label>
-                                <textarea class="form-control form-control-custom" rows="3" name="area" placeholder="Enter complete address"></textarea>
+                                <textarea class="form-control form-control-custom" rows="3" name="area" placeholder="Enter complete address"></textarea required>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">City/District</label>
-                                        <input type="text" class="form-control form-control-custom" name="district" placeholder="Enter city">
+                                        <input type="text" class="form-control form-control-custom" name="district" placeholder="Enter city" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">State</label>
-                                        <select class="form-control form-control-custom" name="state">
+                                        <select class="form-control form-control-custom" name="state" required>
                                             <option value="">--Select State--</option>
                                             <option value="kerala">Kerala</option>
                                             <option value="tamilnadu">Tamil Nadu</option>
@@ -652,7 +184,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Country</label>
-                                        <select class="form-control form-control-custom" name="country">
+                                        <select class="form-control form-control-custom" name="country" required>
                                             <option value="india">India</option>
                                             <option value="usa">United States</option>
                                             <option value="uk">United Kingdom</option>
@@ -691,7 +223,7 @@
                                         <label for="workType">Work</label>
                                     </div>
                                     <div class="radio-option">
-                                        <input type="radio" name="addressType" id="workType" value="work">
+                                        <input type="radio" name="addressType" id="workType" value="other">
                                         <label for="workType">Other</label>
                                     </div>
                                 </div>
@@ -707,22 +239,18 @@
                     <!-- Edit Address Form -->
                     <div class="form-section" id="editAddressForm">
                         <h4>Edit Address</h4>
-                        <form>
-                            <!-- <button type="button" class="location-btn" onclick="useCurrentLocation()">
-                                <i class="fas fa-location-arrow me-2"></i> Use my current location
-                            </button> -->
-                            
+                        <form> 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Name</label>
-                                        <input type="text" class="form-control form-control-custom" id="editName" value="Subeesh">
+                                        <input type="text" class="form-control form-control-custom" id="editName" value="Subeesh" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">10-digit mobile number</label>
-                                        <input type="tel" class="form-control form-control-custom" id="editPhone" value="9048042970">
+                                        <input type="tel" class="form-control form-control-custom" id="editPhone" value="9048042970" required>
                                     </div>
                                 </div>
                             </div>
@@ -731,33 +259,33 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Pincode</label>
-                                        <input type="text" class="form-control form-control-custom" id="editPincode" value="673602">
+                                        <input type="text" class="form-control form-control-custom" id="editPincode" value="673602" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Locality</label>
-                                        <input type="text" class="form-control form-control-custom" id="editLocality" value="Kozhikode, Mukkam, Akkottu Challi">
+                                        <input type="text" class="form-control form-control-custom" id="editLocality" value="Kozhikode, Mukkam, Akkottu Challi" required>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Address (Area and Street)</label>
-                                <textarea class="form-control form-control-custom" rows="3" id="editAddress">42</textarea>
+                                <textarea class="form-control form-control-custom" rows="3" id="editAddress" required>42</textarea>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">City/District/Town</label>
-                                        <input type="text" class="form-control form-control-custom" id="editCity" value="Kozhikode">
+                                        <input type="text" class="form-control form-control-custom" id="editCity" value="Kozhikode" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">State</label>
-                                        <select class="form-control form-control-custom" id="editState">
+                                        <select class="form-control form-control-custom" id="editState" required> 
                                             <option value="kerala" selected>Kerala</option>
                                             <option value="tamilnadu">Tamil Nadu</option>
                                             <option value="karnataka">Karnataka</option>
@@ -783,7 +311,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Country</label>
-                                        <select class="form-control form-control-custom" id="editCountry">
+                                        <select class="form-control form-control-custom" id="editCountry" required>
                                             <option value="india" selected>India</option>
                                             <option value="usa">United States</option>
                                             <option value="uk">United Kingdom</option>
@@ -822,7 +350,7 @@
                                         <label for="editWorkType">Work</label>
                                     </div>
                                     <div class="radio-option">
-                                        <input type="radio" name="editAddressType" id="editWorkType" value="work">
+                                        <input type="radio" name="editAddressType" id="editWorkType" value="other">
                                         <label for="editWorkType">Other</label>
                                     </div>
                                 </div>
@@ -864,15 +392,11 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
-    <script>
-        // Initialize sidebar functionality
+   <script>
         document.addEventListener('DOMContentLoaded', function() {
-           
+            // Initialize any needed functionality
         });
 
-       
-
-        // Address Management Functions
         let currentDeleteId = null;
         let currentDeleteName = null;
 
@@ -880,99 +404,185 @@
             const addForm = document.getElementById('addAddressForm');
             const editForm = document.getElementById('editAddressForm');
             
-            // Hide edit form if visible
             editForm.classList.remove('show');
-            
-            // Show add form
             addForm.classList.add('show');
-            
-            // Scroll to form
             addForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            // Clear form fields
             clearAddForm();
         }
 
         function hideAddForm() {
-            const addForm = document.getElementById('addAddressForm');
-            addForm.classList.remove('show');
+            document.getElementById('addAddressForm').classList.remove('show');
         }
 
         function showEditForm() {
             const editForm = document.getElementById('editAddressForm');
             const addForm = document.getElementById('addAddressForm');
             
-            // Hide add form if visible
             addForm.classList.remove('show');
-            
-            // Show edit form
             editForm.classList.add('show');
-            
-            // Scroll to form
             editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function hideEditForm() {
-            const editForm = document.getElementById('editAddressForm');
-            editForm.classList.remove('show');
+            document.getElementById('editAddressForm').classList.remove('show');
         }
 
-        function editAddress(addressId) {
-            // Sample data - in real app, you'd fetch this from server
-            const addressData = {
-                1: {
-                    name: 'Subeesh',
-                    phone: '9048042970',
-                    pincode: '682304',
-                    locality: 'Near Kundannoor, Brototype',
-                    address: 'Brototype',
-                    city: 'Maradu',
-                    state: 'kerala',
-                    country: 'india',
-                    landmark: '',
-                    altPhone: '',
-                    type: 'work'
-                },
-                2: {
-                    name: 'Subeesh',
-                    phone: '9048042970',
-                    pincode: '673602',
-                    locality: 'Kozhikode, Mukkam, Akkottu Challi',
-                    address: '42',
-                    city: 'Kozhikode',
-                    state: 'kerala',
-                    country: 'india',
-                    landmark: 'Najath Masjid',
-                    altPhone: '',
-                    type: 'home'
-                }
-            };
+        // Add Address Function
+        document.querySelector('#addAddressForm form').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-            const data = addressData[addressId];
-            if (data) {
-                // Populate edit form
-                document.getElementById('editName').value = data.name;
-                document.getElementById('editPhone').value = data.phone;
-                document.getElementById('editPincode').value = data.pincode;
-                document.getElementById('editLocality').value = data.locality;
-                document.getElementById('editAddress').value = data.address;
-                document.getElementById('editCity').value = data.city;
-                document.getElementById('editState').value = data.state;
-                document.getElementById('editCountry').value = data.country;
-                document.getElementById('editLandmark').value = data.landmark;
-                document.getElementById('editAltPhone').value = data.altPhone;
+        // Clear all previous errors
+        clearAllErrors(this);
+
+        // Validate required fields
+        if (!validateRequiredFields(this)) {
+            return;
+        }
+
+        // Validate phone number
+        const phoneInput = this.querySelector('input[name="phoneOne"]');
+        if (phoneInput.value.length !== 10) {
+            showFieldError(phoneInput, 'Phone number must be exactly 10 digits');
+            return;
+        }
+
+        // Validate alternate phone if provided
+        const altPhoneInput = this.querySelector('input[name="phoneTwo"]');
+        if (altPhoneInput.value.length > 0 && altPhoneInput.value.length !== 10) {
+            showFieldError(altPhoneInput, 'Phone number must be exactly 10 digits');
+            return;
+        }
+            
+            const formData = new FormData(this);
+            const addressData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/account/address/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(addressData)
+                });
                 
-                // Set address type
-                if (data.type === 'home') {
-                    document.getElementById('editHomeType').checked = true;
+                const result = await response.json();
+                
+                if (result.success) {
+                showSuccessMessage(result.message);
+                hideAddForm();
+                // Store scroll position before reload
+                sessionStorage.setItem('scrollToTop', 'true');
+                location.reload();
                 } else {
-                    document.getElementById('editWorkType').checked = true;
+                    showErrorMessage(result.message);
                 }
-                
-                showEditForm();
+            } catch (error) {
+                showErrorMessage('Error adding address');
             }
+        });
+
+        // Edit Address Function
+        function editAddress(addressId) {
+            const addressCard = document.querySelector(`[data-address-id="${addressId}"]`);
+            const addressDataScript = addressCard.querySelector('.address-data');
+            const addressData = JSON.parse(addressDataScript.textContent);
+            
+            // Populate form fields
+            document.getElementById('editName').value = addressData.fullName;
+            document.getElementById('editPhone').value = addressData.phoneOne;
+            document.getElementById('editPincode').value = addressData.pin;
+            document.getElementById('editLocality').value = addressData.locality;
+            document.getElementById('editAddress').value = addressData.area;
+            document.getElementById('editCity').value = addressData.district;
+            document.getElementById('editState').value = addressData.state;
+            document.getElementById('editCountry').value = addressData.country;
+            document.getElementById('editLandmark').value = addressData.landmark;
+            document.getElementById('editAltPhone').value = addressData.phoneTwo;
+            
+            // Set address type
+            document.querySelector(`input[name="editAddressType"][value="${addressData.addressType}"]`).checked = true;
+            
+            // Store addressId for form submission
+            document.querySelector('#editAddressForm form').dataset.addressId = addressId;
+            
+            showEditForm();
         }
 
+        // Update Edit Form Submission
+        document.querySelector('#editAddressForm form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const addressId = this.dataset.addressId;
+
+            // Clear all previous errors
+            clearAllErrors(this);
+
+            if (!validateRequiredFields(this)) {
+                return;
+            }
+
+            // Validate phone number specifically
+            const phoneInput = document.getElementById('editPhone');
+            if (phoneInput.value.length !== 10) {
+                showFieldError(phoneInput, 'Phone number must be exactly 10 digits');
+                return;
+            }
+
+            // Validate alternate phone if provided
+            const altPhoneInput = document.getElementById('editAltPhone');
+            if (altPhoneInput.value.length > 0 && altPhoneInput.value.length !== 10) {
+                showFieldError(altPhoneInput, 'Phone number must be exactly 10 digits');
+                return;
+            }
+            
+            // Get form data manually to ensure all fields are included
+            const formData = {
+                fullName: document.getElementById('editName').value.trim(),
+                phoneOne: document.getElementById('editPhone').value.trim(),
+                phoneTwo: document.getElementById('editAltPhone').value.trim() || null,
+                pin: document.getElementById('editPincode').value.trim(),
+                locality: document.getElementById('editLocality').value.trim(),
+                area: document.getElementById('editAddress').value.trim(),
+                district: document.getElementById('editCity').value.trim(),
+                state: document.getElementById('editState').value,
+                country: document.getElementById('editCountry').value,
+                landmark: document.getElementById('editLandmark').value.trim() || null,
+                addressType: document.querySelector('input[name="editAddressType"]:checked').value
+            };
+            
+            // Client-side validation
+            if (!formData.fullName || !formData.phoneOne || !formData.pin || !formData.locality || 
+                !formData.area || !formData.district || !formData.state || !formData.country || !formData.addressType) {
+                showErrorMessage('Please fill all required fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/account/address/edit/${addressId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccessMessage(result.message);
+                    hideEditForm();
+                    // Store scroll position before reload
+                    sessionStorage.setItem('scrollToTop', 'true');
+                    location.reload();
+                }else {
+                    showErrorMessage(result.message);
+                }
+            } catch (error) {
+                showErrorMessage('Error updating address');
+            }
+        });
+
+        // Delete Address Function
         function deleteAddress(addressId, addressName) {
             currentDeleteId = addressId;
             currentDeleteName = addressName;
@@ -984,61 +594,71 @@
             deleteModal.show();
         }
 
-        function confirmDelete() {
+        async function confirmDelete() {
             if (currentDeleteId) {
-                // Remove the address card
-                const addressCard = document.querySelector(`[data-address-id="${currentDeleteId}"]`);
-                if (addressCard) {
-                    addressCard.style.animation = 'fadeOut 0.3s ease';
-                    setTimeout(() => {
-                        addressCard.remove();
-                        showSuccessMessage('Address deleted successfully!');
-                        checkEmptyState();
-                    }, 300);
+                try {
+                    const response = await fetch(`/account/address/delete/${currentDeleteId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const addressCard = document.querySelector(`[data-address-id="${currentDeleteId}"]`);
+                        if (addressCard) {
+                            addressCard.remove();
+                            showSuccessMessage(result.message);
+                        }
+                    } else {
+                        showErrorMessage(result.message);
+                    }
+                } catch (error) {
+                    showErrorMessage('Error deleting address');
                 }
                 
-                // Hide modal
                 const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
                 deleteModal.hide();
                 
-                // Reset current delete vars
                 currentDeleteId = null;
                 currentDeleteName = null;
             }
         }
 
-        function clearAddForm() {
-            const form = document.querySelector('#addAddressForm form');
-            form.reset();
+        // Set Default Address Function
+        async function setDefaultAddress(addressId) {
+            try {
+                const response = await fetch(`/account/address/default/${addressId}`, {
+                    method: 'PATCH'
+                });
+                
+                const result = await response.json();
+                
+               if (result.success) {
+                    showSuccessMessage(result.message);
+                    // Store scroll position before reload
+                    sessionStorage.setItem('scrollToTop', 'true');
+                    location.reload(); // Reload to update UI
+                } else {
+                    showErrorMessage(result.message);
+                }
+            } catch (error) {
+                showErrorMessage('Error setting default address');
+            }
         }
 
-        function useCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    showSuccessMessage('Location detected! Please fill in the address details.');
-                    // In a real app, you'd use the coordinates to get address details
-                }, function(error) {
-                    showErrorMessage('Unable to detect location. Please enter address manually.');
-                });
-            } else {
-                showErrorMessage('Geolocation is not supported by this browser.');
-            }
+        function clearAddForm() {
+            document.querySelector('#addAddressForm form').reset();
         }
 
         function showSuccessMessage(message) {
             const alert = document.createElement('div');
             alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
             alert.style.cssText = 'top: 100px; right: 20px; z-index: 9999; max-width: 350px;';
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
             document.body.appendChild(alert);
             
             setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.remove();
-                }
+                if (alert.parentNode) alert.remove();
             }, 5000);
         }
 
@@ -1046,70 +666,116 @@
             const alert = document.createElement('div');
             alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
             alert.style.cssText = 'top: 100px; right: 20px; z-index: 9999; max-width: 350px;';
-            alert.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
             document.body.appendChild(alert);
             
             setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.remove();
-                }
+                if (alert.parentNode) alert.remove();
             }, 5000);
         }
 
-        function checkEmptyState() {
-            const addressesList = document.getElementById('addressesList');
-            const addressCards = addressesList.querySelectorAll('.address-card');
-            
-            if (addressCards.length === 0) {
-                addressesList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h4>No Addresses Found</h4>
-                        <p>You haven't added any addresses yet. Add your first address to get started.</p>
-                    </div>
-                `;
-            }
-        }
 
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            // Confirm delete button
-            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+        function setupPhoneValidation() {
+            const phoneInputs = document.querySelectorAll('input[name="phoneOne"], #editPhone, input[name="phoneTwo"], #editAltPhone');
             
-            // Form submissions
-            document.querySelector('#addAddressForm form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Handle form submission
-                showSuccessMessage('Address added successfully!');
-                hideAddForm();
-            });
-            
-            document.querySelector('#editAddressForm form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Handle form submission
-                showSuccessMessage('Address updated successfully!');
-                hideEditForm();
-            });
-            
-            // Radio button styling
-            document.querySelectorAll('.radio-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    const radio = this.querySelector('input[type="radio"]');
-                    if (radio) {
-                        radio.checked = true;
-                        
-                        // Update visual state for the same form
-                        const parentForm = this.closest('.form-section');
-                        const allOptions = parentForm.querySelectorAll('.radio-option');
-                        allOptions.forEach(opt => opt.classList.remove('selected'));
-                        this.classList.add('selected');
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // Remove any non-digit characters
+                    this.value = this.value.replace(/\D/g, '');
+                    
+                    // Limit to 10 digits
+                    if (this.value.length > 10) {
+                        this.value = this.value.slice(0, 10);
+                    }
+                });
+                
+                input.addEventListener('blur', function(e) {
+                    if (this.value.length > 0 && this.value.length < 10) {
+                        showFieldError(this, 'Phone number must be exactly 10 digits');
+                    } else {
+                        clearFieldError(this);
                     }
                 });
             });
+        }
+
+        function setupRealTimeValidation() {
+            const forms = document.querySelectorAll('#addAddressForm form, #editAddressForm form');
+            
+            forms.forEach(form => {
+                const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+                
+                requiredFields.forEach(field => {
+                    field.addEventListener('blur', function() {
+                        if (!this.value.trim()) {
+                            showFieldError(this, 'This field is required');
+                        } else {
+                            clearFieldError(this);
+                        }
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        if (this.value.trim() && this.classList.contains('error')) {
+                            clearFieldError(this);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Call this function when document loads
+       document.addEventListener('DOMContentLoaded', function() {
+            setupPhoneValidation();
+            setupRealTimeValidation();
+            
+            // Check if we need to scroll to top after reload
+            if (sessionStorage.getItem('scrollToTop')) {
+                window.scrollTo(0, 0);
+                sessionStorage.removeItem('scrollToTop');
+            }
         });
+        document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+
+        function showFieldError(input, message) {
+            clearFieldError(input);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error-message';
+            errorDiv.textContent = message;
+            
+            input.classList.add('error');
+            input.parentNode.appendChild(errorDiv);
+        }
+
+       function clearFieldError(input) {
+            const existingError = input.parentNode.querySelector('.field-error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            input.classList.remove('error');
+        }
+
+        function clearAllErrors(form) {
+            const errorMessages = form.querySelectorAll('.field-error-message');
+            const errorInputs = form.querySelectorAll('.form-control-custom.error');
+            
+            errorMessages.forEach(error => error.remove());
+            errorInputs.forEach(input => input.classList.remove('error'));
+        }
+
+      function validateRequiredFields(form) {
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    showFieldError(field, 'This field is required');
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
     </script>
 </body>
 </html>
