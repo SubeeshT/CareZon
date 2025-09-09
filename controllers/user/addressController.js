@@ -14,7 +14,7 @@ const loadAddress = async(req, res) =>{
         return res.status(200).render('account/address', {activePage: 'address', addresses, user, success: true, message: null});
     } catch (error) {
         console.error("internal error while loading address : ", error);
-        return res.status(500).json({success: false, message: "address page loading get error"});
+        return res.status(500).render('pageNotFound',{status: 500, message: "Something went wrong while loading addresses"});
     }
 }
 
@@ -31,6 +31,10 @@ const addAddress = async (req,res)=> {
             return res.status(400).json({success: false, message: "required field should fill"});
         }
 
+        if(phoneOne.length !== 10 || (phoneTwo && phoneTwo.length !== 10)){
+            return res.status(400).json({success: false, message: "Phone number should have 10 digits"});
+        }
+
         const newAddress = new Address({
             userId: req.session.userId,
             fullName: fullName.trim(), 
@@ -43,8 +47,16 @@ const addAddress = async (req,res)=> {
             state: state.trim(), 
             country: country.trim(), 
             landmark: landmark.trim() || null, 
-            addressType: addressType
+            addressType: addressType,
+            isDefault: req.body.isDefault === 'true' || req.body.isDefault === true
         });
+
+        if (newAddress.isDefault) {
+            await Address.updateMany(
+                { userId: req.session.userId }, 
+                { isDefault: false }
+            );
+        }
          
 
         await newAddress.save();
@@ -77,9 +89,17 @@ const editAddress = async (req,res)=> {
             return res.status(400).json({success: false, message: "phone number should have 10 digit"});
         }
 
+        const isDefaultRequested = req.body.isDefault === 'true' || req.body.isDefault === true;
+        if (isDefaultRequested && !addressOwner.isDefault) {
+            await Address.updateMany(
+                { userId: req.session.userId }, 
+                { isDefault: false }
+            );
+        }
+
         addressOwner.fullName = fullName.trim();
-        addressOwner.phoneOne = phoneOne.trim();
-        addressOwner.phoneTwo = phoneTwo? phoneTwo.trim() : null;
+        addressOwner.phoneOne = phoneOne;
+        addressOwner.phoneTwo = phoneTwo || null;
         addressOwner.pin = pin ;
         addressOwner.locality = locality.trim();
         addressOwner.area = area.trim() ;
@@ -88,6 +108,7 @@ const editAddress = async (req,res)=> {
         addressOwner.country = country;
         addressOwner.landmark = landmark ? landmark.trim() : null;
         addressOwner.addressType = addressType
+        addressOwner.isDefault = isDefaultRequested;
 
         await addressOwner.save();
 

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - <%= order.orderId %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #6c63ff;
+        }
+        
+        .company-info h1 {
+            color: #6c63ff;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info p {
+            color: #666;
+            margin: 2px 0;
+        }
+        
+        .invoice-title {
+            text-align: right;
+        }
+        
+        .invoice-title h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .detail-section h3 {
+            color: #6c63ff;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .detail-section p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .items-table th {
+            background: #6c63ff;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .summary-section {
+            max-width: 400px;
+            margin-left: auto;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .summary-total {
+            border-top: 2px solid #6c63ff;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        
+        .summary-total .summary-row {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #cce5ff; color: #0066cc; }
+        .status-processing { background: #e1ecf4; color: #39739d; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .invoice-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1>CareZon</h1>
+                <p>Your Trusted Shopping Partner</p>
+                <p>Email: support@carezone.com</p>
+                <p>Phone: +91 9876543210</p>
+            </div>
+            <div class="invoice-title">
+                <h2>INVOICE</h2>
+                <p><strong>Order ID:</strong> <%= order.orderId %></p>
+                <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString('en-GB') %></p>
+                <span class="status-badge status-<%= order.orderStatus %>">
+                    <%= order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1) %>
+                </span>
+            </div>
+        </div>
+
+        <!-- Order and Customer Details -->
+        <div class="invoice-details">
+            <div class="detail-section">
+                <h3>Bill To</h3>
+                <p><strong><%= order.shippingAddress.fullName %></strong></p>
+                <p><%= order.shippingAddress.area %>, <%= order.shippingAddress.locality %></p>
+                <% if (order.shippingAddress.landmark) { %>
+                    <p>Near <%= order.shippingAddress.landmark %></p>
+                <% } %>
+                <p><%= order.shippingAddress.district %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.pin %></p>
+                <p>Phone: <%= order.shippingAddress.phoneOne %></p>
+                <% if (order.shippingAddress.phoneTwo) { %>
+                    <p>Alt Phone: <%= order.shippingAddress.phoneTwo %></p>
+                <% } %>
+            </div>
+            
+            <div class="detail-section">
+                <h3>Payment Details</h3>
+                <p><strong>Payment Method:</strong> 
+                    <% if (order.paymentMethod === 'cod') { %>
+                        Cash on Delivery
+                    <% } else if (order.paymentMethod === 'card') { %>
+                        Credit/Debit Card
+                    <% } else if (order.paymentMethod === 'upi') { %>
+                        UPI Payment
+                    <% } else { %>
+                        <%= order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1) %>
+                    <% } %>
+                </p>
+                <p><strong>Payment Status:</strong> 
+                    <span style="text-transform: capitalize; color: <%= order.paymentStatus === 'completed' ? '#28a745' : '#ffc107' %>;">
+                        <%= order.paymentStatus %>
+                    </span>
+                </p>
+                <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleDateString('en-GB') %></p>
+                <p><strong>Order Time:</strong> <%= new Date(order.createdAt).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true}) %></p>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Brand</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% 
+                let totalBeforeTax = 0;
+                order.items.forEach(item => { 
+                    // Calculate price before tax (reverse calculation: current price / 1.16)
+                    const priceBeforeTax = item.unitPrice / 1.16;
+                    const totalBeforeTaxForItem = priceBeforeTax * item.quantity;
+                    totalBeforeTax += totalBeforeTaxForItem;
+                %>
+                    <tr>
+                        <td>
+                            <strong><%= item.productSnapshot.name %></strong>
+                            <% if (item.variantLabel) { %>
+                                <br><small style="color: #666;">Variant: <%= item.variantLabel %></small>
+                            <% } %>
+                        </td>
+                        <td><%= item.productSnapshot.brand %></td>
+                        <td class="text-center"><%= item.quantity %></td>
+                        <td class="text-right">₹<%= item.unitPrice.toLocaleString() %></td>
+                        <td class="text-right">₹<%= item.totalPrice.toLocaleString() %></td>
+                    </tr>
+                <% }); 
+                
+                // Calculate tax amounts
+                const cgstAmount = totalBeforeTax * 0.08;
+                const sgstAmount = totalBeforeTax * 0.08;
+                const totalTaxAmount = cgstAmount + sgstAmount;
+                %>
+            </tbody>
+        </table>
+
+        <!-- Order Summary -->
+        <div class="summary-section">
+            <div class="summary-row">
+                <span>Subtotal (Before Tax):</span>
+                <span>₹<%= totalBeforeTax.toLocaleString('en-IN', {maximumFractionDigits: 2}) %></span>
+            </div>
+            <div class="summary-row">
+                <span>CGST (8%):</span>
+                <span>₹<%= cgstAmount.toLocaleString('en-IN', {maximumFractionDigits: 2}) %></span>
+            </div>
+            <div class="summary-row">
+                <span>SGST (8%):</span>
+                <span>₹<%= sgstAmount.toLocaleString('en-IN', {maximumFractionDigits: 2}) %></span>
+            </div>
+            <div class="summary-row">
+                <span>Subtotal (After Tax):</span>
+                <span>₹<%= order.subtotal.toLocaleString() %></span>
+            </div>
+            <div class="summary-row">
+                <span>Delivery Fee:</span>
+                <span><%= order.deliveryFee === 0 ? 'Free' : '₹' + order.deliveryFee.toLocaleString() %></span>
+            </div>
+            <div class="summary-total">
+                <div class="summary-row">
+                    <span>Total Amount:</span>
+                    <span>₹<%= order.totalAmount.toLocaleString() %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Thank you for shopping with CareZon!</p>
+            <p>For any queries, please contact our customer support.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -702,3 +702,27 @@ input[type="text"]::-webkit-search-decoration {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+.cart-count-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.cart-count-badge:empty,
+.cart-count-badge[data-count="0"] {
+    display: none;
+}

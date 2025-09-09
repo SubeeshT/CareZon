@@ -1,21 +1,27 @@
 const mongoose = require('mongoose');
 
 const prescriptionSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  // Added: Doctor details
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  variantId: {
+  type: mongoose.Schema.Types.ObjectId,
+  required: true
+  },
   doctor: {
     name: {
       type: String,
       required: true
     },
     hospital: String,
-    contact: String
   },
-  // Added: Patient details
   patient: {
     name: {
       type: String,
@@ -28,15 +34,28 @@ const prescriptionSchema = new mongoose.Schema({
     },
   },
   prescriptionImages: [{
-    public_id: String,
-    url: String,
-    altText: String
+    public_id: {
+      type: String,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    altText: String,
   }],
-  prescribedMedicines: [{
-    medicineName: String,
-    dosage: String,
-    duration: String
-  }],
+  medicineName: {
+    type: String,
+  },
+  uom: {
+  type: Number, //unit of Measurement/ this means count, one tablet strip have 10 or 15 count normally. 
+  required: true
+  },
+  usedUom: {
+  type: Number,
+  default: 0,
+  min: 0
+  },
   prescriptionDate: {
     type: Date,
     required: true
@@ -49,24 +68,21 @@ const prescriptionSchema = new mongoose.Schema({
   verificationDate: {
     type: Date
   },
-  expiryDate: {
+  expiryDate: { //it means every medicines have a time period to eat. dr suggest only 5 days or  2 week or 1 month. that time period is i means as expiry date
     type: Date,
     required: true
   },
-  validityPeriod: {
-    type: Number,
-    default: 0
-  },
-  rejectionReason: String,
-  //Associated orders
-  orders: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order'
-  }],
+  rejectionReason: {
+    type: String,
+    default: null
+  }
+
 }, { timestamps: true });
 
 // Indexing
-prescriptionSchema.index({ user: 1, status: 1 });
+prescriptionSchema.index({ userId: 1, status: 1 });
 prescriptionSchema.index({ status: 1, createdAt: -1 });
+prescriptionSchema.index({ medicineName: 'text' });
+prescriptionSchema.index({ expiryDate: 1 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

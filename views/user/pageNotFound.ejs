@@ -13,6 +13,8 @@
             --coral: #FF6B6B;
             --light-green: #E8F8F5;
             --dark-text: #2C3E50;
+            --error-red: #e74c3c;
+            --warning-orange: #f39c12;
         }
 
         body {
@@ -129,8 +131,55 @@
             color: var(--dark-text);
             font-size: 16px;
             line-height: 1.6;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             max-width: 400px;
+        }
+
+        /* Error Message Styles */
+        .error-message-container {
+            margin-bottom: 30px;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            color: var(--error-red);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease;
+            max-width: 500px;
+        }
+
+        .error-message.warning {
+            background: #fffaf0;
+            border-color: #fbd38d;
+            color: var(--warning-orange);
+        }
+
+        .error-message.info {
+            background: #ebf8ff;
+            border-color: #90cdf4;
+            color: #3182ce;
+        }
+
+        .error-message i {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .error-code {
+            background: var(--error-red);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
         }
 
         .back-home-btn {
@@ -146,6 +195,7 @@
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            margin-right: 15px;
         }
 
         .back-home-btn:hover {
@@ -153,6 +203,29 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .retry-btn {
+            background: var(--primary-green);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .retry-btn:hover {
+            background: var(--secondary-green);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
         }
 
         /* Illustration Styles */
@@ -226,7 +299,11 @@
 
             .error-description {
                 max-width: 100%;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
+            }
+
+            .error-message {
+                max-width: 100%;
             }
 
             .nav-menu {
@@ -238,6 +315,12 @@
             .illustration-container {
                 margin-top: 30px;
                 min-height: 300px;
+            }
+
+            .back-home-btn, .retry-btn {
+                display: block;
+                margin: 10px 0;
+                text-align: center;
             }
         }
 
@@ -254,9 +337,14 @@
                 font-size: 14px;
             }
 
-            .back-home-btn {
+            .back-home-btn, .retry-btn {
                 padding: 10px 25px;
                 font-size: 12px;
+            }
+
+            .error-message {
+                font-size: 13px;
+                padding: 12px 15px;
             }
         }
 
@@ -276,6 +364,17 @@
             }
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .bounce {
             animation: bounce 2s infinite;
         }
@@ -290,6 +389,16 @@
             60% {
                 transform: translateY(-5px);
             }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
     </style>
 </head>
@@ -311,18 +420,15 @@
                     <ul class="navbar-nav ms-auto nav-menu">
                         <li class="nav-item">
                             <a class="nav-link" href="#" onclick="navigateTo('home')">HOME</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="navigateTo('services')">SERVICES</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="navigateTo('news')">NEWS</a>
-                        </li>
+                        </li>    
                         <li class="nav-item">
                             <a class="nav-link" href="#" onclick="navigateTo('about')">ABOUT US</a>
                         </li>
                         <li class="nav-item">
-                            <a class="login-btn" href="#" onclick="login()">LOG IN</a>
+                            <a class="nav-link" href="#" onclick="navigateTo('about')">CONTACT US</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="login-btn" href="/signIn" onclick="login('signIn')">SIGN IN</a>
                         </li>
                     </ul>
                 </div>
@@ -336,15 +442,32 @@
                     <div class="col-lg-6 col-md-6">
                         <div class="fade-in">
                             <h1 class="error-title">Oops,</h1>
-                            <h2 class="error-subtitle">You are lost!</h2>
+                            <h2 class="error-subtitle">Something went wrong!</h2>
+                            
+                            <!-- Default description -->
                             <p class="error-description">
                                 We are very sorry for the inconvenience. 
-                                It looks like you are trying to access a page that 
-                                either has been deleted or never existed.
+                                An unexpected error occurred while processing your request.
                             </p>
-                            <a href="#" class="back-home-btn bounce" onclick="goHome()">
-                                BACK TO HOME
-                            </a>
+
+                            <!-- Dynamic Error Message Section -->
+                            <div class="error-message-container">
+                                <!-- This will be populated by backend data -->
+                                <div id="errorMessage" class="error-message" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span id="errorText">Error message will appear here</span>
+                                    <span id="errorCode" class="error-code" style="display: none;">500</span>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <a href="#" class="back-home-btn bounce" onclick="goHome()">
+                                    BACK TO HOME
+                                </a>
+                                <button class="retry-btn" onclick="retryAction()">
+                                    <i class="fas fa-redo"></i> TRY AGAIN
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-6 col-md-6">
@@ -369,13 +492,13 @@
                                 <ellipse cx="390" cy="315" rx="10" ry="5" fill="#228B22"/>
                                 <ellipse cx="410" cy="315" rx="10" ry="5" fill="#228B22"/>
                                 
-                                <!-- Person -->
+                                <!-- Person (confused/sad) -->
                                 <!-- Body -->
                                 <ellipse cx="250" cy="280" rx="25" ry="35" fill="#4A90E2"/>
                                 
-                                <!-- Arms -->
-                                <ellipse cx="225" cy="260" rx="8" ry="20" fill="#FFB6C1" transform="rotate(-20 225 260)"/>
-                                <ellipse cx="275" cy="260" rx="8" ry="20" fill="#FFB6C1" transform="rotate(20 275 260)"/>
+                                <!-- Arms (raised in confusion) -->
+                                <ellipse cx="225" cy="250" rx="8" ry="20" fill="#FFB6C1" transform="rotate(-45 225 250)"/>
+                                <ellipse cx="275" cy="250" rx="8" ry="20" fill="#FFB6C1" transform="rotate(45 275 250)"/>
                                 
                                 <!-- Legs -->
                                 <ellipse cx="240" cy="320" rx="8" ry="25" fill="#2C3E50"/>
@@ -391,16 +514,20 @@
                                 <!-- Hair -->
                                 <path d="M225 210 Q250 190 275 210 Q275 230 250 235 Q225 230 225 210" fill="#2C3E50"/>
                                 
-                                <!-- Face -->
+                                <!-- Face (confused expression) -->
                                 <circle cx="242" cy="215" r="2" fill="#000"/>
                                 <circle cx="258" cy="215" r="2" fill="#000"/>
-                                <path d="M245 225 Q250 230 255 225" stroke="#000" stroke-width="1.5" fill="none"/>
+                                <path d="M245 230 Q250 225 255 230" stroke="#000" stroke-width="1.5" fill="none"/>
                                 
-                                <!-- Papers -->
-                                <rect x="270" y="250" width="15" height="20" fill="#FFF" stroke="#DDD" stroke-width="1" transform="rotate(15 277 260)"/>
-                                <rect x="275" y="245" width="15" height="20" fill="#FFF" stroke="#DDD" stroke-width="1" transform="rotate(25 282 255)"/>
-                                <line x1="273" y1="255" x2="285" y2="255" stroke="#DDD" stroke-width="0.5" transform="rotate(15 277 260)"/>
-                                <line x1="273" y1="260" x2="285" y2="260" stroke="#DDD" stroke-width="0.5" transform="rotate(15 277 260)"/>
+                                <!-- Question marks -->
+                                <text x="200" y="180" font-family="Arial, sans-serif" font-size="20" fill="#FF6B6B" opacity="0.8">?</text>
+                                <text x="300" y="160" font-family="Arial, sans-serif" font-size="24" fill="#FF6B6B" opacity="0.6">?</text>
+                                <text x="320" y="200" font-family="Arial, sans-serif" font-size="18" fill="#FF6B6B" opacity="0.7">?</text>
+                                
+                                <!-- Error symbol -->
+                                <circle cx="350" cy="100" r="25" fill="#e74c3c" opacity="0.8"/>
+                                <rect x="345" y="90" width="4" height="15" fill="white" rx="2"/>
+                                <circle cx="347" cy="110" r="2" fill="white"/>
                                 
                                 <!-- Background circles -->
                                 <circle cx="150" cy="150" r="40" fill="#E8F8F5" opacity="0.5"/>
@@ -416,9 +543,67 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Initialize page with backend data
+        document.addEventListener('DOMContentLoaded', function() {
+          
+            // In the <script> section, replace the hardcoded errorData with:
+            const errorData = {
+                success: <%= JSON.stringify(locals.success || false) %>,
+                message: '<%= locals.message || "An unexpected error occurred" %>',
+                statusCode: <%= locals.statusCode || 500 %>,
+                timestamp: '<%= locals.timestamp || new Date().toISOString() %>',
+                path: '<%= locals.path || "" %>',
+                canRetry: <%= JSON.stringify(locals.canRetry || true) %>
+            };
+
+            // Display error message if available
+            displayErrorMessage(errorData);
+
+            // Add interactive effects
+            setupInteractiveEffects();
+        });
+
+        function displayErrorMessage(errorData) {
+            const errorMessageEl = document.getElementById('errorMessage');
+            const errorTextEl = document.getElementById('errorText');
+            const errorCodeEl = document.getElementById('errorCode');
+
+            if (errorData && errorData.message) {
+                errorTextEl.textContent = errorData.message;
+                
+                // Set error type based on status code
+                if (errorData.statusCode) {
+                    errorCodeEl.textContent = errorData.statusCode;
+                    errorCodeEl.style.display = 'inline-block';
+                    
+                    // Update error style based on status code
+                    if (errorData.statusCode >= 500) {
+                        errorMessageEl.className = 'error-message'; // Server error (red)
+                        errorMessageEl.querySelector('i').className = 'fas fa-exclamation-triangle';
+                    } else if (errorData.statusCode >= 400) {
+                        errorMessageEl.className = 'error-message warning'; // Client error (orange)
+                        errorMessageEl.querySelector('i').className = 'fas fa-exclamation-circle';
+                    } else {
+                        errorMessageEl.className = 'error-message info'; // Info (blue)
+                        errorMessageEl.querySelector('i').className = 'fas fa-info-circle';
+                    }
+                }
+                
+                // Show the error message
+                errorMessageEl.style.display = 'flex';
+                
+                // Add shake animation to draw attention
+                setTimeout(() => {
+                    errorMessageEl.classList.add('shake');
+                    setTimeout(() => {
+                        errorMessageEl.classList.remove('shake');
+                    }, 500);
+                }, 200);
+            }
+        }
+
         // Navigation functions
         function goHome() {
-            // Simulate navigation to home page
             showNotification('Redirecting to home page...');
             setTimeout(() => {
                 window.location.href = '/';
@@ -435,35 +620,69 @@
         function login() {
             showNotification('Opening login page...');
             setTimeout(() => {
-                window.location.href = '/login';
+                window.location.href = '/signIn';
             }, 1000);
         }
 
+        function retryAction() {
+            showNotification('Retrying request...', 'info');
+            
+            // Add loading animation to retry button
+            const retryBtn = document.querySelector('.retry-btn');
+            const originalContent = retryBtn.innerHTML;
+            retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> RETRYING...';
+            retryBtn.disabled = true;
+            
+            // Simulate retry (reload the page or make the original request)
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+
         // Notification function
-        function showNotification(message) {
-            // Create notification element
+        function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
+            
+            let bgColor = 'var(--primary-green)';
+            let icon = 'fas fa-check-circle';
+            
+            if (type === 'error') {
+                bgColor = 'var(--error-red)';
+                icon = 'fas fa-exclamation-triangle';
+            } else if (type === 'warning') {
+                bgColor = 'var(--warning-orange)';
+                icon = 'fas fa-exclamation-circle';
+            } else if (type === 'info') {
+                bgColor = '#3182ce';
+                icon = 'fas fa-info-circle';
+            }
+            
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: var(--primary-green);
+                background: ${bgColor};
                 color: white;
                 padding: 15px 20px;
                 border-radius: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                 z-index: 1000;
                 font-weight: 500;
-                animation: slideIn 0.3s ease;
+                animation: slideInNotification 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                max-width: 300px;
             `;
-            notification.textContent = message;
+            
+            notification.innerHTML = `<i class="${icon}"></i><span>${message}</span>`;
 
-            // Add animation keyframes
+            // Add animation keyframes if not exists
             if (!document.querySelector('#notification-styles')) {
                 const style = document.createElement('style');
                 style.id = 'notification-styles';
                 style.textContent = `
-                    @keyframes slideIn {
+                    @keyframes slideInNotification {
                         from {
                             transform: translateX(100%);
                             opacity: 0;
@@ -481,15 +700,17 @@
 
             // Remove notification after 3 seconds
             setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease reverse';
+                notification.style.animation = 'slideInNotification 0.3s ease reverse';
                 setTimeout(() => {
-                    document.body.removeChild(notification);
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
                 }, 300);
             }, 3000);
         }
 
-        // Add smooth scrolling and interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
+        // Setup interactive effects
+        function setupInteractiveEffects() {
             // Add hover effects to interactive elements
             const interactiveElements = document.querySelectorAll('a, button');
             interactiveElements.forEach(element => {
@@ -502,63 +723,64 @@
             });
 
             // Add click animation to buttons
-            const buttons = document.querySelectorAll('.back-home-btn, .login-btn');
+            const buttons = document.querySelectorAll('.back-home-btn, .login-btn, .retry-btn');
             buttons.forEach(button => {
                 button.addEventListener('click', function(e) {
-                    e.preventDefault();
+                    if (!this.classList.contains('retry-btn')) {
+                        e.preventDefault();
+                    }
                     
                     // Create ripple effect
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        left: ${x}px;
-                        top: ${y}px;
-                        background: rgba(255,255,255,0.3);
-                        border-radius: 50%;
-                        transform: scale(0);
-                        animation: ripple 0.6s ease-out;
-                        pointer-events: none;
-                    `;
-                    
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-                    
-                    // Add ripple animation
-                    if (!document.querySelector('#ripple-styles')) {
-                        const style = document.createElement('style');
-                        style.id = 'ripple-styles';
-                        style.textContent = `
-                            @keyframes ripple {
-                                to {
-                                    transform: scale(2);
-                                    opacity: 0;
-                                }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                    
-                    // Execute the original function
-                    if (this.classList.contains('back-home-btn')) {
-                        goHome();
-                    } else if (this.classList.contains('login-btn')) {
-                        login();
-                    }
+                    createRippleEffect(e, this);
                 });
             });
-        });
+        }
+
+        function createRippleEffect(e, element) {
+            const ripple = document.createElement('span');
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s ease-out;
+                pointer-events: none;
+            `;
+            
+            element.style.position = 'relative';
+            element.style.overflow = 'hidden';
+            element.appendChild(ripple);
+            
+            // Add ripple animation
+            if (!document.querySelector('#ripple-styles')) {
+                const style = document.createElement('style');
+                style.id = 'ripple-styles';
+                style.textContent = `
+                    @keyframes ripple {
+                        to {
+                            transform: scale(2);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => {
+                if (element.contains(ripple)) {
+                    ripple.remove();
+                }
+            }, 600);
+        }
 
         // Add keyboard navigation
         document.addEventListener('keydown', function(e) {
@@ -568,9 +790,22 @@
             if (e.key === 'Escape') {
                 // Close mobile menu if open
                 const navbarCollapse = document.querySelector('.navbar-collapse');
-                if (navbarCollapse.classList.contains('show')) {
+                if (navbarCollapse && navbarCollapse.classList.contains('show')) {
                     bootstrap.Collapse.getInstance(navbarCollapse).hide();
                 }
+            }
+            // Retry on F5 or Ctrl+R
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault();
+                retryAction();
+            }
+        });
+
+        // Handle page visibility change (useful for retry logic)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible again, could be a good time to retry
+                console.log('Page visible again');
             }
         });
     </script>

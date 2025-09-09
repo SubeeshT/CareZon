@@ -474,10 +474,10 @@
         letter-spacing: 1px;
     }
     .product-name {
-    font-weight: 600;
+    font-weight: 400;
     color: #333;
     margin-bottom: 15px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -1580,17 +1580,17 @@
             `;
         }
 
-     async function changePage(page) {
-    if (page < 1) return;
-    
-    // Scroll to top of products area (accounting for fixed header)
-    window.scrollTo({
-        top: 40, // Adjust this value based on your header height
-        behavior: 'smooth'
-    });
-    
-    await fetchProducts(page);
-}
+    async function changePage(page) {
+        if (page < 1) return;
+        
+        // Scroll to top of products area (accounting for fixed header)
+        window.scrollTo({
+            top: 40, // Adjust this value based on your header height
+            behavior: 'smooth'
+        });
+        
+        await fetchProducts(page);
+    }
 
         function toggleWishlist(productId) {
             // Placeholder function - you'll implement this later

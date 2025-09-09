@@ -80,7 +80,6 @@ const userSchema = new mongoose.Schema(
           type: Number,
           default: 1,
         },
-        price: Number,
       },
     ],
 

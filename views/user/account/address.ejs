@@ -439,19 +439,9 @@
             return;
         }
 
-        // Validate phone number
-        const phoneInput = this.querySelector('input[name="phoneOne"]');
-        if (phoneInput.value.length !== 10) {
-            showFieldError(phoneInput, 'Phone number must be exactly 10 digits');
-            return;
-        }
-
-        // Validate alternate phone if provided
+        const phoneInput = this.querySelector('input[name="phoneOne"]'); 
         const altPhoneInput = this.querySelector('input[name="phoneTwo"]');
-        if (altPhoneInput.value.length > 0 && altPhoneInput.value.length !== 10) {
-            showFieldError(altPhoneInput, 'Phone number must be exactly 10 digits');
-            return;
-        }
+       
             
             const formData = new FormData(this);
             const addressData = Object.fromEntries(formData.entries());
@@ -464,6 +454,12 @@
                     },
                     body: JSON.stringify(addressData)
                 });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    showErrorMessage(errorResult.message || 'An internal server error occurred');
+                    return;
+                }
                 
                 const result = await response.json();
                 
@@ -474,6 +470,7 @@
                 sessionStorage.setItem('scrollToTop', 'true');
                 location.reload();
                 } else {
+                    clearAllErrors(this);
                     showErrorMessage(result.message);
                 }
             } catch (error) {
@@ -520,20 +517,10 @@
             if (!validateRequiredFields(this)) {
                 return;
             }
-
-            // Validate phone number specifically
+           
             const phoneInput = document.getElementById('editPhone');
-            if (phoneInput.value.length !== 10) {
-                showFieldError(phoneInput, 'Phone number must be exactly 10 digits');
-                return;
-            }
-
-            // Validate alternate phone if provided
             const altPhoneInput = document.getElementById('editAltPhone');
-            if (altPhoneInput.value.length > 0 && altPhoneInput.value.length !== 10) {
-                showFieldError(altPhoneInput, 'Phone number must be exactly 10 digits');
-                return;
-            }
+           
             
             // Get form data manually to ensure all fields are included
             const formData = {
@@ -565,6 +552,12 @@
                     },
                     body: JSON.stringify(formData)
                 });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    showErrorMessage(errorResult.message || 'An internal server error occurred');
+                    return;
+                }
                 
                 const result = await response.json();
                 
@@ -575,6 +568,7 @@
                     sessionStorage.setItem('scrollToTop', 'true');
                     location.reload();
                 }else {
+                    clearAllErrors(this);
                     showErrorMessage(result.message);
                 }
             } catch (error) {
@@ -600,6 +594,12 @@
                     const response = await fetch(`/account/address/delete/${currentDeleteId}`, {
                         method: 'DELETE'
                     });
+
+                    if (!response.ok) {
+                        const errorResult = await response.json();
+                        showErrorMessage(errorResult.message || 'An internal server error occurred');
+                        return;
+                    }
                     
                     const result = await response.json();
                     
@@ -630,6 +630,12 @@
                 const response = await fetch(`/account/address/default/${addressId}`, {
                     method: 'PATCH'
                 });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    showErrorMessage(errorResult.message || 'An internal server error occurred');
+                    return;
+                }
                 
                 const result = await response.json();
                 

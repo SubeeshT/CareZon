@@ -302,7 +302,7 @@
 
         .form-control {
             border: 2px solid #e9ecef;
-            border-radius: 8px;
+            border-radius: 25px;
             padding: 12px 15px;
             transition: border-color 0.3s ease;
         }
@@ -819,12 +819,132 @@
         margin-top: 10px;
     }
 }
+.wishlist-icon-container {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+}
+
+.wishlist-icon-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.wishlist-icon-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.wishlist-icon-btn.active i {
+    color: #e74c3c;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.quantity-btn {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    background-color: #f8f9fa;
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quantity-display {
+    min-width: 50px;
+    text-align: center;
+    font-weight: 600;
+    padding: 0 10px;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+.modal-xl {
+    max-width: 1000px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.text-primary {
+    color: var(--secondary-color) !important;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e9ecef !important;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.prescription-preview {
+    max-width: 200px;
+    max-height: 150px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+}
     </style>
 </head>
 <body>
 
+    <body data-user-authenticated="<%= locals.user ? 'true' : 'false' %>"></body>
+
 <!-- Header -->
 <%-include("../../views/partials/user/header.ejs")%>
+
 
     <div class="container-fluid">
         <!-- Breadcrumbs -->
@@ -841,6 +961,11 @@
             <!-- Product Image Gallery -->
             <div class="col-lg-5 col-md-6">
                 <div class="product-gallery">
+                    <div class="wishlist-icon-container">
+                        <button class="wishlist-icon-btn" id="wishlistBtn" onclick="toggleWishlist()">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
                     <div class="zoom-container">
                         <img src="<%= product.variant.images && product.variant.images[0].url %>" 
                              alt="<%= product.variant.images && product.variant.images[0].altText || product.name %>" 
@@ -898,7 +1023,7 @@
                         </div>
                         <div id="prescriptionUploadStatus" style="display: none;">
                             <small class="text-success">
-                                <i class="fas fa-check-circle"></i> Prescription uploaded for <span id="patientNameDisplay"></span>
+                                <i class="fas fa-check-circle"></i> You can know the result within 1 hour. <span id="patientNameDisplay"></span>
                             </small>
                         </div>
                         <% } %>
@@ -914,7 +1039,7 @@
                             <% } %>
                             <% if(product.variant.offerStatus || product.variant.discountStatus){ %>
                             <div class="mt-2">
-                                <small class="text-muted">Special offer available! <i class="fas fa-coins text-warning"></i> 999</small>
+                                <small class="text-muted">Price including with all taxes! <i class="fas fa-coins text-warning"></i></small>
                             </div>
                             <% } %>
                         </div>
@@ -935,6 +1060,13 @@
                                 <small style="font-weight: normal;">This item is currently unavailable</small>
                             </span>
                             <% } %>
+                        </div> 
+
+                        <div class="variant-selector" id="variantSelector" style="display: none;">
+                            <h6><i class="fas fa-layer-group"></i> Available Variants:</h6>
+                            <div id="variantOptions">
+                                <!-- Variants will be populated here -->
+                            </div>
                         </div>
 
                         <!-- Error/Success Messages -->
@@ -947,20 +1079,19 @@
                             <span id="successText">Product added to cart successfully!</span>
                         </div>
 
-                        <div class="variant-selector" id="variantSelector" style="display: none;">
-                            <h6><i class="fas fa-layer-group"></i> Available Variants:</h6>
-                            <div id="variantOptions">
-                                <!-- Variants will be populated here -->
-                            </div>
-                        </div>
-
                         <!-- Action Buttons -->
                         <div class="action-buttons">
-                            <button class="btn btn-primary btn-lg" id="addToCartBtn" onclick="addToCart()">
+                            <div class="quantity-selector">
+                                <button class="quantity-btn" id="decrementBtn" onclick="updateQuantity('decrement')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="quantity-display" id="quantityDisplay">1</span>
+                                <button class="quantity-btn" id="incrementBtn" onclick="updateQuantity('increment')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-primary btn-lg flex-grow-1" id="addToCartBtn" onclick="addToCart()">
                                 <i class="fas fa-shopping-cart"></i> Add to Cart
-                            </button>
-                            <button class="btn btn-outline-danger btn-lg" id="wishlistBtn" onclick="toggleWishlist()">
-                                <i class="far fa-heart"></i> Wishlist
                             </button>
                         </div>
                     </div>
@@ -1100,30 +1231,30 @@
         </div>
 
         <!-- Similar Products -->
-<div class="row similar-products">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3><i class="fas fa-pills text-primary"></i> Similar Products</h3>
-            <div class="carousel-controls">
-                <button class="btn btn-outline-primary carousel-btn" id="prevBtn" onclick="scrollCarousel('prev')">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="btn btn-outline-primary carousel-btn" id="nextBtn" onclick="scrollCarousel('next')">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+        <div class="row similar-products">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3><i class="fas fa-pills text-primary"></i> Similar Products</h3>
+                    <div class="carousel-controls">
+                        <button class="btn btn-outline-primary carousel-btn" id="prevBtn" onclick="scrollCarousel('prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-primary carousel-btn" id="nextBtn" onclick="scrollCarousel('next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="products-carousel-container">
+                    <div class="products-carousel" id="productsCarousel">
+                        <!-- Products will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="products-carousel-container">
-            <div class="products-carousel" id="productsCarousel">
-                <!-- Products will be populated here -->
-            </div>
-        </div>
-    </div>
-</div>
 
         <!-- Prescription Upload Modal -->
         <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="prescriptionModalLabel">
@@ -1132,87 +1263,195 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="prescriptionForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="patientName" class="form-label">
-                                            <i class="fas fa-user"></i> Patient Name *
-                                        </label>
-                                        <input type="text" class="form-control" id="patientName" required>
+                        <div id="existingPrescriptionSection" style="display: none;">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Your Last Uploaded Prescription:</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Doctor:</strong> <span id="existingDoctorName"></span></p>
+                                        <p><strong>Hospital:</strong> <span id="existingHospitalName"></span></p>
+                                        <p><strong>Patient:</strong> <span id="existingPatientName"></span></p>
+                                        <p><strong>Medicine:</strong> <span id="existingMedicineName"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Quantity:</strong> <span id="existingUom"></span></p>
+                                        <p><strong>Prescription Date:</strong> <span id="existingPrescriptionDate"></span></p>
+                                        <p><strong>Valid Until:</strong> <span id="existingExpiryDate"></span></p>
+                                        <p><strong>Status:</strong> <span id="existingStatus"></span></p>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="patientAge" class="form-label">
-                                            <i class="fas fa-calendar-alt"></i> Age *
-                                        </label>
-                                        <input type="number" class="form-control" id="patientAge" min="1" max="120" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="patientSex" class="form-label">
-                                            <i class="fas fa-venus-mars"></i> Sex *
-                                        </label>
-                                        <select class="form-control" id="patientSex" required>
-                                            <option value="">Select</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
+                                <div id="existingPrescriptionImage" class="text-center mt-3">
+                                    <!-- Image will be populated here -->
                                 </div>
                             </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="doctorName" class="form-label">
-                                            <i class="fas fa-user-md"></i> Doctor Name *
-                                        </label>
-                                        <input type="text" class="form-control" id="doctorName" required>
+                            <hr>
+                            <h6 class="text-primary">Upload New Prescription (Optional):</h6>
+                        </div>
+
+                        <form id="prescriptionForm">
+                            <!-- Doctor Information Section -->
+                            <div class="mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-user-md"></i> Doctor Information
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="doctorName" class="form-label">
+                                                <i class="fas fa-user-md"></i> Doctor Name *
+                                            </label>
+                                            <input type="text" class="form-control" id="doctorName" required>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="hospitalName" class="form-label">
-                                            <i class="fas fa-hospital"></i> Hospital/Clinic Name *
-                                        </label>
-                                        <input type="text" class="form-control" id="hospitalName" required>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="hospitalName" class="form-label">
+                                                <i class="fas fa-hospital"></i> Hospital/Clinic Name
+                                            </label>
+                                            <input type="text" class="form-control" id="hospitalName">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i class="fas fa-file-image"></i> Prescription Image *
-                                </label>
-                               <div class="upload-area-small" id="uploadArea" onclick="document.getElementById('prescriptionFile').click()">
-    <div class="upload-content">
-        <i class="fas fa-camera"></i>
-        <span>Choose File</span>
-    </div>
-    <small class="text-muted d-block mt-1">JPG, PNG, PDF (Max 5MB)</small>
-</div>
-                                <input type="file" id="prescriptionFile" accept="image/*,.pdf" style="display: none;" required>
-                                
-                                <div id="imagePreview" style="display: none;" class="mt-3 text-center">
-                                    <img id="previewImage" class="prescription-preview">
-                                    <div class="mt-2">
-                                        <span id="fileName" class="text-muted"></span>
-                                        <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImage()">
-                                            <i class="fas fa-times"></i> Remove
-                                        </button>
+                            <!-- Patient Information Section -->
+                            <div class="mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-user"></i> Patient Information
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="patientName" class="form-label">
+                                                <i class="fas fa-user"></i> Patient Name *
+                                            </label>
+                                            <input type="text" class="form-control" id="patientName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="patientAge" class="form-label">
+                                                <i class="fas fa-calendar-alt"></i> Age *
+                                            </label>
+                                            <input type="number" class="form-control" id="patientAge" min="1" max="120" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="patientGender" class="form-label">
+                                                <i class="fas fa-venus-mars"></i> Gender *
+                                            </label>
+                                            <select class="form-control" id="patientGender" required>
+                                                <option value="">Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Medicine Information Section -->
+                            <div class="mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-pills"></i> Medicine Information
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label for="medicineName" class="form-label">
+                                                <i class="fas fa-pills"></i> Medicine Name *
+                                            </label>
+                                            <input type="text" class="form-control" id="medicineName" required>
+                                            <small class="text-muted">Enter the exact medicine name as prescribed</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="uom" class="form-label">
+                                                <i class="fas fa-calculator"></i> Quantity/Count *
+                                            </label>
+                                            <input type="number" class="form-control" id="uom" min="1" required>
+                                            <small class="text-muted">Total tablets/capsules prescribed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prescription Dates Section -->
+                            <div class="mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-calendar"></i> Prescription Dates
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="prescriptionDate" class="form-label">
+                                                <i class="fas fa-calendar-plus"></i> Prescription Date *
+                                            </label>
+                                            <input type="date" class="form-control" id="prescriptionDate" required>
+                                            <small class="text-muted">Date when prescription was issued</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="expiryDate" class="form-label">
+                                                <i class="fas fa-calendar-times"></i> Treatment End Date *
+                                            </label>
+                                            <input type="date" class="form-control" id="expiryDate" required>
+                                            <small class="text-muted">Until when this medicine should be taken</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prescription Image Upload Section -->
+                            <div class="mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-file-image"></i> Prescription Document
+                                </h6>
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-camera"></i> Upload Prescription Image/PDF *
+                                    </label>
+                                    <div class="upload-area-small" id="uploadArea" onclick="document.getElementById('prescriptionFile').click()">
+                                        <div class="upload-content">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Choose File</span>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">JPG, PNG, PDF (Max 5MB)</small>
+                                    </div>
+                                    <input type="file" id="prescriptionFile" accept="image/*,.pdf" style="display: none;" required>
+                                    
+                                    <div id="imagePreview" style="display: none;" class="mt-3 text-center">
+                                        <img id="previewImage" class="prescription-preview">
+                                        <div class="mt-2">
+                                            <span id="fileName" class="text-muted"></span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImage()">
+                                                <i class="fas fa-times"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Important Notes -->
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Important Notes:</h6>
+                                <ul class="mb-0">
+                                    <li>Ensure all information matches your prescription exactly</li>
+                                    <li>Upload a clear image showing all prescription details</li>
+                                    <li>Your prescription will be verified by our pharmacy team</li>
+                                    <li>You can only purchase medicines within the prescribed quantity</li>
+                                </ul>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="savePrescriptionBtn" onclick="savePrescription()">
-                            <i class="fas fa-save"></i> Save Prescription
+                            <i class="fas fa-save"></i> Upload Prescription
                         </button>
                     </div>
                 </div>
@@ -1243,8 +1482,31 @@
         let isInWishlist = false;
         let prescriptionUploaded = <%= product.variant.prescriptionRequired ? 'false' : 'true' %>;
         let currentStock = <%= product.variant.stock %>;
+        let currentQuantity = 1;
+        let isProductInCart = false;
 
-        // Add this after your global variables
+        function isUserAuthenticated() {
+            return document.body.getAttribute('data-user-authenticated') === 'true';
+        }
+
+        // Function to update cart count
+        async function updateCartCount() {
+            try {
+                const response = await fetch('/cart/count');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const badge = document.getElementById('cartCountBadge');
+                    if (badge) {
+                        badge.textContent = data.count;
+                        badge.setAttribute('data-count', data.count);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error);
+            }
+}
+    
         async function fetchProductData() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1339,28 +1601,33 @@
 
         // Change main image
         function changeMainImage(thumbnail) {
-    const mainImage = document.getElementById('mainImage');
-    const currentActive = document.querySelector('.thumbnail.active');
-    
-    if (currentActive) {
-        currentActive.classList.remove('active');
-    }
-    
-    thumbnail.classList.add('active');
-    mainImage.src = thumbnail.src;
-    
-    mainImage.style.opacity = '0.7';
-    setTimeout(() => {
-        mainImage.style.opacity = '1';
-        // Reinitialize zoom after image change
-        setTimeout(() => {
-            initializeImageZoom();
-        }, 50);
-    }, 150);
-}
+            const mainImage = document.getElementById('mainImage');
+            const currentActive = document.querySelector('.thumbnail.active');
+            
+            if (currentActive) {
+                currentActive.classList.remove('active');
+            }
+            
+            thumbnail.classList.add('active');
+            mainImage.src = thumbnail.src;
+            
+            mainImage.style.opacity = '0.7';
+            setTimeout(() => {
+                mainImage.style.opacity = '1';
+                // Reinitialize zoom after image change
+                setTimeout(() => {
+                    initializeImageZoom();
+                }, 50);
+            }, 150);
+        }
 
         // Prescription modal functionality
         function openPrescriptionModal() {
+            if (!isUserAuthenticated()) {
+                showErrorMessage('Please sign in first to upload prescription');
+                return;
+            }
+            
             const modal = new bootstrap.Modal(document.getElementById('prescriptionModal'));
             modal.show();
         }
@@ -1435,40 +1702,294 @@
             document.getElementById('imagePreview').style.display = 'none';
         }
 
-        function savePrescription() {
-            const form = document.getElementById('prescriptionForm');
-            const patientName = document.getElementById('patientName').value;
-            const patientAge = document.getElementById('patientAge').value;
-            const patientSex = document.getElementById('patientSex').value;
-            const doctorName = document.getElementById('doctorName').value;
-            const hospitalName = document.getElementById('hospitalName').value;
-            const prescriptionFile = document.getElementById('prescriptionFile').files[0];
 
-            if (!patientName || !patientAge || !patientSex || !doctorName || !hospitalName || !prescriptionFile) {
-                alert('Please fill all required fields and upload prescription image');
+        //live validation for form fields
+        function initializeFormValidation() {
+            const requiredFields = [
+                'doctorName', 'patientName', 'patientAge', 'patientGender', 
+                'medicineName', 'uom', 'prescriptionDate', 'expiryDate'
+            ];
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', () => validateField(fieldId));
+                    field.addEventListener('input', () => clearFieldError(fieldId));
+                }
+            });
+            
+            // Special validation for dates
+            const prescriptionDate = document.getElementById('prescriptionDate');
+            const expiryDate = document.getElementById('expiryDate');
+            
+            if (prescriptionDate) {
+                prescriptionDate.addEventListener('change', validateDates);
+            }
+            if (expiryDate) {
+                expiryDate.addEventListener('change', validateDates);
+            }
+        }
+
+        function validateField(fieldId) {
+            const field = document.getElementById(fieldId);
+            const value = field.value.trim();
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Remove existing error
+            clearFieldError(fieldId);
+            
+            switch(fieldId) {
+                case 'doctorName':
+                    if (!value) {
+                        errorMessage = 'Doctor name is required';
+                        isValid = false;
+                    }
+                    break;
+                case 'patientName':
+                    if (!value) {
+                        errorMessage = 'Patient name is required';
+                        isValid = false;
+                    }
+                    break;
+                case 'patientAge':
+                    if (!value || parseInt(value) < 1 || parseInt(value) > 120) {
+                        errorMessage = 'Please enter a valid age (1-120)';
+                        isValid = false;
+                    }
+                    break;
+                case 'patientGender':
+                    if (!value) {
+                        errorMessage = 'Please select gender';
+                        isValid = false;
+                    }
+                    break;
+                case 'medicineName':
+                    if (!value) {
+                        errorMessage = 'Medicine name is required';
+                        isValid = false;
+                    }
+                    break;
+                case 'uom':
+                    if (!value || parseInt(value) < 1) {
+                        errorMessage = 'Please enter valid quantity';
+                        isValid = false;
+                    }
+                    break;
+                case 'prescriptionDate':
+                    if (!value) {
+                        errorMessage = 'Prescription date is required';
+                        isValid = false;
+                    } else {
+                        const prescDate = new Date(value);
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999); // End of today
+                        if (prescDate > today) {
+                            errorMessage = 'Prescription date cannot be in the future';
+                            isValid = false;
+                        }
+                    }
+                    break;
+                case 'expiryDate':
+                    if (!value) {
+                        errorMessage = 'Treatment end date is required';
+                        isValid = false;
+                    }
+                    break;
+            }
+            
+            if (!isValid) {
+                showFieldError(fieldId, errorMessage);
+            }
+            
+            return isValid;
+        }
+
+        function validateDates() {
+            const prescriptionDate = document.getElementById('prescriptionDate').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+            
+            if (prescriptionDate && expiryDate) {
+                const prescDate = new Date(prescriptionDate);
+                const expDate = new Date(expiryDate);
+                
+                if (expDate <= prescDate) {
+                    showFieldError('expiryDate', 'Treatment end date must be after prescription date');
+                    return false;
+                } else {
+                    clearFieldError('expiryDate');
+                }
+            }
+            return true;
+        }
+
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const formGroup = field.closest('.form-group');
+            
+            // Remove existing error
+            const existingError = formGroup.querySelector('.field-error');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add new error
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error text-danger mt-1';
+            errorDiv.innerHTML = `<small><i class="fas fa-exclamation-circle"></i> ${message}</small>`;
+            formGroup.appendChild(errorDiv);
+            
+            // Add error styling to field
+            field.classList.add('is-invalid');
+        }
+
+        function clearFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const formGroup = field.closest('.form-group');
+            const existingError = formGroup.querySelector('.field-error');
+            
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            field.classList.remove('is-invalid');
+        }
+
+        function validateAllFields() {
+            const requiredFields = [
+                'doctorName', 'patientName', 'patientAge', 'patientGender', 
+                'medicineName', 'uom', 'prescriptionDate', 'expiryDate'
+            ];
+            
+            let isAllValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                if (!validateField(fieldId)) {
+                    isAllValid = false;
+                }
+            });
+            
+            // Validate file upload
+            const prescriptionFile = document.getElementById('prescriptionFile');
+            if (!prescriptionFile.files[0]) {
+                showFieldError('prescriptionFile', 'Prescription image/PDF is required');
+                isAllValid = false;
+            }
+            
+            // Validate dates relationship
+            if (!validateDates()) {
+                isAllValid = false;
+            }
+            
+            return isAllValid;
+        }
+
+
+        async function savePrescription() {
+            // Check if user is logged in first
+            if (!isUserAuthenticated()) {
+                // Show error near the save button
+                const saveBtn = document.getElementById('savePrescriptionBtn');
+                const existingError = saveBtn.parentElement.querySelector('.auth-error');
+                if (existingError) existingError.remove();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'auth-error text-danger mt-2 text-center';
+                errorDiv.innerHTML = '<small><i class="fas fa-exclamation-circle"></i> Please sign in first to upload prescription</small>';
+                saveBtn.parentElement.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    if (errorDiv.parentElement) errorDiv.remove();
+                }, 5000);
+                return;
+            }
+            
+            // Validate all fields
+            if (!validateAllFields()) {
                 return;
             }
 
-            prescriptionUploaded = true;
-            
-            const prescriptionBtn = document.getElementById('prescriptionBtn');
-            const prescriptionStatus = document.getElementById('prescriptionStatus');
-            const prescriptionUploadStatus = document.getElementById('prescriptionUploadStatus');
-            const patientNameDisplay = document.getElementById('patientNameDisplay');
+            // Get all form values
+            const doctorName = document.getElementById('doctorName').value.trim();
+            const hospitalName = document.getElementById('hospitalName').value.trim();
+            const patientName = document.getElementById('patientName').value.trim();
+            const patientAge = document.getElementById('patientAge').value;
+            const patientGender = document.getElementById('patientGender').value;
+            const medicineName = document.getElementById('medicineName').value.trim();
+            const uom = document.getElementById('uom').value;
+            const prescriptionDate = document.getElementById('prescriptionDate').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+            const prescriptionFile = document.getElementById('prescriptionFile').files[0];
 
-            prescriptionBtn.classList.add('uploaded');
-            prescriptionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Prescription Uploaded';
-            
-            prescriptionStatus.style.display = 'inline-block';
-            patientNameDisplay.textContent = patientName;
-            prescriptionUploadStatus.style.display = 'block';
+            // Validation
+            if (!doctorName || !patientName || !patientAge || !patientGender || 
+                !medicineName || !uom || !prescriptionDate || !expiryDate || !prescriptionFile) {
+                showErrorMessage('Please fill all required fields');
+                return;
+            }
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('prescriptionModal'));
-            modal.hide();
+            // Create FormData for backend
+            const formData = new FormData();
+            formData.append('productId', productData.id);
+            formData.append('variantId', getCurrentVariantId());
+            formData.append('doctorName', doctorName);
+            formData.append('hospitalName', hospitalName);
+            formData.append('patientName', patientName);
+            formData.append('patientAge', patientAge);
+            formData.append('patientGender', patientGender);
+            formData.append('medicineName', medicineName);
+            formData.append('uom', uom);
+            formData.append('prescriptionDate', prescriptionDate);
+            formData.append('expiryDate', expiryDate);
+            formData.append('prescriptionFile', prescriptionFile);
 
-            showSuccessMessage('Prescription details saved successfully!');
-            hideErrorMessage();
+            const saveBtn = document.getElementById('savePrescriptionBtn');
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            saveBtn.disabled = true;
+
+            try {
+                // REAL API CALL TO BACKEND
+                const response = await fetch('/cart/prescription', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update UI based on REAL backend response
+                    if (result.canAddToCart) {
+                        prescriptionUploaded = true;
+                        updatePrescriptionUI('verified', patientName);
+                    } else {
+                        prescriptionUploaded = false;
+                        updatePrescriptionUI('pending', patientName);
+                    }
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('prescriptionModal'));
+                    modal.hide();
+                    showSuccessMessage(result.message);
+                } else {
+                    showErrorMessage(result.message);
+                }
+            } catch (error) {
+                showErrorMessage('Failed to upload prescription');
+            } finally {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Upload Prescription';
+                saveBtn.disabled = false;
+            }
         }
+
+        function getCurrentVariantId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentVariantIndex = urlParams.get('variantIndex') || 0;
+            
+            if (productData.allVariants && productData.allVariants[currentVariantIndex]) {
+                return productData.allVariants[currentVariantIndex]._id;
+            }
+            return productData.variant._id;
+        }
+                
 
         function updatePrescriptionStatus(status) {
             const statusElement = document.getElementById('prescriptionStatus');
@@ -1488,8 +2009,29 @@
         }
 
        function addToCart() {
+            // Check authentication first
+                if (!isUserAuthenticated()) {
+                showErrorMessage('Please sign in first to add items to cart');
+                return;
+            }
+            
+            // Then check prescription requirements
             if (!prescriptionUploaded && productData.prescriptionRequired) {
-                showErrorMessage('Please upload prescription to proceed.');
+                const prescriptionStatus = document.getElementById('prescriptionStatus');
+                if (prescriptionStatus && prescriptionStatus.style.display !== 'none') {
+                    const statusText = prescriptionStatus.textContent;
+                    if (statusText.includes('Pending')) {
+                        showErrorMessage('Your prescription is pending verification. Please wait for admin approval.');
+                    } else if (statusText.includes('Rejected')) {
+                        showErrorMessage('Your prescription was rejected. Please upload a new prescription.');
+                    } else if (statusText.includes('Expired')) {
+                        showErrorMessage('Your prescription has expired. Please upload a new prescription.');
+                    } else {
+                        showErrorMessage('Please upload prescription to proceed.');
+                    }
+                } else {
+                    showErrorMessage('Please upload prescription to proceed.');
+                }
                 return;
             }
 
@@ -1504,7 +2046,15 @@
             addToCartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
             addToCartBtn.disabled = true;
 
-            // Make API call to add to cart
+
+            const currentVariantIndex = new URLSearchParams(window.location.search).get('variantIndex') || 0;
+            
+            const currentVariant = productData.allVariants ? 
+                productData.allVariants[currentVariantIndex] : 
+                productData.variant;
+            
+            const variantId = currentVariant._id || currentVariant.id;
+
             fetch('/cart/add', {
                 method: 'POST',
                 headers: {
@@ -1512,15 +2062,23 @@
                 },
                 body: JSON.stringify({
                     productId: productData.id,
-                     variantIndex: new URLSearchParams(window.location.search).get('variantIndex') || 0,
-                    quantity: 1
+                    variantId: variantId,  
+                    quantity: currentQuantity
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Added to Cart';
-                    showSuccessMessage('Product added to cart successfully!');
+                    showSuccessMessage(`${currentQuantity} item(s) added to cart successfully!`);
+                    
+                    //Update cart count in header
+                    updateCartCount();
+
+                    //Reset quantity to 1 after successful addition
+                    currentQuantity = 1;
+                    document.getElementById('quantityDisplay').textContent = currentQuantity;
+                    updateQuantity('reset');
                 } else {
                     showErrorMessage(data.message || 'Failed to add to cart');
                     addToCartBtn.innerHTML = originalText;
@@ -1602,85 +2160,107 @@
         }
 
         document.addEventListener('DOMContentLoaded', async function() {
-        // Fetch product data
-        const data = await fetchProductData();
-        if (data && data.success) {
-            console.log('Raw fetched data:', data);
-            console.log('Product variants:', data.product?.allVariants);
-            console.log('Variant count:', data.product?.allVariants?.length);
-            populateProductData(data);
-        }
-        
-        //existing initialization code
-        setTimeout(() => {
-            initializeImageZoom();
-        }, 100);
-        
-        initializePrescriptionUpload();
-        initializeSmoothScrolling();
-        
-        document.body.style.opacity = '0';
-        setTimeout(() => {
-            document.body.style.transition = 'opacity 0.5s ease';
-            document.body.style.opacity = '1';
-        }, 100);
+            // Fetch product data
+            const data = await fetchProductData();
+            if (data && data.success) {
+                console.log('Raw fetched data:', data);
+                console.log('Product variants:', data.product?.allVariants);
+                console.log('Variant count:', data.product?.allVariants?.length);
+                populateProductData(data);
+            }
+            
+            //existing initialization code
+            setTimeout(() => {
+                initializeImageZoom();
+            }, 100);
+            
+            initializePrescriptionUpload();
+            initializeFormValidation();
+            initializeSmoothScrolling();
+            
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
 
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('error', function() {
-                console.error(`Failed to load image: ${this.src}`);
-                this.src = '/user/images/logo.png';
-                this.alt = 'Image not available';
+            document.querySelectorAll('img').forEach(img => {
+                img.addEventListener('error', function() {
+                    console.error(`Failed to load image: ${this.src}`);
+                    this.src = '/user/images/logo.png';
+                    this.alt = 'Image not available';
+                });
             });
+
+            // Initialize quantity controls
+            updateQuantity('reset');
+            checkCartStatus();
         });
-    });
 
     function populateProductData(data) {
     
-    const { product, relatedProducts } = data;
-    const variant = product.variant;
-    
-    // Update all existing sections...
-    updateBreadcrumb(product);
-    updateProductImages(variant.images);
-    updateProductInfo(product, variant);
-    updatePricing(variant);
-    updateStockStatus(variant);
-    updatePrescriptionRequirement(variant.prescriptionRequired);
-    
-    // Add variants section
-    console.log('About to populate variants:', {
-    allVariants: product.allVariants,
-    length: product.allVariants?.length,
-    currentIndex: product.currentVariantIndex,
-    distinguishingAttrs: product.distinguishingAttributes
-    });
-    // Check if variants actually exist and have different attributes
-if (product.allVariants && product.allVariants.length > 1) {
-    console.log('Variant comparison:');
-    product.allVariants.forEach((variant, index) => {
-        console.log(`Variant ${index}:`, {
-            attributes: variant.attributes,
-            stock: variant.stock,
-            price: variant.salesPrice || variant.regularPrice
+        const { product, relatedProducts } = data;
+        const variant = product.variant;
+
+        productData.variant = variant;  
+        productData.allVariants = product.allVariants;
+        
+        // Update all existing sections...
+        updateBreadcrumb(product);
+        updateProductImages(variant.images);
+        updateProductInfo(product, variant);
+        updatePricing(variant);
+        updateStockStatus(variant);
+        updatePrescriptionRequirement(variant.prescriptionRequired);
+        
+        // Add variants section
+        console.log('About to populate variants:', {
+        allVariants: product.allVariants,
+        length: product.allVariants?.length,
+        currentIndex: product.currentVariantIndex,
+        distinguishingAttrs: product.distinguishingAttributes
         });
-    });
-}
+        // Check if variants actually exist and have different attributes
+        if (product.allVariants && product.allVariants.length > 1) {
+            console.log('Variant comparison:');
+            product.allVariants.forEach((variant, index) => {
+                console.log(`Variant ${index}:`, {
+                    attributes: variant.attributes,
+                    stock: variant.stock,
+                    price: variant.salesPrice || variant.regularPrice
+                });
+            });
+        }
 
-populateVariants(product.allVariants, product.currentVariantIndex, product.distinguishingAttributes);
-    // fix 3 : pending
+        populateVariants(product.allVariants, product.currentVariantIndex, product.distinguishingAttributes);
+        // fix 3 : pending
 
-    
-    updateRelatedProducts(relatedProducts);
-    
-    // Update global variables
-    currentStock = variant.stock;
-    prescriptionUploaded = variant.prescriptionRequired ? false : true;
+        
+        updateRelatedProducts(relatedProducts);
+        
+        // Update global variables
+        currentStock = variant.stock;
 
-     setTimeout(() => {
-        document.body.offsetHeight; // Force reflow
-        initializeImageZoom(); // Re-initialize zoom
-    }, 100);
-}
+        if (data.product.prescriptionStatus) {
+            updatePrescriptionUI(
+                data.product.prescriptionStatus.status, 
+                data.product.prescriptionStatus.patientName,
+                data.product.prescriptionStatus // Pass full prescription data
+            );
+            
+            // Store rejection reason globally
+            if (data.product.prescriptionStatus.rejectionReason) {
+                productData.prescriptionStatus = data.product.prescriptionStatus;
+            }
+        } else {
+            prescriptionUploaded = !variant.prescriptionRequired;
+        }
+
+        setTimeout(() => {
+            document.body.offsetHeight; // Force reflow
+            initializeImageZoom(); // Re-initialize zoom
+        }, 100);
+    }
 
 console.log('Product data populated, checking variant selector...');
 setTimeout(() => {
@@ -1813,7 +2393,9 @@ function updateStockStatus(variant) {
     currentStock = variant.stock;
     const stockElement = document.getElementById('stockStatus');
     const addToCartBtn = document.getElementById('addToCartBtn');
-    
+    const incrementBtn = document.getElementById('incrementBtn');
+    const decrementBtn = document.getElementById('decrementBtn');
+
     if (currentStock > 6) {
         stockElement.innerHTML = `<i class="fas fa-check-circle"></i> In Stock - ${currentStock} units available`;
         stockElement.className = 'in-stock';
@@ -1827,6 +2409,10 @@ function updateStockStatus(variant) {
         stockElement.innerHTML = `<i class="fas fa-times-circle"></i> Out of Stock<br><small style="font-weight: normal;">This item is currently unavailable</small>`;
         stockElement.className = 'out-of-stock';
         addToCartBtn.disabled = true;
+    }
+    if (incrementBtn && decrementBtn) {
+        incrementBtn.disabled = currentQuantity >= Math.min(currentStock, 10) || currentStock <= 0;
+        decrementBtn.disabled = currentQuantity <= 1;
     }
 }
 
@@ -2102,12 +2688,12 @@ function getAttributesObject(attributes) {
                     
                     showSuccessMessage('Variant updated successfully!');
                 } else {
-                    showErrorMessage('Failed to load variant data');
+                    showErrorMessage('Failed to load variant data .then');
                 }
             })
             .catch(error => {
                 console.error('Error selecting variant:', error);
-                showErrorMessage('Failed to load variant data');
+                showErrorMessage('Failed to load variant data .catch');
             })
             .finally(() => {
                 document.body.removeChild(loadingOverlay);
@@ -2166,6 +2752,148 @@ window.debugProductData = function() {
         }
     });
 };
+
+function updateQuantity(action) {
+    const quantityDisplay = document.getElementById('quantityDisplay');
+    const incrementBtn = document.getElementById('incrementBtn');
+    const decrementBtn = document.getElementById('decrementBtn');
+    
+    if (action === 'increment' && currentQuantity < Math.min(currentStock, 10)) {
+        currentQuantity++;
+    } else if (action === 'decrement' && currentQuantity > 1) {
+        currentQuantity--;
+    }
+    
+    quantityDisplay.textContent = currentQuantity;
+    decrementBtn.disabled = currentQuantity <= 1;
+    incrementBtn.disabled = currentQuantity >= Math.min(currentStock, 10) || currentStock <= 0;
+}
+
+//Check if product is in cart on page load
+async function checkCartStatus() {
+    try {
+        const response = await fetch('/cart/count');
+        const data = await response.json();
+    
+    } catch (error) {
+        console.error('Error checking cart status:', error);
+    }
+}
+
+
+function updatePrescriptionUI(status, patientName, prescriptionData = null) {
+    const prescriptionBtn = document.getElementById('prescriptionBtn');
+    const prescriptionStatus = document.getElementById('prescriptionStatus');
+    const prescriptionUploadStatus = document.getElementById('prescriptionUploadStatus');
+    const patientNameDisplay = document.getElementById('patientNameDisplay');
+
+    // Populate existing prescription data if available
+    if (prescriptionData) {
+        populateExistingPrescription(prescriptionData);
+    }
+
+    switch(status.toLowerCase()) {
+        case 'verified':
+            prescriptionUploaded = true;
+            prescriptionBtn.classList.add('uploaded');
+            prescriptionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Prescription Verified';
+            prescriptionStatus.className = 'prescription-status accepted';
+            prescriptionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
+            prescriptionUploadStatus.innerHTML = `<small class="text-success"><i class="fas fa-check-circle"></i> Your prescription has been verified and approved.</small>`;
+            break;
+            
+        case 'pending':
+            prescriptionUploaded = false;
+            prescriptionStatus.className = 'prescription-status pending';
+            prescriptionStatus.innerHTML = '<i class="fas fa-clock"></i> Pending Review';
+            prescriptionUploadStatus.innerHTML = `<small class="text-warning"><i class="fas fa-clock"></i> You can know the result within 1 hour.</small>`;
+            break;
+            
+        case 'rejected':
+            prescriptionUploaded = false;
+            prescriptionStatus.className = 'prescription-status rejected';
+            prescriptionStatus.innerHTML = `
+                <i class="fas fa-times-circle"></i> Rejected 
+                <button class="btn btn-sm btn-outline-danger ms-2" onclick="showRejectionReason()">
+                    <i class="fas fa-exclamation-circle"></i> View Reason
+                </button>`;
+            prescriptionUploadStatus.innerHTML = `<small class="text-danger"><i class="fas fa-times-circle"></i> Your prescription was rejected. Please upload a new one. </small>`;
+            break;
+            
+        case 'expired':
+            prescriptionUploaded = false;
+            prescriptionStatus.className = 'prescription-status rejected';
+            prescriptionStatus.innerHTML = '<i class="fas fa-calendar-times"></i> Expired';
+            prescriptionUploadStatus.innerHTML = `<small class="text-danger"><i class="fas fa-calendar-times"></i> Your prescription has expired. Please upload a new one.</small>`;
+            break;
+    }
+    
+    prescriptionStatus.style.display = 'inline-block';
+    prescriptionUploadStatus.style.display = 'block';
+}
+
+function populateExistingPrescription(prescriptionData) {
+    const existingSection = document.getElementById('existingPrescriptionSection');
+    
+    document.getElementById('existingDoctorName').textContent = prescriptionData.doctorName;
+    document.getElementById('existingHospitalName').textContent = prescriptionData.hospitalName || 'N/A';
+    document.getElementById('existingPatientName').textContent = prescriptionData.patientName;
+    document.getElementById('existingMedicineName').textContent = prescriptionData.medicineName;
+    document.getElementById('existingUom').textContent = prescriptionData.uom;
+    document.getElementById('existingPrescriptionDate').textContent = new Date(prescriptionData.prescriptionDate).toLocaleDateString();
+    document.getElementById('existingExpiryDate').textContent = new Date(prescriptionData.expiryDate).toLocaleDateString();
+    document.getElementById('existingStatus').textContent = prescriptionData.status;
+    
+    // Show prescription image if available
+    if (prescriptionData.prescriptionImages && prescriptionData.prescriptionImages.length > 0) {
+        document.getElementById('existingPrescriptionImage').innerHTML = `
+            <img src="${prescriptionData.prescriptionImages[0].url}" 
+                 alt="Existing Prescription" 
+                 class="prescription-preview" 
+                 onclick="window.open('${prescriptionData.prescriptionImages[0].url}', '_blank')">
+            <p><small class="text-muted">Click to view full image</small></p>
+        `;
+    }
+    
+    existingSection.style.display = 'block';
+}
+
+function showRejectionReason() {
+    const reason = productData.prescriptionStatus?.rejectionReason || 'No reason provided';
+    
+    // Create a small popup div
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 400px;
+        border-left: 4px solid #dc3545;
+    `;
+    
+    popup.innerHTML = `
+        <h6><i class="fas fa-exclamation-triangle text-danger"></i> Rejection Reason</h6>
+        <p>${reason}</p>
+        <button class="btn btn-sm btn-secondary" onclick="this.parentElement.remove()">Close</button>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Auto remove after 10 seconds
+    setTimeout(() => {
+        if (popup.parentElement) {
+            popup.remove();
+        }
+    }, 10000);
+}
+
+
     </script>
 </body>
-</html>
+</html>;

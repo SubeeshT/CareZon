@@ -41,7 +41,7 @@
                     </div>
                     
                     <!-- Sign Up Button -->
-                    <% if (!locals.user) { %>
+                    <% if (!user) { %>
                         <a href="/signUp" class="btn btn-outline-primary signup-btn me-3">Sign Up</a>
                     <% } %>
                     
@@ -49,7 +49,7 @@
                     <div class="dropdown me-3">
                         <a href="#" class="text-dark dropdown-toggle profile-icon d-flex flex-column align-items-center" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle fs-4"></i>
-                            <span class="icon-label">Account</span>
+                            <span class="icon-label"> <%= user ? user.fullName : "Account" %> </span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                             <!-- Show different menu items based on login status -->
@@ -60,7 +60,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="/orders">
+                                    <a class="dropdown-item" href="/account/orders">
                                         <i class="fas fa-shopping-bag me-2"></i> My Orders
                                     </a>
                                 </li>
@@ -113,8 +113,9 @@
                     <!-- Cart and Wishlist Icons (Visible only when signed in) -->
                     <% if (locals.user) { %>
                         <div class="icon-container me-3">
-                            <a href="/cart" class="text-dark cart-icon d-flex flex-column align-items-center">
+                            <a href="/cart" class="text-dark cart-icon d-flex flex-column align-items-center position-relative">
                                 <i class="fas fa-shopping-cart fs-4"></i>
+                                <span class="cart-count-badge" id="cartCountBadge">0</span>
                                 <span class="icon-label">Cart</span>
                             </a>
                         </div>
@@ -336,4 +337,31 @@
             }
         }
     }
+
+    // Function to update cart count
+        async function updateCartCount() {
+            try {
+                const response = await fetch('/cart/count');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const badge = document.getElementById('cartCountBadge');
+                    if (badge) {
+                        badge.textContent = data.count;
+                        badge.setAttribute('data-count', data.count);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error);
+            }
+        }
+
+        // Initialize cart count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only update cart count if user is logged in
+            const isUserLoggedIn = document.querySelector('.cart-icon') !== null;
+            if (isUserLoggedIn) {
+                updateCartCount();
+            }
+        });
 </script>

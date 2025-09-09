@@ -7,14 +7,6 @@ const fs = require('fs');
 const loadProfile = async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
-        
-        if (user.isBlocked === true) {
-            return res.status(403).redirect('/signIn');
-        }
-
-        if (user.isAdmin === true) {
-            return res.status(403).redirect('/signIn');
-        }
 
         let googleUser = false;
         if (user.isGoogleUser === true) googleUser = true;
@@ -27,7 +19,7 @@ const loadProfile = async (req, res) => {
         });
     } catch (error) {
         console.error('Internal error while loading profile: ', error);
-        return res.status(500).render('pageNotFound');
+        return res.status(500).render('pageNotFound', {success: false, message: "internal error get while load profile page"});
     }
 };
 
@@ -41,21 +33,6 @@ const editUserDetails = async (req, res) => {
             return res.status(400).json({ 
                 success: false, 
                 message: "Full name is required" 
-            });
-        }
-
-        // Check if user is blocked or admin
-        if (user.isBlocked) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Account is blocked" 
-            });
-        }
-
-        if (user.isAdmin) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Admin accounts cannot be modified" 
             });
         }
 
@@ -168,17 +145,10 @@ const initiateEmailChange = async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
 
-        if (user.isGoogleUser === true || user.isAdmin === true) {
+        if (user.isGoogleUser === true) {
             return res.status(400).json({ 
                 success: false, 
-                message: "This user cannot change email" 
-            });
-        }
-
-        if (user.isBlocked) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "This account is blocked by admin" 
+                message: "This google user cannot change email" 
             });
         }
 
@@ -590,24 +560,10 @@ const changePassword = async (req, res) => {
             });
         }
 
-        if (user.isBlocked) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Account is blocked" 
-            });
-        }
-
         if (user.isGoogleUser) {
             return res.status(400).json({ 
                 success: false, 
                 message: "Google users cannot change password" 
-            });
-        }
-
-        if (user.isAdmin) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Admin accounts cannot be modified through this interface" 
             });
         }
 
@@ -654,28 +610,7 @@ const changePassword = async (req, res) => {
 const uploadProfileImage = async (req, res) => {
     try {
         const userId = req.session.userId;
-        
-        if (!userId) {
-            return res.status(401).json({ 
-                success: false, 
-                message: "User not authenticated" 
-            });
-        }
-
         const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "User not found" 
-            });
-        }
-
-        if (user.isBlocked) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Account is blocked" 
-            });
-        }
 
         if (!req.file) {
             return res.status(400).json({ 
