@@ -2,7 +2,6 @@ const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Brand = require('../../models/brandSchema');
 const {deleteImage} = require('../../utils/cloudinary');
-const mongoose = require('mongoose');
 
 const loadProductListPage = async (req, res) => {
     try {
@@ -15,7 +14,7 @@ const loadProductListPage = async (req, res) => {
         const brands = await Brand.find({ isListed: true }).select('_id name');
         const categories = await Category.find({ isListed: true }).select('_id name');
 
-        const searchFilter  = search ? {name: {$regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i'}} : {};
+        const searchFilter  = search ? {name: {$regex: search, $options: 'i'}} : {};
 
         let products;
         if (status === 'active') {
@@ -28,7 +27,7 @@ const loadProductListPage = async (req, res) => {
                     $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'category'}
                 },
                 {
-                    $match: {...searchFilter, variants: { $elemMatch: { isListed: true } }}
+                    $match: {...searchFilter, 'variants': { $elemMatch: { isListed: true } }}
                 },
                 { $sort: { createdAt: -1 } }, { $skip: skip }, { $limit: limit }
             ]);
@@ -42,7 +41,7 @@ const loadProductListPage = async (req, res) => {
                     $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'category'}
                 },
                 {
-                    $match: {...searchFilter, variants: { $not: { $elemMatch: { isListed: true } } }}
+                    $match: {...searchFilter, 'variants': { $not: { $elemMatch: { isListed: true } } }}
                 },
                 { $sort: { createdAt: -1 } }, { $skip: skip }, { $limit: limit }
             ]);
@@ -54,9 +53,9 @@ const loadProductListPage = async (req, res) => {
         //count total for pagination
         let totalProducts;
         if (status === 'active') {
-            totalProducts = await Product.countDocuments({...searchFilter, variants: { $elemMatch: { isListed: true }}});
+            totalProducts = await Product.countDocuments({...searchFilter, 'variants': { $elemMatch: { isListed: true }}});
         } else if (status === 'blocked') {
-            totalProducts = await Product.countDocuments({...searchFilter, variants: { $not: { $elemMatch: { isListed: true }}}});
+            totalProducts = await Product.countDocuments({...searchFilter, 'variants': { $not: { $elemMatch: { isListed: true }}}});
         } else {
             totalProducts = await Product.countDocuments(searchFilter);
         }
@@ -88,21 +87,7 @@ const loadProductListPage = async (req, res) => {
                 serialNo: skip + index + 1
             }
         });
-
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({
-                success: true,
-                products: formattedProducts,
-                pagination: {
-                    currentPage: page,
-                    totalPages,
-                    totalProducts,
-                    currentLimit: limit,
-                    currentStatus: status,
-                    currentSearch: search
-                }
-            });
-        }
+    
         return res.render('product/productManagement', {
             products: formattedProducts,
             currentPage: page, 
@@ -146,7 +131,7 @@ const addProduct = async (req, res) => {
             return res.status(400).json({success: false, message: 'At least one variant is required'});
         }
 
-        const existingProduct = await Product.findOne({ name: {$regex: `^${name}$`, $options: 'i' }});
+        const existingProduct = await Product.findOne({ name: new RegExp(`^${name}$`, 'i') });
         if (existingProduct) {
             return res.status(409).json({success: false, message: 'Product with this name already exists'});
         }
@@ -182,7 +167,7 @@ const addProduct = async (req, res) => {
                 return res.status(400).json({success: false, message: `Variant ${i + 1}: Minimum 3 images & maximum 6 images required. Found: ${imageFiles.length}`});
             }
 
-            //format the data
+            //images are already uploaded to Cloudinary - just format the data
             const variantImages = imageFiles.map(file => ({
                 public_id: file.filename, 
                 url: file.path,
@@ -308,7 +293,7 @@ const editProduct = async (req, res) => {
             return res.status(404).json({success: false, message: "product not found"});
         }
 
-        const duplicateProduct = await Product.findOne({name: {$regex : `^${name}$`, $options: 'i'}, _id: {$ne: _id}});
+        const duplicateProduct = await Product.findOne({name: new RegExp(`^${name}$`, 'i'), _id: {$ne: _id}});
         if(duplicateProduct){
             return res.status(409).json({success: false, message: "Another product with this name is already exist"});
         }
@@ -319,7 +304,7 @@ const editProduct = async (req, res) => {
             return res.status(400).json({success: false, message: "Invalid brand or category"});
         }
 
-        const processedVariants = [];//for process each variant
+        const processedVariants = [];//process each variant
         const removedImages = []; //track which images to delete
         
         for(let i = 0; i < variants.length; i++){
@@ -336,6 +321,7 @@ const editProduct = async (req, res) => {
             }
 
             const variantImages = [];
+            
             //get new images for this variant
             const imageFiles = req.files.filter(file => file.fieldname === `variants[${i}][variant_${i}_images]`);
 
@@ -348,7 +334,7 @@ const editProduct = async (req, res) => {
                 return res.status(400).json({success: false, message: `Variant ${i + 1} : Minimum 3 images & maximum 6 images required. Current: ${totalImages}`});
             }
 
-            //keeping existing images and adding new images if provided
+            //keep existing images if provided
             const existingImages = variant.existingImages || [];
             if (existingImages.length > 0) {
                 const existingVariant = existingProduct.variants[i] || {};
@@ -357,8 +343,11 @@ const editProduct = async (req, res) => {
                     existingVariant.images.forEach(image => {
                         const imageUrl = image.url || image.secure_url;
                         if (existingImages.includes(imageUrl)) {
+                            //find corresponding alt text
                             const imageIndex = existingImages.indexOf(imageUrl);
-                            const altText = variant.imageAltText && variant.imageAltText[imageIndex] ? variant.imageAltText[imageIndex] : `${name} - Variant ${i + 1}`;
+                            const altText = variant.imageAltText && variant.imageAltText[imageIndex] 
+                                ? variant.imageAltText[imageIndex] 
+                                : `${name} - Variant ${i + 1}`;
                             
                             variantImages.push({
                                 public_id: image.public_id,
@@ -366,7 +355,7 @@ const editProduct = async (req, res) => {
                                 altText: altText
                             });
                         } else {
-                            //excluded image was removed, mark for deletion
+                            //image was removed, mark for deletion
                             if (image.public_id) {
                                 removedImages.push(image.public_id);
                             }
@@ -427,7 +416,7 @@ const editProduct = async (req, res) => {
 
             processedVariants.push(processedVariant);
         }
-        //deleting excluded images from cloudinary
+
         for (const publicId of removedImages) {
             try {
                 await deleteImage(publicId);
@@ -467,13 +456,7 @@ const editProduct = async (req, res) => {
 
 const viewProductDetails = async (req,res) => {
     try {
-        const {id} = req.params;
-
-        if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({success: false, message: "Invalid product ID provided"});
-        }
-
-        const product = await Product.findById(id).populate('brand', 'name').populate('category', 'name').lean();
+        const product = await Product.findById(req.params.id).populate('brand', 'name').populate('category', 'name').lean();
 
         if(!product){
             return res.status(404).json({success: false, message: "product not found, please try again"});

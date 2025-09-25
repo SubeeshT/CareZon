@@ -1,6 +1,5 @@
 const User = require('../../models/userSchema');
 
-// Get users with pagination, search, sorting, and filtering
 const getUsers = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -11,15 +10,10 @@ const getUsers = async (req, res) => {
         let searchQuery = { isAdmin: false };
 
         if (search) {
-            searchQuery = {
-                $and: [
-                    { isAdmin: false },
-                    { fullName: { $regex: search, $options: 'i' } }
-                ]
-            };
+            searchQuery = {$and: [{ isAdmin: false },{ fullName: { $regex: search, $options: 'i' } }]};
         }
 
-        // Filtering for active/blocked users
+        //filtering for active/blocked users
         const filter = req.query.filter;
         if (filter === 'active') {
             searchQuery.isBlocked = false;
@@ -27,15 +21,12 @@ const getUsers = async (req, res) => {
             searchQuery.isBlocked = true;
         }
 
-        // Sorting functionality with case-insensitive collation
+        //sorting as case insensitive
         const sortBy = req.query.sort || 'createdAt';
         const sortOrder = req.query.order || 'desc';
         const sortObj = {};
 
-        const sortFieldMap = {
-            fullName: 'fullName',
-            createdAt: 'createdAt'
-        };
+        const sortFieldMap = {fullName: 'fullName', createdAt: 'createdAt'};
 
         const dbSortField = sortFieldMap[sortBy] || 'createdAt';
         sortObj[dbSortField] = sortOrder === 'asc' ? 1 : -1;
@@ -43,23 +34,16 @@ const getUsers = async (req, res) => {
         const totalUsers = await User.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalUsers / limit);
 
-        let query = User.find(searchQuery)
-            .select('fullName email phone isBlocked createdAt isVerified')
-            .sort(sortObj)
-            .skip(skip)
-            .limit(limit);
+        let query = User.find(searchQuery).select('fullName email phone isBlocked createdAt isVerified').sort(sortObj).skip(skip).limit(limit);
 
-        // Apply collation for case-insensitive sorting (especially for fullName)
+        //apply collation for case insensitive sorting
         if (dbSortField === 'fullName') {
-            query = query.collation({ 
-                locale: 'en', 
-                strength: 2 
-            });
+            query = query.collation({locale: 'en', strength: 1});
         }
 
         const users = await query;
 
-        // Format users data
+        //format users data
         const formattedUsers = users.map((user, index) => ({
             _id: user._id,
             serialNo: skip + index + 1,
@@ -72,7 +56,7 @@ const getUsers = async (req, res) => {
             status: user.isBlocked ? 'blocked' : 'active'
         }));
 
-        // Check if this is an AJAX request
+        //check if this is an AJAX request
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
             return res.json({
                 success: true,
@@ -96,7 +80,7 @@ const getUsers = async (req, res) => {
             });
         }
 
-        res.render('users/userManagement', {
+        return res.render('users/userManagement', {
             users: formattedUsers,
             currentPage: page,
             totalPages,
@@ -119,7 +103,7 @@ const getUsers = async (req, res) => {
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
             return res.status(500).json({ success: false, message: "Error loading users", error: error.message });
         }
-        res.status(500).render('error', { message: "Error loading users", error: error.message });
+        return res.status(500).render('error', { message: "Error loading users", error: error.message });
     }
 };
 
@@ -142,7 +126,7 @@ const toggleUserStatus = async (req, res) => {
         const action = newStatus ? "blocked" : "unblocked";
         const statusText = newStatus ? "blocked" : "active";
 
-        res.json({
+        return res.json({
             success: true,
             message: `${user.fullName} has been ${action} successfully`,
             action: action,
@@ -152,7 +136,7 @@ const toggleUserStatus = async (req, res) => {
 
     } catch (error) {
         console.error("Error toggling user status: ", error);
-        res.status(500).json({ success: false, message: "Error updating status", error: error.message });
+        return res.status(500).json({ success: false, message: "Error updating status", error: error.message });
     }
 };
 

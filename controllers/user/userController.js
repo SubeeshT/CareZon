@@ -54,16 +54,11 @@ const signUp = async (req,res) => {
 
         await sendOTPEmail(email, otp)
 
-        res.render('auth/userOTP', {
-            userId: null, 
-            otpExpiresAt: otpExpires.toISOString(),
-            error: null
-        }); 
-        
+        return res.render('auth/userOTP', {userId: null, otpExpiresAt: otpExpires.toISOString(), error: null});    
         
     } catch (error) {
         console.error("Registration failed : ", error)
-        res.status(500).json({message: "Server error during signup"})
+        return res.status(500).json({message: "Server error during signup"})
     }
 };
 
@@ -72,7 +67,7 @@ const loadOtp = async (req,res) => {
         return res.render('auth/userOTP')
     } catch (error) {
         console.log("failed to find userOTP page", error)
-        res.status(500).send("failed find OTP page")
+        return res.status(500).send("failed find OTP page")
     }
 }
 
@@ -89,17 +84,11 @@ const verifyOTP = async (req,res) => {
 
         // Check if OTP has expired first
         if(expiresAt < new Date()){
-           return res.render('auth/userOTP', {
-            otpExpiresAt: expiresAt.toISOString(),
-            error: "OTP has expired. Please request a new one."
-           })
+           return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "OTP has expired. Please request a new one."})
         }
 
         if(!otp || tempUser.otp.code !== otp){
-            return res.render('auth/userOTP', {
-                otpExpiresAt: expiresAt.toISOString(),
-                error: "Invalid OTP. Please try again."
-            })
+            return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "Invalid OTP. Please try again."})
         }
 
         const newUser = new User({
@@ -113,11 +102,11 @@ const verifyOTP = async (req,res) => {
 
         req.session.tempUser = null
 
-        res.redirect('/signIn')
+        return res.redirect('/signIn')
 
     } catch (error) {
         console.error("OTP verification failed : ",error)
-        res.status(500).json({message: "Server error during OTP verification"})
+        return res.status(500).json({message: "Server error during OTP verification"})
     }
 }
 
@@ -143,18 +132,11 @@ const resendOTP = async (req,res) => {
         
         await sendOTPEmail(tempUser.email, newOTP)
 
-        res.status(200).json({
-            message: " New OTP resent to your email",
-            newExpiresAt: newExpiration.toISOString(),
-            success: true
-        })
+        return res.status(200).json({message: " New OTP resent to your email", newExpiresAt: newExpiration.toISOString(), success: true})
             
     } catch (error) {
         console.error("Resend OTP failed : ", error)
-        res.status(500).json({
-            message: "Failed to resend OTP, Please try again",
-            success: false
-    })
+        return res.status(500).json({message: "Failed to resend OTP, Please try again",success: false})
     }
 }
 
@@ -166,7 +148,7 @@ const loadSignIn = async (req,res) => {
         return res.render('auth/userSignIn')
     } catch (error) {
         console.log("failed to load user signin page", error)
-        res.status(500).send("failed to load signin")
+        return res.status(500).send("failed to load signin")
     }
 }
 

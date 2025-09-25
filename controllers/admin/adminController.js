@@ -17,7 +17,7 @@ const signIn = async (req, res) => {
     if (!email || !password) {
         return res.status(400).json({success: false, message: "please enter both email and password"});
     }
-    const admin = await User.findOne({email, isAdmin: true})
+    const admin = await User.findOne({email, isAdmin: true});
 
     if(!admin){
         return res.status(401).json({success: false, message: "invalid email, your not an Admin"});
@@ -37,11 +37,11 @@ const signIn = async (req, res) => {
     }
     console.log(`Admin logged in: ${admin.email}`)
 
-    return res.status(200).json({success: true, message: "Admin login successfull", redirectUrl: '/admin/dashboard'})
+    return res.status(200).json({success: true, message: "Admin login successful", redirectUrl: '/admin/dashboard'})
 
   } catch (error) {
     console.error("failed to signin", error);
-    return res.status(500).json({success: false, message: "an error occured during the login. please try again"});
+    return res.status(500).json({success: false, message: "an error occurred during the login. please try again"});
   }
 };
 
@@ -50,7 +50,7 @@ const loadDashboard = async (req, res) => {
     return res.render("dashboard/dashboard");
   } catch (error) {
     console.log("failed to load admin signin page", error);
-    res.redirect('/admin/signIn')
+    return res.redirect('/admin/signIn')
   }
 };
 

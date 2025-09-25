@@ -6,21 +6,14 @@ const getCategories = async (req, res) => {
     const skip = (page - 1) * limit;
 
     let query = {};
-    if (search.trim()) {
-      query = {
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-        ]
-      };
+    if (search.trim()){
+      query = {name: {$regex: search, $options: 'i'}}
     }
 
     const totalCategories = await Category.countDocuments(query);
-    const categories = await Category.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    const categories = await Category.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit));
 
-    // If it's an AJAX request, return JSON
+    //If its an AJAX request, return JSON data
     if (req.xhr || req.headers.accept.indexOf('json') > -1) {
       return res.json({
         success: true,
@@ -58,9 +51,7 @@ const addCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: "Category name is required" });
     }
 
-    const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') }
-    });
+    const existingCategory = await Category.findOne({ name: { $regex: `^${name.trim()}$`, $options: 'i' } });
 
     if (existingCategory) {
       return res.status(400).json({ success: false, message: "Category already exists" });
@@ -75,10 +66,11 @@ const addCategory = async (req, res) => {
     });
 
     await newCategory.save();
-    res.json({ success: true, message: "Category added successfully", category: newCategory });
+
+    return res.json({ success: true, message: "Category added successfully", category: newCategory });
   } catch (error) {
     console.error("Add category error: ", error);
-    res.status(500).json({ success: false, message: "Error adding category" });
+    return res.status(500).json({ success: false, message: "Error adding category" });
   }
 };
 
@@ -91,10 +83,7 @@ const updateCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: "Category name is required" });
     }
 
-    const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
-      _id: { $ne: categoryId } 
-    });
+    const existingCategory = await Category.findOne({name: { $regex: `^${name.trim()}$`, $options: 'i' }, _id: { $ne: categoryId } });
 
     if (existingCategory) {
       return res.status(400).json({ success: false, message: "Category name already exists" });
@@ -116,10 +105,10 @@ const updateCategory = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
 
-    res.json({ success: true, message: "Category updated successfully", category: updatedCategory });
+    return res.json({ success: true, message: "Category updated successfully", category: updatedCategory });
   } catch (error) {
     console.error("Update category error: ", error);
-    res.status(500).json({ success: false, message: "Error updating category" });
+    return res.status(500).json({ success: false, message: "Error updating category" });
   }
 };
 
@@ -134,16 +123,14 @@ const toggleCategoryStatus = async (req, res) => {
     }
 
     category.isListed = status === 'active';
+
     await category.save();
 
-    res.json({
-      success: true,
-      message: `Category ${status === 'active' ? 'activated' : 'blocked'} successfully`,
-      category
-    });
+    return res.json({success: true, message: `Category ${status === 'active' ? 'activated' : 'blocked'} successfully`,category});
+
   } catch (error) {
     console.error("Toggle category status error: ", error);
-    res.status(500).json({ success: false, message: "Error changing category status" });
+    return res.status(500).json({ success: false, message: "Error changing category status" });
   }
 };
 
@@ -158,17 +145,14 @@ const toggleDiscountStatus = async (req, res) => {
     }
 
     category.DiscountStatus = DiscountStatus;
+
     await category.save();
 
-    res.json({ 
-      success: true,
-      message: `Offer ${DiscountStatus ? 'activated' : 'deactivated'} successfully`,
-      category
-    });
+    return res.json({ success: true, message: `Offer ${DiscountStatus ? 'activated' : 'deactivated'} successfully`, category});
 
   } catch (error) {
     console.error("Toggle offer error: ", error);
-    res.status(500).json({ success: false, message: "Error changing offer status" });
+    return res.status(500).json({ success: false, message: "Error changing offer status" });
   }
 };
 

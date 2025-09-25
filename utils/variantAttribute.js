@@ -1,48 +1,39 @@
-/**
- * Get variant attribute label based on category and variant attributes
- * @param {Map|Object} attributes - Variant attributes
- * @param {Array} distinguishingAttrs - Category-specific distinguishing attributes
- * @returns {string|null} - Variant label or null if not found
- */
+//get variant attribute label based on category and variant attributes as key: value , ex: "MG: 500" or "COLOR: Red"
 function getVariantAttributeLabel(attributes, distinguishingAttrs) {
-    const attrs = attributes instanceof Map ? Object.fromEntries(attributes) : (attributes || {});
-    
-    // Remove ingredients from attributes object
+    const attrs = attributes instanceof Map ? Object.fromEntries(attributes) : (attributes || {}); 
+    //remove ingredients from attributes object
     const filteredAttrs = { ...attrs };
     delete filteredAttrs.ingredients;
     
-    // First try distinguishing attributes from category (excluding ingredients)
+    //first try distinguishing attributes from category, excluding ingredients
     if (distinguishingAttrs && distinguishingAttrs.length > 0) {
         for (const attr of distinguishingAttrs) {
             if (filteredAttrs[attr] && attr !== 'ingredients') {
-                return `${attr.toUpperCase()}: ${filteredAttrs[attr]}`; // Return key:value format
+                return `${attr.toUpperCase()}: ${filteredAttrs[attr]}`; //return key:value format
             }
         }
     }
     
-    // Fallback: look for specific variant attributes (mg, ml, kg, size, color)
+    //look for specific variant attributes (mg, ml, kg, size, color)
     const priorityKeys = ['mg', 'ml', 'kg', 'size', 'color'];
     for (const key of priorityKeys) {
         if (filteredAttrs[key]) {
-            return `${key.toUpperCase()}: ${filteredAttrs[key]}`; // Return key:value format
+            return `${key.toUpperCase()}: ${filteredAttrs[key]}`; //return key:value format
         }
     }
     
-    // Look for any non-ingredients attribute
+    //look for any non-ingredients attribute
     const entries = Object.entries(filteredAttrs);
     if (entries.length > 0) {
         const [key, value] = entries[0];
-        return `${key.toUpperCase()}: ${value}`; // Return key:value format
+        return `${key.toUpperCase()}: ${value}`; //return key:value format
     }
     
     return null;
 }
 
-/**
- * Get distinguishing attributes for a category
- * @param {string} categoryName - Category name
- * @returns {Array} - Array of distinguishing attribute keys
- */
+
+//get distinguishing attributes name for a category
 function getCategoryDistinguishingAttributes(categoryName) {
     const categoryAttributes = {
         'TABLET': ['mg'],
@@ -56,15 +47,11 @@ function getCategoryDistinguishingAttributes(categoryName) {
         'BODY SUPPORT': ['size']
     };
     
-    return categoryAttributes[categoryName.toUpperCase()] || [];
+    return categoryAttributes[categoryName.toUpperCase()] || []; //return only the attribute name(mg, ml, kg...) not category with attribute name
 }
 
-/**
- * Get variant label for a product variant
- * @param {Object} variant - Product variant object
- * @param {string} categoryName - Product category name
- * @returns {string|null} - Variant label or null
- */
+
+//get variant label for a product variant
 function getVariantLabel(variant, categoryName) {
     const distinguishingAttrs = getCategoryDistinguishingAttributes(categoryName);
     return getVariantAttributeLabel(variant.attributes, distinguishingAttrs);

@@ -112,7 +112,7 @@
                                                         data-category-id="<%= category._id %>" 
                                                         data-status="<%= category.isListed ? 'active' : 'block' %>" 
                                                         title="Category Status">
-                                                    <%= category.isListed ? 'Active' : 'Block' %>
+                                                    <%= category.isListed ? 'Active' : 'Blocked' %>
                                                 </button>
                                                 <button class="action-btn edit-btn" data-category-id="<%= category._id %>" title="Edit Category">
                                                     <i class="fas fa-edit me-1"></i>Edit
@@ -889,7 +889,7 @@
                                             data-category-id="${category._id}" 
                                             data-status="${category.isListed ? 'active' : 'block'}" 
                                             title="Category Status">
-                                        ${category.isListed ? 'Active' : 'Block'}
+                                        ${category.isListed ? 'Active' : 'Blocked'}
                                     </button>
                                     <button class="action-btn edit-btn" data-category-id="${category._id}" title="Edit Category">
                                         <i class="fas fa-edit me-1"></i>Edit

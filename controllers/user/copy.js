@@ -15,30 +15,36 @@ const loadShopPage = async (req, res) => {
         //filter variants
         const minPrice = parseFloat(req.query.minPrice) || 0;
         const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
-        const categories = req.query.category ? (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
-        const brands = req.query.brand ? (Array.isArray(req.query.brand) ? req.query.brand : [req.query.brand]) : [];
+        const rating = parseInt(req.query.rating) || 0;
+        const categories = req.query.category ? 
+            (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
+        const brands = req.query.brand ? 
+            (Array.isArray(req.query.brand) ? req.query.brand : [req.query.brand]) : [];
     
         let searchConditions = {};
         if (search) {
-            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); //escape from special regex characters , while searching
             searchConditions.$or = [
-                { name: { $regex: escapedSearch, $options: 'i' } },
-                { description: { $regex: escapedSearch, $options: 'i' } },
-                { 'variants.ingredients': {$regex: escapedSearch, $options: 'i'}}
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { 'variants.ingredients': {$regex: search, $options: 'i'}}
             ];
         }
 
-        //handle multiple categories for filter
+        // Handle multiple categories for filter
         if (categories.length > 0) {
-            const validCategories = categories.filter(cat => mongoose.Types.ObjectId.isValid(cat)).map(cat => new mongoose.Types.ObjectId(cat));
+            const validCategories = categories
+                .filter(cat => mongoose.Types.ObjectId.isValid(cat))
+                .map(cat => new mongoose.Types.ObjectId(cat));
             
             if (validCategories.length > 0) {
                 searchConditions.category = { $in: validCategories };
             }
         }
-        //handle multiple brands for filter
+        // Handle multiple brands for filter
         if (brands.length > 0) {
-            const validBrands = brands.filter(brand => mongoose.Types.ObjectId.isValid(brand)).map(brand => new mongoose.Types.ObjectId(brand));
+            const validBrands = brands
+                .filter(brand => mongoose.Types.ObjectId.isValid(brand))
+                .map(brand => new mongoose.Types.ObjectId(brand));
             
             if (validBrands.length > 0) {
                 searchConditions.brand = { $in: validBrands };
@@ -69,27 +75,80 @@ const loadShopPage = async (req, res) => {
                 break;
         }
 
-        //main aggregation pipeline
+        // Main aggregation pipeline
         const pipeline = [
             { $match: searchConditions },
             {
-                $lookup: {from: 'brands', localField: 'brand', foreignField: '_id', as: 'brandInfo'}
+                $lookup: {
+                    from: 'brands',
+                    localField: 'brand',
+                    foreignField: '_id',
+                    as: 'brandInfo'
+                }
             },
             { $unwind: '$brandInfo' },
             { $match: { 'brandInfo.isListed': true } },
             {
-                $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo'}
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'categoryInfo'
+                }
             },
             { $unwind: '$categoryInfo' },
             { $match: { 'categoryInfo.isListed': true } },
             {
-                $addFields: {activeVariant: {$arrayElemAt: [{$filter: {input: '$variants',cond: { $eq: ['$$this.isListed', true] }}},0]}}
+                $addFields: {
+                    activeVariant: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$variants',
+                                    cond: { $eq: ['$$this.isListed', true] }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
             },
             { $match: { activeVariant: { $ne: null } } },
             {
-                $match: {'activeVariant.salesPrice': {$gte: minPrice, $lte: maxPrice === Infinity ? 999999 : maxPrice}}
+                $match: {
+                    'activeVariant.salesPrice': {
+                        $gte: minPrice,
+                        $lte: maxPrice === Infinity ? 999999 : maxPrice
+                    }
+                }
             }
         ];
+
+        //rating filter
+        if (rating > 0) {
+            pipeline.push(
+                {
+                    $lookup: {
+                        from: 'reviews',
+                        localField: '_id',
+                        foreignField: 'product',
+                        as: 'reviews'
+                    }
+                },
+                {
+                    $addFields: {
+                        averageRating: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$reviews' }, 0] },
+                                then: { $avg: '$reviews.rating' },
+                                else: 0
+                            }
+                        }
+                    }
+                },
+                { $match: { averageRating: { $gte: rating } } }
+            );
+        }
 
         //final projection
         pipeline.push({
@@ -131,16 +190,26 @@ const loadShopPage = async (req, res) => {
         const totalProducts = totalResult[0]?.total || 0;
         const totalPages = Math.ceil(totalProducts / limit);
 
-        pipeline.push({ $sort: sortOptions }, { $skip: skip }, { $limit: limit });
+        pipeline.push(
+            { $sort: sortOptions },
+            { $skip: skip },
+            { $limit: limit }
+        );
 
-        //case-insensitive sorting for names
-        const aggregationOptions =  needsCollection ? { collation: { locale: 'en', strength: 2 } } : {};
+        //Execute main query with collation for case-insensitive sorting
+        const aggregationOptions =  needsCollection ? 
+            { collation: { locale: 'en', strength: 2 } } : 
+            {};
 
         const products = await Product.aggregate(pipeline, aggregationOptions);
 
-        const activeCategories = await Category.find({ isListed: true }).select('_id name').sort({ name: 1 });
+        const activeCategories = await Category.find({ isListed: true })
+            .select('_id name')
+            .sort({ name: 1 });
             
-        const activeBrands = await Brand.find({ isListed: true }).select('_id name').sort({ name: 1 });
+        const activeBrands = await Brand.find({ isListed: true })
+            .select('_id name')
+            .sort({ name: 1 });
 
         const responseData = {
             products,
@@ -161,19 +230,29 @@ const loadShopPage = async (req, res) => {
                 brands,
                 minPrice: minPrice === 0 ? '' : minPrice,
                 maxPrice: maxPrice === Infinity ? '' : maxPrice,
+                rating
             }
         };
+
+        const user = await User.findById(req.session.userId)
       
-        //handle AJAX request
+        // Handle AJAX request
         if (req.headers.accept?.includes('application/json')) {
-            return res.json({success: true,...responseData,});
+            return res.json({
+                success: true,
+                ...responseData,
+                
+            });
         }
         return res.render('productsPage/shop', responseData );
 
     } catch (error) {
         console.error('Shop page error:', error);
         if (req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({success: false, message: 'Internal server error'});
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error'
+            });
         }
         return res.status(500).render('pageNotFound');
     }
@@ -184,31 +263,56 @@ const getSearchSuggestions = async (req, res) => {
         const query = req.query.q?.trim() || '';
         
         if (!query || query.length <= 1) {
-            return res.json({success: true, suggestions: []});
+            return res.json({
+                success: true,
+                suggestions: []
+            });
         }
 
         const pipeline = [
             {
                 $match: {
-                    $or: [//escape from special regex characters , while searching
-                        { name: { $regex: query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
-                        { description: { $regex: query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
-                        { 'variants.ingredients': {$regex: query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i'}}
+                    $or: [
+                        { name: { $regex: query, $options: 'i' } },
+                        { description: { $regex: query, $options: 'i' } },
+                        { 'variants.ingredients': {$regex: query, $options: 'i'}}
                     ]
                 }
             },
             {
-                $lookup: {from: 'brands', localField: 'brand', foreignField: '_id', as: 'brandInfo'}
+                $lookup: {
+                    from: 'brands',
+                    localField: 'brand',
+                    foreignField: '_id',
+                    as: 'brandInfo'
+                }
             },
             { $unwind: '$brandInfo' },
             { $match: { 'brandInfo.isListed': true } },
             {
-                $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryInfo'}
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'categoryInfo'
+                }
             },
             { $unwind: '$categoryInfo' },
             { $match: { 'categoryInfo.isListed': true } },
             {
-                $addFields: {activeVariant: {$arrayElemAt: [{$filter: {input: '$variants', cond: { $eq: ['$$this.isListed', true] }}},0]}}
+                $addFields: {
+                    activeVariant: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$variants',
+                                    cond: { $eq: ['$$this.isListed', true] }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
             },
             { $match: { activeVariant: { $ne: null } } },
             {
@@ -217,26 +321,34 @@ const getSearchSuggestions = async (req, res) => {
                     name: 1,
                     brand: '$brandInfo.name',
                     salesPrice: '$activeVariant.salesPrice',
-                    image: {$arrayElemAt: ['$activeVariant.images.url', 0]}
+                    image: { 
+                        $arrayElemAt: ['$activeVariant.images.url', 0] 
+                    }
                 }
             },
-            { $limit: 5 } //5 suggestions
+            { $limit: 5 } // Limit to 5 suggestions
         ];
 
         const suggestions = await Product.aggregate(pipeline);
 
-        return res.json({success: true, suggestions: suggestions});
+        return res.json({
+            success: true,
+            suggestions: suggestions
+        });
 
     } catch (error) {
         console.error('Search suggestions error:', error);
-        return res.status(500).json({success: false, message: 'Error fetching suggestions'});
+        return res.status(500).json({
+            success: false,
+            message: 'Error fetching suggestions'
+        });
     }
 };
 
 const loadHomePage = async (req,res) => {
     try {
         const products = await Product.find().populate('brand', '_id name isListed').populate('category', '_id name isListed');
-        const brands = await Brand.find({isListed: true}).select("_id logo");
+        const brands = await Brand.find({isListed: true});
 
         const activeVariants = products.map(product => {
             if(!product.brand.isListed || !product.category.isListed) return null;
@@ -249,7 +361,9 @@ const loadHomePage = async (req,res) => {
                 category: product.category,
                 salesPrice: activeVariant.salesPrice,
                 regularPrice: activeVariant.regularPrice,
-                image: activeVariant.images && activeVariant.images.length > 0 ? activeVariant.images[0].url : null
+                image: activeVariant.images && activeVariant.images.length > 0 
+                       ? activeVariant.images[0].url 
+                       : null
             }
         }).filter(Boolean);
 
@@ -266,7 +380,13 @@ const loadHomePage = async (req,res) => {
 
         const foods = activeVariants.filter( p => p.category.name.toLowerCase().includes('food')).slice(0.4);
 
-        return res.render('productsPage/userHome', {products: activeVariants, brands, medicalEquipments, medicines, foods});
+        return res.render('productsPage/userHome', {
+            products: activeVariants,
+            brands,
+            medicalEquipments,
+            medicines,
+            foods
+        });
 
     } catch (error) {
         console.error("inter error : ", error);

@@ -10,12 +10,12 @@ const brandSchema = new mongoose.Schema({
         maxlength: 50,
         collation: { locale: 'en', strength: 2 } 
     },
-    logo: {
+    logo: { //cloudinary logo URL
         type: String,
         required: false,
         default: null
     },
-    logoPublicId: {
+    logoPublicId: { //cloudinary public id
         type: String,
         required: false,
         default: null
@@ -43,12 +43,12 @@ const brandSchema = new mongoose.Schema({
 });
 
 
-// Method to get status text
+//method to get status text
 brandSchema.methods.getStatusText = function() {
     return this.isListed ? 'Active' : 'Inactive';
 };
 
-// Static methods
+//static methods
 brandSchema.statics.findActive = function() {
     return this.find({ isListed: true }).sort({ name: 1 });
 };

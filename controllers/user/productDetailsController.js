@@ -48,12 +48,9 @@ const getProductDetails = async (req, res) => {
                     category: product.category._id,
                     'variants.isListed': true
                 },
-                {
-                      $or: [
-                            { 'variants.ingredients': {$in: selectedVariant.ingredients || []} },
-                            { 'variants.attributes.ingredients': {$regex: new RegExp((selectedVariant.ingredients || []).join('|'), 'i')} }
-                        ],
-                        'variants.isListed': true
+                {       
+                    'variants.ingredients': {$in: selectedVariant.ingredients || []},     
+                    'variants.isListed': true
                 }
             ]
         }).populate('brand', '_id name isListed').populate('category', '_id name isListed').limit(18);
@@ -87,7 +84,7 @@ const getProductDetails = async (req, res) => {
             }
         }).filter(product => product !== null);
 
-        //helper function for get categoryAttributes
+        //get category Attributes
         const distinguishingAttrs = getCategoryDistinguishingAttributes(product.category.name);
 
         let prescriptionStatus = null;

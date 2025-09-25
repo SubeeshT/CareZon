@@ -267,7 +267,7 @@
     <!-- Hidden data for JavaScript -->
     <script id="serverData" type="application/json">
         {
-            "limit": <%= JSON.stringify(limit || 8) %>,
+            "limit": <%= JSON.stringify(limit || 15) %>,
             "currentPage": <%= JSON.stringify(currentPage || 1) %>,
             "totalPages": <%= JSON.stringify(totalPages || 1) %>,
             "totalBrands": <%= JSON.stringify(totalBrands || 0) %>
@@ -289,7 +289,7 @@
         } catch (e) {
             console.error('Failed to parse server data:', e);
             serverData = {
-                limit: 8,
+                limit: 15,
                 currentPage: 1,
                 totalPages: 1,
                 totalBrands: 0
@@ -406,7 +406,7 @@
                     params.set('search', searchTerm.trim());
                 }
                 
-                // Add headers to identify this as an AJAX request
+                //headers to identify this as an AJAX request
                 const response = await fetchWithTimeout(`/admin/brands?${params.toString()}`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
