@@ -2,7 +2,7 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-avatar-container">
-            <img src="<%= user.profileImage ? '/' + user.profileImage : '/user/images/logo.png' %>" alt="Profile Picture" class="sidebar-profile-avatar" id="sidebarProfileAvatar">
+            <img src="<%= user.imageURL ? user.imageURL : '/user/images/logo.png' %>" alt="Profile Picture" class="sidebar-profile-avatar" id="sidebarProfileAvatar">
             <div class="sidebar-avatar-upload-btn" id="sidebarAvatarUploadBtn">
                 <i class="fas fa-camera"></i>
             </div>

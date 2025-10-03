@@ -729,6 +729,9 @@
                                     <% if (order.shippingAddress.phoneTwo) { %>
                                         <p>Alt Phone: <%= order.shippingAddress.phoneTwo %></p>
                                     <% } %>
+                                    <% if(order.estimatedDelivery){ %>
+                                        <p>Estimated Delivery Date Before : <%= order.estimatedDelivery.toLocaleDateString('en-IN') %></p>                                       
+                                    <% } %>
                                 </div>
                             </div>
 

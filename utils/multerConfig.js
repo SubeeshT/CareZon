@@ -70,7 +70,19 @@ const uploadConfigs = {
         ]),
         fileFilter: imageFilter,
         limits: {
-            fileSize: 10 * 1024 * 1024, //10MB
+            fileSize: 5 * 1024 * 1024, //5MB
+            files: 1
+        }
+    }),
+
+    profileImage: multer({
+        storage: createCloudinaryStorage('carezon/profileImages', [
+            {width: 500, height: 500, crop: 'limit'},
+            {quality: 'auto'}
+        ]),
+        fileFilter: imageFilter,
+        limits: {
+            fileSize: 5 * 1024 * 1024, //5MB
             files: 1
         }
     }),

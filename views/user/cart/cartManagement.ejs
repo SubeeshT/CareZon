@@ -353,6 +353,25 @@
     </nav>
 
     <div class="cart-container">
+
+        <% if (typeof query !== 'undefined' && query.error) { %>
+            <div class="container-fluid mt-3">
+                <% if (query.error === 'insufficient-stock') { %>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Some items have insufficient stock. Please update quantities in your cart.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } else if (query.error === 'no-valid-items') { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-times-circle me-2"></i>
+                        No items available for checkout. Please add items to cart.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
+
         <div class="row g-4">
             <!-- Products Section -->
             <div class="col-lg-8">
@@ -637,22 +656,21 @@
 
                 if (result.success) {
                     if (result.quantity === 0) {
-                    // Item quantity is 0 (out of stock), update UI but don't remove
                     const itemElement = document.querySelector(`[data-product-id="${productId}"][data-variant-id="${variantId}"]`);
                     const quantityInput = itemElement.querySelector('.quantity-input');
                     const itemTotalSpan = itemElement.querySelector('.item-total');
                     
                     quantityInput.value = 0;
-                    itemTotalSpan.textContent = '₹0';
+                    itemTotalSpan.textContent = '0'; // Change to '0' instead of '₹0'
                     
                     itemElement.classList.add('disabled-item');
                     
-                    // Disable all buttons for this item
-                    const buttons = itemElement.querySelectorAll('.quantity-btn, .action-btn');
+                    // Disable all buttons including increment/decrement
+                    const buttons = itemElement.querySelectorAll('.quantity-btn');
                     buttons.forEach(btn => btn.disabled = true);
                     
                     updateCartSummary(result.totalAmount, result.cartItemsCount);
-                    showToast('Item is out of stock', 'warning');
+                    showToast('Item quantity set to 0 due to stock unavailability', 'warning');
                 } else {                                       
                         const itemElement = document.querySelector(`[data-product-id="${productId}"][data-variant-id="${variantId}"]`);
                         const quantityInput = itemElement.querySelector('.quantity-input');
@@ -775,33 +793,26 @@
             document.getElementById('checkout-btn').disabled = itemCount === 0;
         }
 
-        async function proceedToCheckout() {
-            try {
-                 const response = await fetch('/cart/validateForCheckout', {
-                    method: 'POST',  // Change from GET to POST
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    if (result.isPartialCheckout) {
-                        // Handle partial checkout scenario
-                        const message = `${result.availableCount} items are available for checkout. ${result.unavailableCount} items will remain in cart.`;
-                        if (confirm(message + '\\n\\nProceed with available items?')) {
-                            window.location.href = '/cart/checkout';
-                        }
-                    } else {
-                        // All items available, proceed normally
-                        window.location.href = '/cart/checkout';
-                    }
+        function proceedToCheckout() {
+            // Check if there are any items with quantity > 0 and stock available
+            let hasValidItems = false;
+            
+            document.querySelectorAll('.product-item:not(.disabled-item)').forEach(item => {
+                const stock = parseInt(item.getAttribute('data-stock'));
+                const quantity = parseInt(item.querySelector('.quantity-input').value);
+                
+                if (stock > 0 && quantity > 0 && quantity <= stock) {
+                    hasValidItems = true;
                 }
-            } catch (error) {
-                console.error('Error validating checkout:', error);
-                showToast('Error validating checkout', 'danger');
+            });
+            
+            if (!hasValidItems) {
+                showToast('No items available for checkout. Please update quantities or remove out of stock items.', 'warning');
+                return;
             }
+            
+            // Direct redirect - validation will happen in loadCheckout
+            window.location.href = '/cart/checkout';
         }
 
         // Initialize page
@@ -833,9 +844,9 @@
                         availabilityBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i> Out of Stock';
                     }
                     
-                    // Disable buttons
-                    const buttons = item.querySelectorAll('.quantity-btn, .action-btn.remove');
-                    buttons.forEach(btn => btn.disabled = true);
+                    // Disable only quantity buttons, NOT remove button
+                    const quantityButtons = item.querySelectorAll('.quantity-btn');
+                    quantityButtons.forEach(btn => btn.disabled = true);
                 }
             });
         }

@@ -13,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
     quantity: {
         type: Number,
         required: true,
-        min: 1
+        min: 0
     },
     unitPrice: {
         type: Number,
@@ -23,7 +23,7 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    // Store product details at time of order to preserve data
+    //store product details at time of order to preserve data
     productSnapshot: {
         name: String,
         brand: String,
@@ -69,7 +69,7 @@ const orderSchema = new mongoose.Schema({
     },
     items: [orderItemSchema],
     
-    // Address details at time of order
+    //address details at time of order
     shippingAddress: {
         fullName: {
             type: String,
@@ -112,8 +112,7 @@ const orderSchema = new mongoose.Schema({
             required: true
         }
     },
-    
-    // Payment details
+    //payment details
     paymentMethod: {
         type: String,
         enum: ['cod', 'card', 'upi', 'net Banking'],
@@ -124,11 +123,11 @@ const orderSchema = new mongoose.Schema({
         enum: ['pending', 'completed', 'failed', 'refunded'],
         default: 'pending'
     },
-    
-    // Order totals
+    //order totals
     subtotal: {
         type: Number,
-        required: true
+        required: true,
+        default: 0
     },
     deliveryFee: {
         type: Number,
@@ -136,27 +135,24 @@ const orderSchema = new mongoose.Schema({
     },
     totalAmount: {
         type: Number,
-        required: true
+        required: true,
+        default: 0
     },
-    
-    // Order status
     orderStatus: {
         type: String,
         enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
         default: 'pending'
     },
-    
-    // Tracking information
-    trackingNumber: String,
+    //delivery date
     estimatedDelivery: Date,
     deliveredAt: Date,
     
-    // Order lifecycle timestamps
+    //order lifecycle timestamps
     confirmedAt: Date,
     shippedAt: Date,
     cancelledAt: Date,
     
-    // Cancellation details
+    //cancellation details
     cancellationReason: String,
     cancelledBy: {
         type: String,
@@ -169,15 +165,11 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'admin', 'system']
     },
-    
-    // Additional notes
-    orderNotes: String,
-    adminNotes: String
 
 }, { timestamps: true });
 
 
-// Indexing for efficient queries
+//indexing for efficient queries
 orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });

@@ -4,11 +4,6 @@ const User = require('../../models/userSchema');
 const loadAddress = async(req, res) =>{
     try {
         const user = await User.findById(req.session.userId);
-
-        if(user.isBlocked === true || user.isAdmin === true){
-            return res.status(400).redirect('/signIn');
-        }
-
         const addresses = await Address.find({userId: req.session.userId}).sort({createdAt: -1});   
 
         return res.status(200).render('account/address', {activePage: 'address', addresses, user, success: true, message: null});
@@ -22,10 +17,6 @@ const addAddress = async (req,res)=> {
     try {
         const { fullName, phoneOne, phoneTwo, pin, locality, area, district, state, country, landmark, addressType} = req.body;
         const user = await User.findById(req.session.userId);
-        
-        if(user.isBlocked === true || user.isAdmin === true){
-            return res.status(400).json({success: false, message: "this user cant add address, Please change the account "});
-        }
 
         if(!fullName || !phoneOne || !pin || !locality || !area || !district || !state || !country || !addressType){
             return res.status(400).json({success: false, message: "required field should fill"});
@@ -52,13 +43,9 @@ const addAddress = async (req,res)=> {
         });
 
         if (newAddress.isDefault) {
-            await Address.updateMany(
-                { userId: req.session.userId }, 
-                { isDefault: false }
-            );
+            await Address.updateMany({ userId: req.session.userId }, { isDefault: false });
         }
          
-
         await newAddress.save();
 
         return res.status(201).json({success: true, message: "Address added successfully", address: newAddress});
@@ -73,11 +60,10 @@ const editAddress = async (req,res)=> {
     try {
         const addressId = req.params.addressId;
         const {fullName, phoneOne, phoneTwo, pin, locality, area, district, state, country, landmark, addressType} = req.body;
-        const user = await User.findById(req.session.userId);
 
         const addressOwner = await Address.findOne({_id: addressId, userId: req.session.userId});
 
-        if(!addressOwner || user.isBlocked === true || user.isAdmin === true){
+        if(!addressOwner){
             return res.status(401).json({success: false, message: "this user cant change this address, should change the account"});
         }
 
@@ -91,10 +77,7 @@ const editAddress = async (req,res)=> {
 
         const isDefaultRequested = req.body.isDefault === 'true' || req.body.isDefault === true;
         if (isDefaultRequested && !addressOwner.isDefault) {
-            await Address.updateMany(
-                { userId: req.session.userId }, 
-                { isDefault: false }
-            );
+            await Address.updateMany({ userId: req.session.userId }, { isDefault: false });
         }
 
         addressOwner.fullName = fullName.trim();
@@ -123,11 +106,10 @@ const editAddress = async (req,res)=> {
 const deleteAddress = async (req,res) => {
     try {
         const addressId = req.params.addressId;
-        const user = await User.findById(req.session.userId);
 
          const addressOwner = await Address.findOne({_id: addressId, userId: req.session.userId});
 
-        if(!addressOwner || user.isBlocked === true || user.isAdmin === true){
+        if(!addressOwner){
             return res.status(401).json({success: false, message: "this user cant delete the address"});
         }
 
@@ -144,11 +126,10 @@ const deleteAddress = async (req,res) => {
 const setDefaultAddress = async(req, res) => {
     try {
         const { addressId } = req.params;
-        const user = await User.findById(req.session.userId);
         
         const addressOwner = await Address.findOne({_id: addressId, userId: req.session.userId});
 
-        if (!addressOwner || user.isBlocked === true || user.isAdmin === true) {
+        if (!addressOwner) {
             return res.status(404).json({success: false, message: "this user cant change the default address"});
         }
 

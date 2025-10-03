@@ -61,9 +61,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
     },
-    profileImage: {
+    imageURL: { //cloudinary profile image URL
       type: String,
-      default: null, 
+      required: false,
+      default: null
+    },
+    imagePublicId: { //cloudinary profile image public id
+        type: String,
+        required: false,
+        default: null
     },
     addresses:{
       type: mongoose.Schema.Types.ObjectId,

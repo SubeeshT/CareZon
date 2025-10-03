@@ -633,7 +633,7 @@
                                                 </div>
                                                 <small class="text-muted">Pay when delivered</small>
                                                 <div class="mt-2">
-                                                    <small class="text-warning">₹50 handling charges apply</small>
+                                                    
                                                 </div>
                                             </div>
                                             <input type="radio" name="payment" value="cod" class="form-check-input" checked>
@@ -695,6 +695,14 @@
                                 <span>Delivery Fee</span>
                                 <span id="delivery-fee">₹50</span>
                             </div>
+
+                            <div class="text-center mt-2 mb-3">
+                                <small class="text-light">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Free delivery on orders above ₹300
+                                </small>
+                            </div>
+
                             <div class="summary-row">
                                 <strong>Total</strong>
                                 <strong id="total-amount">₹<%= (cart?.totalAmount || 0) + 50 %></strong>
@@ -740,9 +748,9 @@
                 <h2 class="text-success mb-3">Order Placed Successfully!</h2>
                 <p class="text-muted mb-4">Thank you for your purchase. Your order has been confirmed and will be delivered to your address soon.</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="/account/orders/details/:orderId"><button class="btn btn-primary" id="view-order-details">
+                    <button class="btn btn-primary" id="view-order-details">
                         <i class="fas fa-eye me-2"></i>View Order Details
-                    </button></a>
+                    </button>
                     <a href="/products/shop"><button class="btn btn-outline-primary" id="continue-shopping">
                         <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
                     </button></a>       
@@ -961,10 +969,6 @@
             // Address form
             document.getElementById('saveAddress').addEventListener('click', saveAddress);
 
-            // Success page buttons
-            document.getElementById('view-order-details').addEventListener('click', () => {
-                window.location.href = '/account/orderDetails';
-            });
 
             document.getElementById('continue-shopping').addEventListener('click', () => {
                 window.location.href = '/products/shop';
@@ -1045,17 +1049,14 @@
             // Update radio button
             document.querySelector(`input[value="${paymentType}"]`).checked = true;
             
-            // Update delivery fee based on payment method
-            updateDeliveryFee();
             updatePlaceOrderButton();
         }
 
         function updateDeliveryFee() {
-            const fee = selectedPayment === 'cod' ? 50 : 0;
+            const subtotal = cart.totalAmount || 0;
+            const fee = subtotal < 300 ? 50 : 0;
             deliveryFee.textContent = `₹${fee}`;
             
-            // Update total using cart data
-            const subtotal = cart.totalAmount || 0;
             const total = subtotal + fee;
             totalAmount.textContent = `₹${total}`;
         }
@@ -1111,11 +1112,12 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Store order details for success page
-                    localStorage.setItem('lastOrderId', data.orderId);
+                    const orderId = data.orderId;
+
                     setTimeout(() => {
-                        showSuccessPage();
+                        showSuccessPage(orderId);
                     }, 2000);
+
                 } else {
                     alert(data.message || 'Error placing order');
                     // Reset to checkout
@@ -1143,12 +1145,24 @@
             processingContent.classList.add('fade-in-up');
         }
 
-        function showSuccessPage() {
+        function showSuccessPage(orderId) {
             processingContent.style.display = 'none';
-            checkoutContent.style.display = 'none'; // Ensure checkout content is hidden
+            checkoutContent.style.display = 'none';
             successContent.style.display = 'block';
             successContent.classList.add('fade-in-up');
             updateStepIndicator(4);
+
+            // Update the view order details button with correct URL
+            if (orderId) {
+                document.getElementById('view-order-details').onclick = function() {
+                    window.location.href = `/account/orders/details/${orderId}`;
+                };
+            } else {
+                // Fallback
+                document.getElementById('view-order-details').onclick = function() {
+                    window.location.href = '/account/orders';
+                };
+            }
             
             // Reset loading state
             loadingSpinner.style.display = 'none';
@@ -1358,6 +1372,9 @@
 
         // Initialize payment method
         selectPayment('cod');
+
+        // Initialize delivery fee calculation
+        updateDeliveryFee();
     </script>
 </body>
 </html>

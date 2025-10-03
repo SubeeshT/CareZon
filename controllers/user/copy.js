@@ -1,402 +1,387 @@
+const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
-const Brand = require('../../models/brandSchema');
-const Category = require('../../models/categorySchema');
-const User = require('../../models/userSchema')
-const mongoose = require('mongoose');
+const Cart = require('../../models/cartSchema');
+const Address = require('../../models/addressSchema');
+const User = require('../../models/userSchema');
+const { getVariantLabel } = require('../../utils/variantAttribute');
+const { default: mongoose } = require('mongoose');
 
-const loadShopPage = async (req, res) => {
+const loadOrdersList = async (req, res) => {
     try {
+        const userId = req.session.userId;
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const limit = parseInt(req.query.limit) || 10;44
         const skip = (page - 1) * limit;
-        
         const search = req.query.search?.trim() || '';
-        const sort = req.query.sort || 'newest';
-        //filter variants
-        const minPrice = parseFloat(req.query.minPrice) || 0;
-        const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
-        const rating = parseInt(req.query.rating) || 0;
-        const categories = req.query.category ? 
-            (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
-        const brands = req.query.brand ? 
-            (Array.isArray(req.query.brand) ? req.query.brand : [req.query.brand]) : [];
-    
-        let searchConditions = {};
+        const status = req.query.status || 'all';
+        console.log("status is : " ,status)
+        console.log("search is : " ,search)
+ 
+        let searchQuery = { userId };
         if (search) {
-            searchConditions.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } },
-                { 'variants.ingredients': {$regex: search, $options: 'i'}}
+            searchQuery.$or = [
+                { orderId: { $regex: search, $options: 'i' } },
+                { 'items.productSnapshot.name': { $regex: search, $options: 'i' } }
             ];
         }
 
-        // Handle multiple categories for filter
-        if (categories.length > 0) {
-            const validCategories = categories
-                .filter(cat => mongoose.Types.ObjectId.isValid(cat))
-                .map(cat => new mongoose.Types.ObjectId(cat));
-            
-            if (validCategories.length > 0) {
-                searchConditions.category = { $in: validCategories };
-            }
+        if (status && status !== 'all') {
+            searchQuery.orderStatus = status;
         }
-        // Handle multiple brands for filter
-        if (brands.length > 0) {
-            const validBrands = brands
-                .filter(brand => mongoose.Types.ObjectId.isValid(brand))
-                .map(brand => new mongoose.Types.ObjectId(brand));
-            
-            if (validBrands.length > 0) {
-                searchConditions.brand = { $in: validBrands };
-            }
-        }
+        
+        const orders = await Order.find(searchQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(); 
+        const totalOrders = await Order.countDocuments(searchQuery);
+        
+        //variant labels to order items 
+        if (orders && orders.length > 0) {
+            orders.forEach(order => {
+                if (order.items) {
+                    order.items.forEach(item => {
+                        const categoryName = item.productSnapshot.category;
+                        const variant = {attributes: item.productSnapshot.variantDetails.attributes};
 
-        //sort options
-        let sortOptions = {};
-        let needsCollection = false;
-        switch (sort) {
-            case 'price_low_high':
-                sortOptions = { 'activeVariant.salesPrice': 1 };
-                break;
-            case 'price_high_low':
-                sortOptions = { 'activeVariant.salesPrice': -1 };
-                break;
-            case 'name_asc':
-                sortOptions = { name: 1 };
-                needsCollection = true;
-                break;
-            case 'name_desc':
-                sortOptions = { name: -1 };
-                needsCollection = true;
-                break;
-            case 'newest':
-            default:
-                sortOptions = { createdAt: -1 };
-                break;
-        }
-
-        // Main aggregation pipeline
-        const pipeline = [
-            { $match: searchConditions },
-            {
-                $lookup: {
-                    from: 'brands',
-                    localField: 'brand',
-                    foreignField: '_id',
-                    as: 'brandInfo'
-                }
-            },
-            { $unwind: '$brandInfo' },
-            { $match: { 'brandInfo.isListed': true } },
-            {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'categoryInfo'
-                }
-            },
-            { $unwind: '$categoryInfo' },
-            { $match: { 'categoryInfo.isListed': true } },
-            {
-                $addFields: {
-                    activeVariant: {
-                        $arrayElemAt: [
-                            {
-                                $filter: {
-                                    input: '$variants',
-                                    cond: { $eq: ['$$this.isListed', true] }
-                                }
-                            },
-                            0
-                        ]
-                    }
-                }
-            },
-            { $match: { activeVariant: { $ne: null } } },
-            {
-                $match: {
-                    'activeVariant.salesPrice': {
-                        $gte: minPrice,
-                        $lte: maxPrice === Infinity ? 999999 : maxPrice
-                    }
-                }
-            }
-        ];
-
-        //rating filter
-        if (rating > 0) {
-            pipeline.push(
-                {
-                    $lookup: {
-                        from: 'reviews',
-                        localField: '_id',
-                        foreignField: 'product',
-                        as: 'reviews'
-                    }
-                },
-                {
-                    $addFields: {
-                        averageRating: {
-                            $cond: {
-                                if: { $gt: [{ $size: '$reviews' }, 0] },
-                                then: { $avg: '$reviews.rating' },
-                                else: 0
-                            }
+                        if (variant && categoryName) {
+                            item.variantLabel = getVariantLabel(variant, categoryName);
                         }
-                    }
-                },
-                { $match: { averageRating: { $gte: rating } } }
-            );
+                    });
+                }
+            });
         }
-
-        //final projection
-        pipeline.push({
-            $project: {
-                _id: 1,
-                name: 1,
-                description: 1,
-                createdAt: 1,
-                brand: {
-                    _id: '$brandInfo._id',
-                    name: '$brandInfo.name'
-                },
-                category: {
-                    _id: '$categoryInfo._id',
-                    name: '$categoryInfo.name'
-                },
-                activeVariant: {
-                    _id: '$activeVariant._id',
-                    quantity: '$activeVariant.quantity',
-                    stock: '$activeVariant.stock',
-                    regularPrice: '$activeVariant.regularPrice',
-                    salesPrice: '$activeVariant.salesPrice',
-                    manufacturingDate: '$activeVariant.manufacturingDate',
-                    expiryDate: '$activeVariant.expiryDate',
-                    prescriptionRequired: '$activeVariant.prescriptionRequired',
-                    discountStatus: '$activeVariant.discountStatus',
-                    offerStatus: '$activeVariant.offerStatus',
-                    uom: '$activeVariant.uom',
-                    attributes: '$activeVariant.attributes',
-                    images: '$activeVariant.images'
-                },
-                averageRating: { $ifNull: ['$averageRating', 0] }
-            }
-        });
-
-        //total count for pagination
-        const countPipeline = [...pipeline, { $count: 'total' }];
-        const totalResult = await Product.aggregate(countPipeline);
-        const totalProducts = totalResult[0]?.total || 0;
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        pipeline.push(
-            { $sort: sortOptions },
-            { $skip: skip },
-            { $limit: limit }
-        );
-
-        //Execute main query with collation for case-insensitive sorting
-        const aggregationOptions =  needsCollection ? 
-            { collation: { locale: 'en', strength: 2 } } : 
-            {};
-
-        const products = await Product.aggregate(pipeline, aggregationOptions);
-
-        const activeCategories = await Category.find({ isListed: true })
-            .select('_id name')
-            .sort({ name: 1 });
-            
-        const activeBrands = await Brand.find({ isListed: true })
-            .select('_id name')
-            .sort({ name: 1 });
-
-        const responseData = {
-            products,
-            categories: activeCategories,
-            brands: activeBrands,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalProducts,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1,
-                limit
-            },
-            filters: {
-                search,
-                sort,
-                categories,
-                brands,
-                minPrice: minPrice === 0 ? '' : minPrice,
-                maxPrice: maxPrice === Infinity ? '' : maxPrice,
-                rating
-            }
+        
+        //create pagination object
+        const pagination = {
+            currentPage: page,
+            totalPages: Math.ceil(totalOrders / limit),
+            totalOrders,
+            hasNextPage: page < Math.ceil(totalOrders / limit),
+            hasPrevPage: page > 1
         };
 
-        const user = await User.findById(req.session.userId)
-      
-        // Handle AJAX request
-        if (req.headers.accept?.includes('application/json')) {
-            return res.json({
-                success: true,
-                ...responseData,
-                
-            });
-        }
-        return res.render('productsPage/shop', responseData );
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+            //transform data for json response if the req is ajax
+            const transformedOrders = orders.map(order => ({
+                orderId: order.orderId,
+                orderDate: new Date(order.createdAt).toLocaleDateString(),
+                status: order.orderStatus,
+                totalAmount: order.totalAmount,
+                products: order.items.map(item => ({
+                    name: item.productSnapshot.name,
+                    brand: item.productSnapshot.brand || 'N/A',
+                    variant: item.variantLabel || 'N/A',
+                    quantity: item.quantity,
+                    price: item.unitPrice,
+                    total: item.totalPrice,
+                    image: item.productSnapshot.variantDetails.images && item.productSnapshot.variantDetails.images.length > 0 ? 
+                        item.productSnapshot.variantDetails.images[0].url : '/user/images/logo.png'
+                }))
+            }));
 
-    } catch (error) {
-        console.error('Shop page error:', error);
-        if (req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Internal server error'
-            });
+            return res.json({success: true, orders: transformedOrders, pagination: pagination});
         }
-        return res.status(500).render('pageNotFound');
-    }
-};
-
-const getSearchSuggestions = async (req, res) => {
-    try {
-        const query = req.query.q?.trim() || '';
         
-        if (!query || query.length <= 1) {
-            return res.json({
-                success: true,
-                suggestions: []
-            });
+        return res.status(200).render('account/ordersList', {activePage: 'orders', orders: orders, pagination: pagination, search: search});
+        
+    } catch (error) {
+        console.error('Error loading orders list:', error);
+
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+            return res.status(500).json({success: false, message: 'Error loading orders'});
         }
 
-        const pipeline = [
-            {
-                $match: {
-                    $or: [
-                        { name: { $regex: query, $options: 'i' } },
-                        { description: { $regex: query, $options: 'i' } },
-                        { 'variants.ingredients': {$regex: query, $options: 'i'}}
-                    ]
-                }
-            },
-            {
-                $lookup: {
-                    from: 'brands',
-                    localField: 'brand',
-                    foreignField: '_id',
-                    as: 'brandInfo'
-                }
-            },
-            { $unwind: '$brandInfo' },
-            { $match: { 'brandInfo.isListed': true } },
-            {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'categoryInfo'
-                }
-            },
-            { $unwind: '$categoryInfo' },
-            { $match: { 'categoryInfo.isListed': true } },
-            {
-                $addFields: {
-                    activeVariant: {
-                        $arrayElemAt: [
-                            {
-                                $filter: {
-                                    input: '$variants',
-                                    cond: { $eq: ['$$this.isListed', true] }
-                                }
-                            },
-                            0
-                        ]
-                    }
-                }
-            },
-            { $match: { activeVariant: { $ne: null } } },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    brand: '$brandInfo.name',
-                    salesPrice: '$activeVariant.salesPrice',
-                    image: { 
-                        $arrayElemAt: ['$activeVariant.images.url', 0] 
-                    }
-                }
-            },
-            { $limit: 5 } // Limit to 5 suggestions
-        ];
-
-        const suggestions = await Product.aggregate(pipeline);
-
-        return res.json({
-            success: true,
-            suggestions: suggestions
-        });
-
-    } catch (error) {
-        console.error('Search suggestions error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error fetching suggestions'
-        });
+        return res.status(500).render('pageNotFound', {status: 500, message: "Error loading orders page"});
     }
 };
 
-const loadHomePage = async (req,res) => {
+const loadOrderedProductsDetails = async (req, res) => {
     try {
-        const products = await Product.find().populate('brand', '_id name isListed').populate('category', '_id name isListed');
-        const brands = await Brand.find({isListed: true});
+        const { orderId } = req.params;
+        const userId = req.session.userId;
+        
+        const order = await Order.findOne({ orderId, userId }).populate('userId', 'name email').lean();
+        
+        if (!order) {
+            return res.status(404).render('pageNotFound', {status: 404, message: "Order not found"});
+        }
 
-        const activeVariants = products.map(product => {
-            if(!product.brand.isListed || !product.category.isListed) return null;
-            const activeVariant = product.variants.find(v => v.isListed);
-            if(!activeVariant) return null;
-            return {
-                id: product._id,
-                name: product.name,
-                brand: product.brand,
-                category: product.category,
-                salesPrice: activeVariant.salesPrice,
-                regularPrice: activeVariant.regularPrice,
-                image: activeVariant.images && activeVariant.images.length > 0 
-                       ? activeVariant.images[0].url 
-                       : null
-            }
-        }).filter(Boolean);
+        //variant labels to order items
+        if (order && order.items) {
+            order.items.forEach(item => {
+                const categoryName = item.productSnapshot.category;
+                const variant = {
+                    attributes: item.productSnapshot.variantDetails.attributes
+                };
+                if (variant && categoryName) {
+                    item.variantLabel = getVariantLabel(variant, categoryName);
+                }
 
-        const medicalEquipments = activeVariants.filter(p => 
-            p.category.name.toLowerCase().includes('medical equipment') || 
-            p.category.name.toLowerCase().includes('body support')
-        ).slice(0, 8);
-
-        const medicines = activeVariants.filter(p => 
-            ['tablet', 'syrup', 'capsule', 'drop', 'ointment'].some(type => 
-                p.category.name.toLowerCase().includes(type)
-            )
-        ).slice(0, 8);
-
-        const foods = activeVariants.filter( p => p.category.name.toLowerCase().includes('food')).slice(0.4);
-
-        return res.render('productsPage/userHome', {
-            products: activeVariants,
-            brands,
-            medicalEquipments,
-            medicines,
-            foods
-        });
+                item.displayStatus = item.status || 'active';
+            });
+        }
+        
+        return res.status(200).render('account/orderedProductsDetails', {activePage: 'orders', success: true, order: order});
 
     } catch (error) {
-        console.error("inter error : ", error);
-        return res.render('pageNotFound');
+        console.error('Error loading order details:', error);
+        return res.status(500).render('pageNotFound', {status: 500, message: "Error loading order details"});
     }
 }
 
+const cancelOrder = async (req, res) => {
+    const session = await mongoose.startSession();
+    
+    try {
+        await session.startTransaction();
+        
+        const { orderId } = req.params;
+        const { reason, cancelType, itemId } = req.body;
+        const userId = req.session.userId;
+        
+        const order = await Order.findOne({ orderId, userId }).session(session);
+        
+        if (!order) {
+            return res.status(404).json({success: false, message: 'Order not found'});
+        }
+        
+        if (!['pending', 'confirmed', 'processing'].includes(order.orderStatus)) {
+            return res.status(400).json({success: false, message: 'Order cannot be cancelled at this order status stage'});
+        }
+        
+        if (cancelType === 'entire_order') { //cancel entire order    
+            for (const item of order.items) {
+                await Product.updateOne(
+                    { 
+                        "_id": item.productId, "variants._id": item.variantId
+                    },
+                    { 
+                        $inc: { "variants.$.stock": item.quantity }
+                    },
+                    { session }
+                );
+            }
+            
+            order.orderStatus = 'cancelled';
+            order.cancelledAt = new Date();
+            order.cancellationReason = reason;
+            order.cancelledBy = 'user';
+            
+            await order.save({ session });
+            
+        } else if (cancelType === 'single_item') { //cancel single item
+            
+            const itemToCancel = order.items.find(item => item._id.toString() === itemId);
+            
+            if (!itemToCancel) {
+                return res.status(404).json({success: false, message: 'Item not found in order'});
+            }
+            
+            await Product.updateOne( //restore stock for cancelled item
+                { 
+                    "_id": itemToCancel.productId, "variants._id": itemToCancel.variantId
+                },
+                { 
+                    $inc: { "variants.$.stock": itemToCancel.quantity }
+                },
+                { session }
+            );
+            
+            itemToCancel.status = 'cancelled';
+            itemToCancel.cancelledAt = new Date();
+            itemToCancel.cancellationReason = reason;
+            itemToCancel.cancelledBy = 'user';
+            
+            //check if all items are cancelled
+            const activeitems = order.items.filter(item => item.status !== 'cancelled');
+            if (activeitems.length === 0) {
+                order.orderStatus = 'cancelled';
+                order.cancelledAt = new Date();
+                order.cancellationReason = 'All items cancelled';
+                order.cancelledBy = 'user';
+            }
+            
+            await order.save({ session });
+        }
+        
+        await session.commitTransaction();
+        
+        const message = cancelType === 'entire_order' ? 
+            'Entire order cancelled successfully' : 
+            'Item cancelled successfully';
+            
+        return res.status(200).json({success: true, message});
+        
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('Error while cancelling order:', error);
+        return res.status(500).json({success: false, message: 'Error while cancelling order'});
+    } finally {
+        session.endSession();
+    }
+};
 
-module.exports = { 
-    loadShopPage,
-    getSearchSuggestions,
-    loadHomePage
- };
+const returnOrder = async (req, res) => {
+    const session = await mongoose.startSession();
+    
+    try {
+        await session.startTransaction();
+        
+        const { orderId } = req.params;
+        const { reason, description, returnType, itemId } = req.body;
+        const userId = req.session.userId;
+        
+        const order = await Order.findOne({ orderId, userId }).session(session);
+        
+        if (!order) {
+            return res.status(404).json({success: false, message: 'Order not found'});
+        }
+        
+        if (order.orderStatus !== 'delivered') {
+            return res.status(400).json({success: false, message: 'Only delivered orders can be returned'});
+        }
+        
+        // Check 14-day return policy
+        const deliveryDate = new Date(order.deliveredAt || order.createdAt); // fallback to createdAt if deliveredAt not set
+        const currentDate = new Date();
+        const daysDifference = Math.ceil((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDifference > 14) {
+            return res.status(400).json({success: false, message: 'Return period has expired. Orders can only be returned within 14 days of delivery.'});
+        }
+        
+        if (!reason || reason.trim() === '') {
+            return res.status(400).json({success: false, message: 'Return reason is required'});
+        }
+        
+        if (returnType === 'entire_order') {
+            // Return entire order
+            for (const item of order.items) {
+                if (item.status !== 'cancelled') { // Only return active items
+                    await Product.updateOne(
+                        { 
+                            "_id": item.productId,
+                            "variants._id": item.variantId
+                        },
+                        { 
+                            $inc: { 
+                                "variants.$.stock": item.quantity 
+                            }
+                        },
+                        { session }
+                    );
+                }
+            }
+            
+            // Update order status
+            order.orderStatus = 'returned';
+            order.returnedAt = new Date();
+            order.returnReason = reason;
+            order.returnedBy = 'user';
+            if (description) {
+                order.adminNotes = description;
+            }
+            
+        } else if (returnType === 'single_item') {
+            // Return single item
+            const itemToReturn = order.items.find(item => item._id.toString() === itemId);
+            
+            if (!itemToReturn) {
+                return res.status(404).json({success: false, message: 'Item not found in order'});
+            }
+            
+            if (itemToReturn.status === 'cancelled') {
+                return res.status(400).json({success: false, message: 'Cannot return a cancelled item'});
+            }
+            
+            if (itemToReturn.status === 'returned') {
+                return res.status(400).json({success: false, message: 'Item is already returned'});
+            }
+            
+            // Restore stock for returned item
+            await Product.updateOne(
+                { 
+                    "_id": itemToReturn.productId,
+                    "variants._id": itemToReturn.variantId
+                },
+                { 
+                    $inc: { 
+                        "variants.$.stock": itemToReturn.quantity 
+                    }
+                },
+                { session }
+            );
+            
+            // Add return info to the item
+            itemToReturn.status = 'returned';
+            itemToReturn.returnedAt = new Date();
+            itemToReturn.returnReason = reason;
+            itemToReturn.returnedBy = 'user';
+            
+            // Check if all active items are returned
+            const activeItems = order.items.filter(item => item.status === 'active');
+            if (activeItems.length === 0) {
+                order.orderStatus = 'returned';
+                order.returnedAt = new Date();
+                order.returnReason = 'All items returned';
+                order.returnedBy = 'user';
+            }
+        }
+        
+        await order.save({ session });
+        await session.commitTransaction();
+        
+        const message = returnType === 'entire_order' ? 
+            'Return request for entire order submitted successfully' : 
+            'Return request submitted successfully';
+            
+        return res.status(200).json({success: true, message});
+        
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('Error processing return:', error);
+        return res.status(500).json({success: false, message: 'Error processing return request'});
+    } finally {
+        session.endSession();
+    }
+};
+
+const downloadInvoice = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const userId = req.session.userId;
+        
+        const order = await Order.findOne({ orderId, userId }).populate('userId', 'name email');
+        
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+        
+        // For view invoice (HTML response)
+        if (req.query.view === 'true') {
+            return res.status(200).render('invoice/invoice', { 
+                order: order,
+                printMode: true 
+            });
+        }
+        
+        // For download (set headers for PDF download)
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="Invoice-${orderId}.html"`);
+        return res.status(200).render('invoice/invoice', { 
+            order: order,
+            printMode: true 
+        });
+        
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        return res.status(500).json({ error: "Error generating invoice" });
+    }
+};
+
+
+module.exports = {
+    loadOrdersList,
+    loadOrderedProductsDetails,
+    cancelOrder,
+    returnOrder,
+    downloadInvoice,
+
+};

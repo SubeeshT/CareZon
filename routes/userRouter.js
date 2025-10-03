@@ -60,7 +60,7 @@ router.post('/profile/sendOtp', auth.validateActiveUser, profileController.sendO
 router.post('/profile/verifyNewEmail', auth.validateActiveUser, profileController.verifyNewEmailAndSave);
 router.post('/profile/resendOtp', auth.validateActiveUser, profileController.resendOTP);
 router.put('/profile/changePassword', auth.validateActiveUser, profileController.changePassword);
-router.post('/profile/uploadImage', auth.validateActiveUser, uploadConfigs.generalImage.single('profileImage'), profileController.uploadProfileImage);
+router.post('/profile/uploadImage', auth.validateActiveUser, uploadConfigs.profileImage.single('profileImage'), profileController.uploadProfileImage);
 
 //user account/address section
 router.get('/account/address', auth.validateActiveUser, addressController.loadAddress);
@@ -75,11 +75,9 @@ router.get('/cart', auth.validateActiveUser, cartController.loadCart);
 router.post('/cart/add',auth.validateActiveUser, cartController.addToCart);
 router.delete('/cart/remove', auth.validateActiveUser, cartController.removeFromCart);
 router.patch('/cart/updateQuantity', auth.validateActiveUser, cartController.updateCartQuantity);
-router.post('/cart/validateForCheckout', auth.validateActiveUser, cartController.validateCartForCheckout);
-router.post('/cart/processPartialCheckout', auth.validateActiveUser, cartController.processPartialCheckout);
 router.get('/cart/count', auth.validateActiveUser, cartController.getCartCount);
 router.get('/cart/checkout', auth.validateActiveUser, cartController.loadCheckout);
-router.post('/order/place', auth.validateActiveUser, orderController.placeOrder);
+router.post('/order/place', auth.validateActiveUser, cartController.placeOrder);
 
 
 // Order section

@@ -30,8 +30,18 @@ const isUserLoggedInWithUserData = async (req, res, next) => {
 const getUserData = async (req,res,next) => {
     try {
         if(req.session.userId){
-            const user = await User.findById(req.session.userId).select('fullName');
+            const user = await User.findById(req.session.userId).select('fullName isBlocked');
+
+            if(user && user.isBlocked){
+                req.session.destroy((err) => {
+                    if(err) console.error("Error get while destroy blocked user session : ", err);
+                });
+                res.locals.user = null;
+                return res.redirect('/signIn?error=userBlocked');
+            }
+
             res.locals.user = user;
+
         }else{
             res.locals.user = null;
         }
@@ -60,11 +70,11 @@ const validateActiveUser = async (req,res,next) => {
         }
 
         if(user.isBlocked === true){
-            return res.status(403).redirect('/signIn?error=blocked');
+            return res.status(403).redirect('/signIn?error=userBlocked');
         }
 
         if(user.isAdmin === true){
-            return res.status(403).redirect('/signIn?error=admin');
+            return res.status(403).redirect('/signIn?error=youAreAdmin');
         }
 
         req.user = user;

@@ -3,6 +3,7 @@ const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema')
 const Address = require('../../models/addressSchema');
 const Prescription = require('../../models/prescriptionSchema');
+const Order = require('../../models/orderSchema');
 const { getVariantLabel } = require('../../utils/variantAttribute');
 const { default: mongoose } = require('mongoose');
 
@@ -38,26 +39,24 @@ const loadCart = async (req,res) => {
                 cartUpdated = true;
                 continue;
             }
-
-            let adjustedQuantity = item.quantity;
+           
             let stockIssue = false;
-
             if(variant.stock < item.quantity){
                 stockIssue = true;
             }
 
-            const subtotal = variant.salesPrice * adjustedQuantity;
+            const subtotal = variant.salesPrice * item.quantity;
 
             validItems.push({
                 productId: item.productId,
                 variantId: item.variantId,
-                quantity: adjustedQuantity,
-                subtotal: adjustedQuantity > 0 ? subtotal : 0,
+                quantity: item.quantity,
+                subtotal: item.quantity > 0 ? subtotal : 0,
                 stockIssue: stockIssue,
                 availableStock: variant.stock
             });
 
-            if(adjustedQuantity > 0) {
+            if(item.quantity > 0) {
                 totalAmount += subtotal;
             }
         }
@@ -127,10 +126,10 @@ const addToCart  = async (req,res) => {
             //check if user has valid prescription
             const prescription = await Prescription.findOne({
                 userId: req.session.userId, productId: productId, variantId: variantId, status: 'Verified', expiryDate: { $gt: new Date() }
-            }).sort({ createdAt: -1 }); 
+                }).sort({ createdAt: -1 }); 
 
             if (!prescription) {
-                //check if there's any prescription and return appropriate message
+                //check if theres any prescription and return appropriate message
                 const anyPrescription = await Prescription.findOne({userId: req.session.userId, productId: productId, variantId: variantId}).sort({ createdAt: -1 });
 
                 if (anyPrescription) {
@@ -281,7 +280,7 @@ const updateCartQuantity = async (req,res) => {
             }
 
             if (newQuantity > variant.stock) {
-                return res.status(400).json({success: false, message: `Only ${variant.stock} items available in stock`});
+                return res.status(400).json({success: false, message: `Only ${variant.stock} items available stock in this variant`});
             }
         }else if(action === 'decrement'){
             newQuantity -= 1;
@@ -316,201 +315,6 @@ const updateCartQuantity = async (req,res) => {
 }
 
 
-const validateCartForCheckout = async (req,res) => {
-    try {
-        const cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed'}]});
-        if(!cart || cart.items.length === 0){
-            return res.status(400).json({success: false, message: "your cart is empty"});
-        }
-
-        const availableItems = [];   
-        const unavailableItems = [];  
-        const adjustedItems = [];     
-        const issues = [];
-
-        for(const item of cart.items){
-            const product = item.productId;
-            if (!product || !product.brand || !product.category || !product.brand.isListed || !product.category.isListed){
-                unavailableItems.push(item);
-                issues.push(`${product?.name || 'Unknown product'} is no longer available`);
-                continue;
-            }
-
-            const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
-            if(!variant || !variant.isListed){
-                unavailableItems.push(item);
-                issues.push(`${product.name} variant is no longer available`);
-                continue;
-            }
-
-            if(variant.stock === 0){
-                unavailableItems.push({
-                    productId: item.productId,
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    subtotal: variant.salesPrice * item.quantity  //original subtotal for display
-                });
-                issues.push(`${product.name} is currently out of stock but will remain in your cart`);
-                continue;
-            }
-            
-            if(!variant.isListed){
-                unavailableItems.push(item);
-                issues.push(`${product.name} variant is no longer available`);
-                continue;
-            }
-
-            if (variant.stock < item.quantity) {
-                const availableQty = variant.stock;
-                const unavailableQty = item.quantity - variant.stock;
-
-                //available product with available quantity (to be ordered)
-                if (availableQty > 0) {
-                    availableItems.push({
-                        productId: item.productId._id,
-                        variantId: item.variantId,
-                        quantity: availableQty,
-                        subtotal: variant.salesPrice * availableQty,
-                        product: product,
-                        variant: variant
-                    });
-                }    
-                //unavailable products with pending quantity (stays in cart)
-                unavailableItems.push({
-                    productId: item.productId,
-                    variantId: item.variantId,
-                    quantity: unavailableQty,
-                    subtotal: variant.salesPrice * unavailableQty
-                });
-
-                adjustedItems.push({
-                    productName: product.name,
-                    requestedQty: item.quantity,
-                    availableQty: availableQty,
-                    unavailableQty: unavailableQty
-                });
-
-                issues.push(`Only ${availableQty} units of ${product.name} available. ${unavailableQty} units will remain in cart.`);
-                continue;
-            }
-
-            //fULL STOCK: Item is fully available only
-            availableItems.push({
-                productId: item.productId._id,
-                variantId: item.variantId,
-                quantity: item.quantity,
-                subtotal: item.subtotal,
-                product: product,
-                variant: variant
-            });
-        }
-
-        //calculate totals
-        const orderTotal = availableItems.reduce((total, item) => total + item.subtotal, 0);
-        const remainingTotal = unavailableItems.reduce((total, item) => total + item.subtotal, 0);
-        const deliveryFee = orderTotal < 300 ? 50 : 0;
-        const finalTotal = orderTotal + deliveryFee;
-
-        if(availableItems.length === 0){
-            return res.status(400).json({success: false, message: 'No items available for checkout. All items are out of stock or unavailable.', issues, unavailableCount: unavailableItems.length});
-        }
-
-        //SUCCESS: Some or all items available for checkout
-        return res.status(200).json({
-            success: true,
-            message: availableItems.length === cart.items.length ? 
-                'All items available for checkout' : 
-                'Partial checkout available',
-            
-            //items that can be ordered
-            availableItems,
-            availableCount: availableItems.length,
-            orderTotal,
-            deliveryFee,        
-            finalTotal,
-            
-            //items that will remain in cart
-            unavailableItems,
-            unavailableCount: unavailableItems.length,
-            remainingTotal,
-            
-            //summary
-            adjustedItems,
-            issues,
-            isPartialCheckout: unavailableItems.length > 0
-        });
-
-
-    } catch (error) {
-        console.error("internal error validating cart for checkout:", error);
-        return res.status(500).json({success: false, message: 'Internal server error get while check out validation'});
-    }
-}
-
-
-const processPartialCheckout = async (req,res) => {
-    try {
-        const {orderedItems} = req.body;
-        if(!orderedItems || !Array.isArray(orderedItems) || orderedItems.length === 0){
-            return res.status(400).json({success: false, message: 'No ordered items provided'});
-        }
-
-        const cart = await Cart.findOne({userId: req.session.userId});
-        if(!cart){
-            return res.status(404).json({success: false, message: 'Cart not found'});
-        }
-
-        //for remove ordered items from cart, keep unordered ones
-        const remainingItems = [];
-
-        for(const cartItem of cart.items){
-            const wasOrdered = orderedItems.some(orderedItem => 
-                cartItem.productId.toString() === orderedItem.productId.toString() && cartItem.variantId.toString() === orderedItem.variantId.toString()
-            );
-
-            if(!wasOrdered){//if item was not ordered,item will keep in cart
-                remainingItems.push(cartItem);
-            }else{
-                //check if partial quantity was ordered
-                const orderedItem = orderedItems.find(ordered => 
-                    cartItem.productId.toString() === ordered.productId.toString() &&
-                    cartItem.variantId.toString() === ordered.variantId.toString()
-                );
-
-                if(orderedItem && cartItem.quantity > orderedItem.quantity){
-                    //partial order: it will keep remaining quantity in cart
-                    const remainingQty = cartItem.quantity - orderedItem.quantity;
-                    const product = await Product.findById(cartItem.productId);
-                    const variant = product.variants.find(v => v._id.toString() === cartItem.variantId.toString());
-                    
-                    remainingItems.push({
-                        productId: cartItem.productId,
-                        variantId: cartItem.variantId,
-                        quantity: remainingQty,
-                        subtotal: variant.salesPrice * remainingQty
-                    });
-                }
-            }
-        }
-        //update cart with remaining items
-        cart.items = remainingItems;
-        cart.totalAmount = remainingItems.reduce((total, item) => total + item.subtotal, 0);
-        await cart.save();
-
-        return res.status(200).json({
-            success: true,
-            message: remainingItems.length > 0 ? 'Order completed! Some items remain in your cart.' : 'Order completed! Cart is now empty.',
-            remainingItemsCount: remainingItems.length,
-            remainingTotal: cart.totalAmount
-        });
-
-    } catch (error) {
-        console.error("internal error get while processing partial checkout:", error);
-        return res.status(500).json({success: false, message: 'internal error updating cart after order'});
-    }
-}
-
-
 const getCartCount = async (req,res) => {
     try {
         const cart = await Cart.findOne({userId: req.session.userId});
@@ -533,6 +337,51 @@ const loadCheckout = async (req,res) => {
             return res.redirect('/cart');
         }
 
+        for(const item of cart.items){
+            const product = item.productId;
+
+            if(!product || !product.brand || !product.category || !product.brand.isListed || !product.category.isListed){
+                return res.redirect('/cart');
+            }
+
+            const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
+            if(!variant || !variant.isListed){
+                return res.redirect('/cart');
+            }
+        }
+
+        // Check for stock issues
+        let hasStockIssues = false;
+        const stockIssues = [];
+
+        for(const item of cart.items){
+            const product = item.productId;
+            const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
+            
+            if(item.quantity > 0 && variant.stock < item.quantity){
+                hasStockIssues = true;
+                stockIssues.push({
+                    productName: product.name,
+                    requested: item.quantity,
+                    available: variant.stock
+                });
+            }
+        }
+
+        if(hasStockIssues){
+            return res.redirect('/cart?error=insufficient-stock');
+        }
+
+        //check if cart has any valid items (quantity > 0 and stock available)
+        const hasValidItems = cart.items.some(item => {
+            const variant = item.productId.variants.find(v => v._id.toString() === item.variantId.toString());
+            return item.quantity > 0 && variant.stock >= item.quantity;
+        });
+
+        if(!hasValidItems){
+            return res.redirect('/cart?error=no-valid-items');
+        }
+
         //variant labels for display
         if (cart && cart.items) {
             cart.items.forEach(item => {
@@ -552,14 +401,188 @@ const loadCheckout = async (req,res) => {
     }
 }
 
+const placeOrder = async (req, res) => {
+
+    const session = await mongoose.startSession();
+    
+    try {
+        await session.startTransaction();
+        
+        const { addressId, paymentMethod, orderedItems } = req.body;
+        const userId = req.session.userId;
+        
+        if (!addressId || !paymentMethod || !orderedItems || orderedItems.length === 0) {
+            return res.status(400).json({success: false, message: 'Missing required order information'});
+        } 
+       
+        const address = await Address.findOne({ _id: addressId, userId }).session(session);
+        if (!address) {
+            return res.status(404).json({success: false,message: 'Address not found'});
+        }
+        
+        const cart = await Cart.findOne({ userId }).populate({path: 'items.productId', populate: [{ path: 'brand', select: 'name' }, { path: 'category', select: 'name' }]}).session(session); 
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({success: false, message: 'Cart is empty'});
+        }
+        
+        //prepare order items with stock validation
+        const orderItems = [];
+        let subtotal = 0;
+        const stockUpdates = [];
+        
+        for (const orderedItem of orderedItems) {
+            const cartItem = cart.items.find(item => 
+                item.productId._id.toString() === orderedItem.productId.toString() && item.variantId.toString() === orderedItem.variantId.toString());
+            
+            if (!cartItem) {
+                return res.status(404).json({success: false, message: `Item not found in cart: ${orderedItem.productId}`});
+            }
+            
+            const product = cartItem.productId;
+            const variant = product.variants.find(v => v._id.toString() === orderedItem.variantId.toString());
+            
+            if (!variant) {
+                return res.status(404).json({success: false, message: `Variant not found: ${orderedItem.variantId}`});
+            }
+            
+            if (variant.stock < orderedItem.quantity) {
+                return res.status(400).json({success: false, message: `Insufficient stock for ${product.name}. Available: ${variant.stock}, Requested: ${orderedItem.quantity}`});
+            }
+            
+            //prepare order item
+            const orderItem = {
+                productId: product._id,
+                variantId: variant._id,
+                quantity: orderedItem.quantity,
+                unitPrice: variant.salesPrice,
+                totalPrice: variant.salesPrice * orderedItem.quantity,
+                productSnapshot: {
+                    name: product.name,
+                    brand: product.brand.name,
+                    category: product.category.name,
+                    variantDetails: {
+                        uom: variant.uom,
+                        attributes: variant.attributes,
+                        images: variant.images.slice(0, 1)
+                    }
+                }
+            };
+            
+            orderItems.push(orderItem);
+            subtotal += orderItem.totalPrice;
+            
+            //prepare stock update
+            stockUpdates.push({
+                productId: product._id,
+                variantId: variant._id,
+                quantityToReduce: orderedItem.quantity
+            });
+        }
+        
+        //calculate delivery fee
+        const deliveryFee = subtotal < 300 ? 50 : 0;
+        const totalAmount = subtotal + deliveryFee;
+
+        //Generate unique orderId
+        const orderCount = await Order.countDocuments();
+        const orderId = `ORD${Date.now()}${String(orderCount + 1).padStart(6, '0')}`;
+
+        //Create order
+        const order = new Order({
+            orderId,
+            userId,
+            items: orderItems,
+            shippingAddress: {
+                fullName: address.fullName,
+                phoneOne: address.phoneOne,
+                phoneTwo: address.phoneTwo,
+                area: address.area,
+                locality: address.locality,
+                landmark: address.landmark,
+                district: address.district,
+                state: address.state,
+                country: address.country,
+                pin: address.pin,
+                addressType: address.addressType
+            },
+            paymentMethod,
+            paymentStatus: paymentMethod === 'cod' ? 'pending' : 'completed',
+            subtotal,
+            deliveryFee,
+            totalAmount,
+            orderStatus: 'confirmed',
+            confirmedAt: new Date(),
+            estimatedDelivery: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+        });
+        
+        await order.save({ session });
+        
+        //update product stock
+        for (const update of stockUpdates) {
+            await Product.updateOne(
+                { "_id": update.productId, "variants._id": update.variantId },
+                { $inc: {"variants.$.stock": -update.quantityToReduce} },
+                { session }
+            );
+        }
+        
+        //remove ordered items from cart 
+        cart.items = cart.items.map(cartItem => {
+            const orderedItem = orderedItems.find(ordered => 
+                cartItem.productId._id.toString() === ordered.productId.toString() && cartItem.variantId.toString() === ordered.variantId.toString());
+            
+            if (orderedItem) {
+                //if partial quantity was ordered, reduce cart quantity
+                if (cartItem.quantity > orderedItem.quantity) {
+                    const product = cartItem.productId;
+                    const variant = product.variants.find(v => v._id.toString() === cartItem.variantId.toString());
+                    const remainingQty = cartItem.quantity - orderedItem.quantity;
+                    
+                    return {
+                        ...cartItem,
+                        quantity: remainingQty,
+                        subtotal: variant.salesPrice * remainingQty
+                    };
+                }
+                //if full quantity was ordered, mark for removal
+                return null;
+            }
+            return cartItem;
+        }).filter(item => item !== null);
+        
+        cart.totalAmount = cart.items.reduce((total, item) => total + item.subtotal, 0);
+        await cart.save({ session });
+        
+        await session.commitTransaction();
+        
+        return res.status(200).json({
+            success: true,
+            message: 'Order placed successfully',
+            orderId: order.orderId,
+            orderDetails: {
+                orderId: order.orderId,
+                totalAmount: order.totalAmount,
+                itemCount: order.items.length,
+                estimatedDelivery: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+            }
+        });
+        
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('Error get while placing order:', error);
+        return res.status(500).json({success: false, message: error.message || 'Error placing order'});
+    } finally {
+        session.endSession();
+    }
+}
+
 module.exports = {
     loadCart,
     addToCart,
     removeFromCart,
-    updateCartQuantity ,
-    validateCartForCheckout,
-    processPartialCheckout,
+    updateCartQuantity,
     getCartCount, 
     loadCheckout,
+    placeOrder,
    
 }

@@ -12,7 +12,7 @@ const loadSignUp = async (req,res) => {
         return res.render('auth/userSignUp')
     } catch (error) {
         console.log("failed to load signUP page", error)
-        res.status(500).send("servor error")
+        return res.status(500).send("server error")
     }
 }
 
@@ -82,7 +82,7 @@ const verifyOTP = async (req,res) => {
 
         const expiresAt = new Date(tempUser.otp.expiresAt);
 
-        // Check if OTP has expired first
+        //check if OTP has expired first
         if(expiresAt < new Date()){
            return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "OTP has expired. Please request a new one."})
         }
@@ -115,10 +115,7 @@ const resendOTP = async (req,res) => {
         const tempUser = req.session.tempUser
 
         if(!tempUser) {
-            return res.status(400).json({
-                message: "No active session found. Please restart the registration process.",
-                success: false
-            })
+            return res.status(400).json({message: "No active session found. Please restart the registration process.",success: false});
         }
         // Generate new OTP and update expiration
         const newOTP = generateOTP()
@@ -261,7 +258,7 @@ const forgotPassword = async (req,res) => {
 
             req.session.passwordReset.isVerified = true
 
-            return res.status(200).json({success: true, message: "OTP verified successfull", nextStep: "reset-password"})
+            return res.status(200).json({success: true, message: "OTP verified successful", nextStep: "reset-password"})
         }
 
         // ---------- Step 3: Reset password ----------
