@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <style>
+        /* Additional Order Management Specific Styles */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-info h6 {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-info h3 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.blue { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); }
+        .stat-icon.orange { background: linear-gradient(135deg, #fd7e14 0%, #e55a4e 100%); }
+        .stat-icon.red { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .stat-icon.green { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+
+        /* Search and Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .orders-table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .orders-table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .orders-table tbody td {
+            padding: 1rem;
+            border-color: #f1f3f4;
+            vertical-align: middle;
+        }
+
+        .orders-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d1ecf1; color: #0c5460; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-out-for-delivery { background: #bee5eb; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-returned { background: #e2e3e5; color: #383d41; }
+
+        .status-select {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+            font-size: 0.85rem;
+            font-weight: 500;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .btn-return {
+            background: linear-gradient(135deg, #fd7e14 0%, #e55a4e 100%);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            display: block;
+            width: 100%;
+        }
+
+        .btn-return:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination {
+            margin: 0;
+        }
+
+        .page-link {
+            border-radius: 8px;
+            margin: 0 0.2rem;
+            border: 1px solid #e9ecef;
+            color: #495057;
+        }
+
+        .page-link:hover {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-color: #dc3545;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .search-clear:hover {
+            color: #dc3545;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-info h3 {
+                font-size: 1.5rem;
+            }
+
+            .orders-table {
+                font-size: 0.85rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .btn-view, .btn-return {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-section .row > div {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Title -->
+            <div class="mb-4">
+                <h2 class="fw-bold" style="color: #2c3e50;">Order Management</h2>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Total Orders</h6>
+                        <h3 id="totalOrders">41</h3>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Pending Orders</h6>
+                        <h3 id="pendingOrders">8</h3>
+                    </div>
+                    <div class="stat-icon orange">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Return Requests</h6>
+                        <h3 id="returnRequests">3</h3>
+                    </div>
+                    <div class="stat-icon red">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Total Revenue</h6>
+                        <h3 id="totalRevenue">₹599094.00</h3>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="filter-section">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by Order ID, Customer Name, Email...">
+                            <i class="fas fa-times search-clear" id="searchClear" style="display: none;"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="out for delivery">Out for Delivery</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="returned">Returned</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="sortOrder">
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="itemsPerPageSelect">
+                            <option value="10">10 per page</option>
+                            <option value="25">25 per page</option>
+                            <option value="50">50 per page</option>
+                            <option value="100">100 per page</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="orders-table table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-2"></i>ORDER ID</th>
+                                <th><i class="fas fa-calendar me-2"></i>DATE</th>
+                                <th><i class="fas fa-user me-2"></i>CUSTOMER</th>
+                                <th><i class="fas fa-box me-2"></i>ITEMS</th>
+                                <th><i class="fas fa-rupee-sign me-2"></i>TOTAL</th>
+                                <th><i class="fas fa-info-circle me-2"></i>STATUS</th>
+                                <th><i class="fas fa-cog me-2"></i>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="text-muted">
+                        Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="totalCount">41</span> orders
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0" id="paginationContainer">
+                            <!-- Pagination will be populated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Change Confirmation Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Status Change</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="statusChangeText"></p>
+                    <div id="cancellationReasonDiv" style="display: none;">
+                        <label class="form-label fw-bold">Cancellation Reason</label>
+                        <textarea class="form-control" id="cancellationReason" rows="3" placeholder="Enter reason for cancellation..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmStatusChange">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Request Modal -->
+    <div class="modal fade" id="returnModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Return Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Order ID</label>
+                        <p id="returnOrderId" class="mb-0"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Customer Return Reason</label>
+                        <div class="alert alert-info" id="returnReason"></div>
+                    </div>
+                    <div id="rejectionReasonDiv" style="display: none;">
+                        <label class="form-label fw-bold">Rejection Reason</label>
+                        <textarea class="form-control" id="rejectionReason" rows="3" placeholder="Enter reason for rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="rejectReturnBtn">Reject</button>
+                    <button type="button" class="btn btn-success" id="acceptReturnBtn">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dummy Data
+        const ordersData = [
+            {
+                id: 'cc1629b1',
+                date: '2025-10-03',
+                customer: { name: 'Gaudam S Jith', email: 'gaudam.s.jith2027@gmail.com' },
+                items: 1,
+                total: 2270.00,
+                status: 'processing',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: 'of532ceb',
+                date: '2025-10-03',
+                customer: { name: 'Gaudam S Jith', email: 'gaudam.s.jith2027@gmail.com' },
+                items: 1,
+                total: 2150.00,
+                status: 'processing',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: 'of30ae03',
+                date: '2025-10-03',
+                customer: { name: 'Gaudam S Jith', email: 'gaudam.s.jith2027@gmail.com' },
+                items: 1,
+                total: 2150.00,
+                status: 'pending',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '3c1269b3',
+                date: '2025-10-03',
+                customer: { name: 'Rajesh Kumar', email: 'rajesh.kumar@gmail.com' },
+                items: 2,
+                total: 4500.00,
+                status: 'confirmed',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '7f829ab5',
+                date: '2025-10-02',
+                customer: { name: 'Priya Sharma', email: 'priya.sharma@gmail.com' },
+                items: 3,
+                total: 8900.00,
+                status: 'shipped',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '9a432ef1',
+                date: '2025-10-02',
+                customer: { name: 'Amit Patel', email: 'amit.patel@gmail.com' },
+                items: 1,
+                total: 1850.00,
+                status: 'out for delivery',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '2b567cd8',
+                date: '2025-10-01',
+                customer: { name: 'Neha Gupta', email: 'neha.gupta@gmail.com' },
+                items: 4,
+                total: 12500.00,
+                status: 'delivered',
+                returnRequest: true,
+                returnReason: 'Product quality is not as expected. The item arrived damaged.'
+            },
+            {
+                id: '8c123def',
+                date: '2025-10-01',
+                customer: { name: 'Vikram Singh', email: 'vikram.singh@gmail.com' },
+                items: 2,
+                total: 3200.00,
+                status: 'cancelled',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '5d789ghi',
+                date: '2025-09-30',
+                customer: { name: 'Anita Desai', email: 'anita.desai@gmail.com' },
+                items: 1,
+                total: 2750.00,
+                status: 'delivered',
+                returnRequest: true,
+                returnReason: 'Received wrong product. Ordered blue but received red.'
+            },
+            {
+                id: '1a456jkl',
+                date: '2025-09-30',
+                customer: { name: 'Suresh Menon', email: 'suresh.menon@gmail.com' },
+                items: 5,
+                total: 15600.00,
+                status: 'returned',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '9e234mno',
+                date: '2025-09-29',
+                customer: { name: 'Kavita Rao', email: 'kavita.rao@gmail.com' },
+                items: 3,
+                total: 7800.00,
+                status: 'delivered',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '4f678pqr',
+                date: '2025-09-29',
+                customer: { name: 'Manoj Kumar', email: 'manoj.kumar@gmail.com' },
+                items: 2,
+                total: 5400.00,
+                status: 'pending',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '7h901stu',
+                date: '2025-09-28',
+                customer: { name: 'Deepa Nair', email: 'deepa.nair@gmail.com' },
+                items: 1,
+                total: 1950.00,
+                status: 'confirmed',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '2i345vwx',
+                date: '2025-09-28',
+                customer: { name: 'Ravi Verma', email: 'ravi.verma@gmail.com' },
+                items: 6,
+                total: 18900.00,
+                status: 'shipped',
+                returnRequest: false,
+                returnReason: ''
+            },
+            {
+                id: '6j789yz1',
+                date: '2025-09-27',
+                customer: { name: 'Sunita Iyer', email: 'sunita.iyer@gmail.com' },
+                items: 2,
+                total: 4200.00,
+                status: 'delivered',
+                returnRequest: true,
+                returnReason: 'Product not matching the description on website.'
+            }
+        ];
+
+        // State
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let filteredOrders = [...ordersData];
+        let selectedOrderId = '';
+        let selectedNewStatus = '';
+        let currentReturnOrderId = '';
+
+        // Status workflow definition
+        const statusWorkflow = {
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['processing', 'cancelled'],
+            'processing': ['shipped', 'cancelled'],
+            'shipped': ['out for delivery'],
+            'out for delivery': ['delivered'],
+            'delivered': ['returned'],
+            'cancelled': [],
+            'returned': []
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSidebar();
+            // Highlight active sidebar link
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('data-page') === 'orders') {
+                    link.classList.add('active');
+                }
+            });    
+            renderOrders();
+            updateStats();
+            setupEventListeners();
+        });
+
+        // Sidebar functionality
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    
+                    const icon = this.querySelector('i');
+                    if (sidebar.classList.contains('collapsed')) {
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                    } else {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-left');
+                    }
+                });
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('filterStatus').addEventListener('change', handleFilter);
+            document.getElementById('sortOrder').addEventListener('change', handleSort);
+            document.getElementById('itemsPerPageSelect').addEventListener('change', handleItemsPerPageChange);
+            document.getElementById('confirmStatusChange').addEventListener('click', handleConfirmStatusChange);
+            document.getElementById('acceptReturnBtn').addEventListener('click', handleAcceptReturn);
+            document.getElementById('rejectReturnBtn').addEventListener('click', handleRejectReturn);
+
+            document.getElementById('searchClear').addEventListener('click', function() {
+                document.getElementById('searchInput').value = '';
+                this.style.display = 'none';
+                filteredOrders = [...ordersData];
+                currentPage = 1;
+                renderOrders();
+            });
+        }
+
+
+        // Render orders
+        function renderOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageOrders = filteredOrders.slice(startIndex, endIndex);
+
+            pageOrders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>#${order.id}</strong></td>
+                    <td>${formatDate(order.date)}</td>
+                    <td>
+                        <div><strong>${order.customer.name}</strong></div>
+                        <div class="text-muted" style="font-size: 0.85rem;">${order.customer.email}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark">Total: ${order.items} item${order.items > 1 ? 's' : ''}</span></td>
+                    <td><strong>₹${order.total.toFixed(2)}</strong></td>
+                    <td>${renderStatusDropdown(order)}</td>
+                    <td>
+                        <button class="btn btn-view" onclick="viewOrderDetails('${order.id}')">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </button>
+                        ${order.returnRequest ? `
+                            <button class="btn btn-return" onclick="showReturnModal('${order.id}')">
+                                <i class="fas fa-undo me-1"></i>Return Request
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            renderPagination();
+            updateShowingText();
+        }
+
+        // Render status dropdown
+        function renderStatusDropdown(order) {
+            const allowedStatuses = statusWorkflow[order.status] || [];
+            
+            if (allowedStatuses.length === 0) {
+                return `<span class="status-badge status-${order.status.replace(/\s+/g, '-')}">${capitalize(order.status)}</span>`;
+            }
+
+            let options = `<option value="${order.status}">${capitalize(order.status)}</option>`;
+            allowedStatuses.forEach(status => {
+                options += `<option value="${status}">${capitalize(status)}</option>`;
+            });
+
+            return `<select class="status-select status-${order.status.replace(/\s+/g, '-')}" onchange="handleStatusChange('${order.id}', this.value, this)">
+                ${options}
+            </select>`;
+        }
+
+        // Handle status change
+        function handleStatusChange(orderId, newStatus, selectElement) {
+            const order = ordersData.find(o => o.id === orderId);
+            
+            if (!order) return;
+
+            selectedOrderId = orderId;
+            selectedNewStatus = newStatus;
+
+            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            const statusChangeText = document.getElementById('statusChangeText');
+            const cancellationReasonDiv = document.getElementById('cancellationReasonDiv');
+
+            if (newStatus === 'cancelled') {
+                statusChangeText.textContent = `Are you sure you want to cancel order #${orderId}?`;
+                cancellationReasonDiv.style.display = 'block';
+                document.getElementById('cancellationReason').value = '';
+            } else {
+                statusChangeText.textContent = `Are you sure you want to change the order status from "${capitalize(order.status)}" to "${capitalize(newStatus)}"?`;
+                cancellationReasonDiv.style.display = 'none';
+            }
+
+            statusModal.show();
+
+            // Reset select if modal is closed without confirming
+            document.getElementById('statusModal').addEventListener('hidden.bs.modal', function resetSelect() {
+                if (order.status !== newStatus) {
+                    selectElement.value = order.status;
+                }
+                document.getElementById('statusModal').removeEventListener('hidden.bs.modal', resetSelect);
+            }, { once: true });
+        }
+
+        // Confirm status change
+        function handleConfirmStatusChange() {
+            const order = ordersData.find(o => o.id === selectedOrderId);
+            
+            if (!order) return;
+
+            if (selectedNewStatus === 'cancelled') {
+                const reason = document.getElementById('cancellationReason').value.trim();
+                if (!reason) {
+                    alert('Please enter a cancellation reason');
+                    return;
+                }
+                console.log(`Order ${selectedOrderId} cancelled. Reason: ${reason}`);
+            }
+
+            order.status = selectedNewStatus;
+            
+            const statusModal = bootstrap.Modal.getInstance(document.getElementById('statusModal'));
+            statusModal.hide();
+
+            renderOrders();
+            updateStats();
+            
+            alert(`Order #${selectedOrderId} status updated to "${capitalize(selectedNewStatus)}" successfully!`);
+        }
+
+        // Show return modal
+        function showReturnModal(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            currentReturnOrderId = orderId;
+            
+            document.getElementById('returnOrderId').textContent = `#${orderId}`;
+            document.getElementById('returnReason').textContent = order.returnReason;
+            document.getElementById('rejectionReasonDiv').style.display = 'none';
+            document.getElementById('rejectionReason').value = '';
+
+            const returnModal = new bootstrap.Modal(document.getElementById('returnModal'));
+            returnModal.show();
+        }
+
+        // Handle accept return
+        function handleAcceptReturn() {
+            const order = ordersData.find(o => o.id === currentReturnOrderId);
+            if (!order) return;
+
+            order.status = 'returned';
+            order.returnRequest = false;
+
+            const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+            returnModal.hide();
+
+            renderOrders();
+            updateStats();
+
+            alert(`Return request for order #${currentReturnOrderId} has been accepted!`);
+        }
+
+        // Handle reject return
+        function handleRejectReturn() {
+            const rejectionReasonDiv = document.getElementById('rejectionReasonDiv');
+            
+            if (rejectionReasonDiv.style.display === 'none') {
+                rejectionReasonDiv.style.display = 'block';
+                return;
+            }
+
+            const reason = document.getElementById('rejectionReason').value.trim();
+            if (!reason) {
+                alert('Please enter a rejection reason');
+                return;
+            }
+
+            const order = ordersData.find(o => o.id === currentReturnOrderId);
+            if (!order) return;
+
+            order.returnRequest = false;
+
+            const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+            returnModal.hide();
+
+            renderOrders();
+            updateStats();
+
+            console.log(`Return request rejected for order #${currentReturnOrderId}. Reason: ${reason}`);
+            alert(`Return request for order #${currentReturnOrderId} has been rejected!`);
+        }
+
+        // View order details
+        function viewOrderDetails(orderId) {
+            // Redirect to order details page
+            window.location.href = `/admin/orders/${orderId}`;
+        }
+
+        // Handle search
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const searchClear = document.getElementById('searchClear');
+            
+            // Show/hide clear icon
+            searchClear.style.display = searchTerm ? 'block' : 'none';
+            
+            filteredOrders = ordersData.filter(order => {
+                return order.id.toLowerCase().includes(searchTerm) ||
+                    order.customer.name.toLowerCase().includes(searchTerm) ||
+                    order.customer.email.toLowerCase().includes(searchTerm);
+            });
+
+            currentPage = 1;
+            renderOrders();
+        }
+
+        // Handle filter
+        function handleFilter(e) {
+            const filterValue = e.target.value.toLowerCase();
+            
+            if (filterValue === '') {
+                filteredOrders = [...ordersData];
+            } else {
+                filteredOrders = ordersData.filter(order => order.status === filterValue);
+            }
+
+            // Apply current search if any
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filteredOrders = filteredOrders.filter(order => {
+                    return order.id.toLowerCase().includes(searchTerm) ||
+                           order.customer.name.toLowerCase().includes(searchTerm) ||
+                           order.customer.email.toLowerCase().includes(searchTerm);
+                });
+            }
+
+            currentPage = 1;
+            renderOrders();
+        }
+
+        // Handle sort
+        function handleSort(e) {
+            const sortValue = e.target.value;
+            
+            filteredOrders.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                
+                if (sortValue === 'desc') {
+                    return dateB - dateA;
+                } else {
+                    return dateA - dateB;
+                }
+            });
+
+            renderOrders();
+        }
+
+        function handleItemsPerPageChange(e) {
+            itemsPerPage = parseInt(e.target.value);
+            currentPage = 1;
+            renderOrders();
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            const paginationContainer = document.getElementById('paginationContainer');
+            paginationContainer.innerHTML = '';
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+            paginationContainer.appendChild(prevLi);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                    paginationContainer.appendChild(li);
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    const li = document.createElement('li');
+                    li.className = 'page-item disabled';
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            paginationContainer.appendChild(nextLi);
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderOrders();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Update showing text
+        function updateShowingText() {
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, filteredOrders.length);
+            
+            document.getElementById('showingStart').textContent = startIndex;
+            document.getElementById('showingEnd').textContent = endIndex;
+            document.getElementById('totalCount').textContent = filteredOrders.length;
+        }
+
+        // Update stats
+        function updateStats() {
+            const totalOrders = ordersData.length;
+            const pendingOrders = ordersData.filter(o => o.status === 'pending' || o.status === 'confirmed' || o.status === 'processing').length;
+            const returnRequests = ordersData.filter(o => o.returnRequest).length;
+            const totalRevenue = ordersData.filter(o => o.status !== 'cancelled' && o.status !== 'returned').reduce((sum, o) => sum + o.total, 0);
+
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('pendingOrders').textContent = pendingOrders;
+            document.getElementById('returnRequests').textContent = returnRequests;
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function capitalize(str) {
+            return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+    </script>
+</body>
+</html>

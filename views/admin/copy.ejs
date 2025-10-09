@@ -123,19 +123,29 @@
                                         <td class="text-light-red">₹<%= pro.regularPrice %></td>
                                         <td class="text-light-green">₹<%= pro.salesPrice %></td>
                                         <td class="<%= pro.stock < 10 ? 'text-danger' : 'text-success' %>"><%= pro.stock %></td>
+                                        
                                         <td>
-                                            <div class="action-buttons">
-                                                <button class="status-btn" onclick="showVariantStatusModal('<%= pro._id %>')">
-                                                    Variants Status
+                                            <div class="action-dropdown">
+                                                <button class="dropdown-toggle-btn" onclick="toggleActionDropdown(event, '${pro._id}')">
+                                                    <i class="fas fa-ellipsis-v"></i>
                                                 </button>
-                                                <button class="edit-btn btn-blue" onclick="editProduct('<%= pro._id %>')">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="view-btn btn-light-blue" onclick="viewProduct('<%= pro._id %>')">
-                                                    <i class="fas fa-eye"></i> View More
-                                                </button>
+                                                <div class="dropdown-menu-custom" id="dropdown-${pro._id}">
+                                                    <button class="dropdown-item status-item" onclick="showVariantStatusModal('${pro._id}'); closeDropdown('${pro._id}')">
+                                                        <i class="fas fa-toggle-on"></i>
+                                                        <span>Variant Status</span>
+                                                    </button>
+                                                    <button class="dropdown-item view-item" onclick="viewProduct('${pro._id}'); closeDropdown('${pro._id}')">
+                                                        <i class="fas fa-eye"></i>
+                                                        <span>View More</span>
+                                                    </button>
+                                                    <button class="dropdown-item edit-item" onclick="editProduct('${pro._id}'); closeDropdown('${pro._id}')">
+                                                        <i class="fas fa-edit"></i>
+                                                        <span>Edit</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </td>
+                                    
                                     </tr>
                                 <% }); %>
                             <% } %>
@@ -383,6 +393,11 @@
         }
 
         async function showVariantStatusModal(productId) {
+            if (!productId || productId === 'undefined') {
+                console.error('Invalid product ID:', productId);
+                showNotification('Invalid product ID', 'error');
+                return;
+            }
             try {
                 currentProductId = productId;
                 const response = await fetch(`/admin/products/details/${productId}`);
@@ -680,6 +695,11 @@
         }
 
         function editProduct(productId) {
+            if (!productId || productId === 'undefined') {
+                console.error('Invalid product ID:', productId);
+                showNotification('Invalid product ID', 'error');
+                return;
+            }
             window.location.href = `/admin/products/edit/${productId}`;
         }
 
@@ -715,6 +735,12 @@
         }
 
         async function viewProduct(productId) {
+            if (!productId || productId === 'undefined') {
+                console.error('Invalid product ID:', productId);
+                showNotification('Invalid product ID', 'error');
+                return;
+            }
+
             try {
                 const response = await fetch(`/admin/products/details/${productId}`);
                 const data = await response.json();
@@ -964,30 +990,48 @@
                 return;
             }
             
-            tbody.innerHTML = products.map(pro => `
-                <tr data-product-id="${pro._id}">
-                    <td class="font-weight-bold">${pro.serialNo}</td>
-                    <td class="font-weight-semibold">${pro.name}</td>
-                    <td class="font-weight-semibold">${pro.category}</td>
-                    <td class="font-weight-semibold">${pro.brand}</td>
-                    <td class="text-light-red">₹${pro.regularPrice}</td>
-                    <td class="text-light-green">₹${pro.salesPrice}</td>
-                    <td class="${pro.stock < 10 ? 'text-danger' : 'text-success'}">${pro.stock}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="status-btn" onclick="showVariantStatusModal('${pro._id}')">
-                                Variants Status
-                            </button>
-                            <button class="edit-btn btn-blue" onclick="editProduct('${pro._id}')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="view-btn btn-light-blue" onclick="viewProduct('${pro._id}')">
-                                <i class="fas fa-eye"></i> View More
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = products.map(pro => {
+                // Validate product ID before rendering
+                if (!pro._id) {
+                    console.error('Product missing _id:', pro);
+                    return '';
+                }
+                
+                return `
+                    <tr data-product-id="${pro._id}">
+                        <td class="font-weight-bold">${pro.serialNo}</td>
+                        <td class="font-weight-semibold">${pro.name}</td>
+                        <td class="font-weight-semibold">${pro.category}</td>
+                        <td class="font-weight-semibold">${pro.brand}</td>
+                        <td class="text-light-red">₹${pro.regularPrice}</td>
+                        <td class="text-light-green">₹${pro.salesPrice}</td>
+                        <td class="${pro.stock < 10 ? 'text-danger' : 'text-success'}">${pro.stock}</td>
+                        
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="dropdown-toggle-btn" onclick="toggleActionDropdown(event, '${pro._id}')">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="dropdown-menu-custom" id="dropdown-${pro._id}">
+                                    <button class="dropdown-item status-item" onclick="showVariantStatusModal('${pro._id}'); closeDropdown('${pro._id}')">
+                                        <i class="fas fa-toggle-on"></i>
+                                        <span>Variant Status</span>
+                                    </button>
+                                    <button class="dropdown-item view-item" onclick="viewProduct('${pro._id}'); closeDropdown('${pro._id}')">
+                                        <i class="fas fa-eye"></i>
+                                        <span>View More</span>
+                                    </button>
+                                    <button class="dropdown-item edit-item" onclick="editProduct('${pro._id}'); closeDropdown('${pro._id}')">
+                                        <i class="fas fa-edit"></i>
+                                        <span>Edit</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+
+                    </tr>
+                `;
+            }).filter(row => row !== '').join(''); // Filter out empty rows from invalid products
         }
 
 
@@ -1012,6 +1056,39 @@
             
             paginationControls.innerHTML = buttonsHtml;
         }
+
+        // Dropdown toggle functionality
+        function toggleActionDropdown(event, productId) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`dropdown-${productId}`);
+            const allDropdowns = document.querySelectorAll('.dropdown-menu-custom');
+            
+            // Close all other dropdowns
+            allDropdowns.forEach(dd => {
+                if (dd.id !== `dropdown-${productId}`) {
+                    dd.classList.remove('show');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('show');
+        }
+
+        function closeDropdown(productId) {
+            const dropdown = document.getElementById(`dropdown-${productId}`);
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-dropdown')) {
+                document.querySelectorAll('.dropdown-menu-custom').forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
     </script>
 </body>
 </html>

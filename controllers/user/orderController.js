@@ -14,8 +14,6 @@ const loadOrdersList = async (req, res) => {
         const skip = (page - 1) * limit;
         const search = req.query.search?.trim() || '';
         const status = req.query.status || 'all';
-        console.log("status is : " ,status)
-        console.log("search is : " ,search)
  
         let searchQuery = { userId };
         if (search) {
@@ -224,16 +222,12 @@ const cancelOrder = async (req, res) => {
 };
 
 const returnOrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    
     try {
-        await session.startTransaction();
-        
         const { orderId } = req.params;
         const { reason, description, returnType, itemId } = req.body;
         const userId = req.session.userId;
         
-        const order = await Order.findOne({ orderId, userId }).session(session);
+        const order = await Order.findOne({ orderId, userId });
         
         if (!order) {
             return res.status(404).json({success: false, message: 'Order not found'});
@@ -256,90 +250,81 @@ const returnOrder = async (req, res) => {
             return res.status(400).json({success: false, message: 'Return reason is required'});
         }
         
-        if (returnType === 'entire_order') { //Return entire order           
-            for (const item of order.items) {
-                if (item.status !== 'returned') { 
-                    await Product.updateOne(
-                        { 
-                            "_id": item.productId, "variants._id": item.variantId
-                        },
-                        { 
-                            $inc: {"variants.$.stock": item.quantity}
-                        },
-                        { session }
-                    );
+        if(returnType === 'entire_order'){//Return entire order
+            if(order.returnRequestStatus === 'rejected'){
+                return res.status(400).json({success: false, message: 'Return request was already rejected. Cannot request return again.'});
+            }
 
-                    item.status = 'returned';
-                    item.cancelledAt = new Date();
-                    item.cancellationReason = reason;
-                    item.cancelledBy = 'user';
+            if(order.returnRequestStatus === 'pending'){
+                return res.status(400).json({success: false, message: 'Return request is already pending for admin approval'});
+            }
+
+            for(const item of order.items){
+                if(item.status !== 'returned' && item.status !== 'cancelled'){//update order return request status only if already not cancelled and returned
+                    item.returnRequestStatus = 'pending';
+                    item.returnRequestedAt = new Date();
+                    item.returnReason = reason;
+                    item.returnedBy = 'user';
                 }
             }
-            
-            // Update order status
-            order.orderStatus = 'returned';
-            order.returnedAt = new Date();
+            //update order return request status
+            order.returnRequestStatus = 'pending';
+            order.returnRequestedAt = new Date();
             order.returnReason = reason;
             order.returnedBy = 'user';
             if (description) {
                 order.adminNotes = description;
             }
-            
-        } else if (returnType === 'single_item') {//return single item
+        }else if(returnType === 'single_item'){//return single item
             const itemToReturn = order.items.find(item => item._id.toString() === itemId);
-            
-            if (!itemToReturn) {
+
+            if(!itemToReturn){
                 return res.status(404).json({success: false, message: 'Item not found in order'});
             }
-            
-            if (itemToReturn.status === 'cancelled') {
-                return res.status(400).json({success: false, message: 'Cannot return a cancelled item'});
+
+            if(itemToReturn.status === 'cancelled'){
+                return res.status(400).json({success: false, message: 'Cannot return already cancelled item'});
             }
-            
-            if (itemToReturn.status === 'returned') {
+
+            if(itemToReturn.returnRequestStatus === 'rejected'){
+                return res.status(400).json({success: false, message: 'Return request for this item was already rejected. Cannot request return again.'});
+            }
+
+            if(itemToReturn.returnRequestStatus === 'pending'){
+                return res.status(400).json({success: false, message: 'Return request for this item is already pending admin approval'});
+            }
+
+            if(itemToReturn.returnRequestStatus === 'returned'){
                 return res.status(400).json({success: false, message: 'Item is already returned'});
             }
-            
-            //restore stock for returned item
-            await Product.updateOne(
-                { 
-                    "_id": itemToReturn.productId, "variants._id": itemToReturn.variantId
-                },
-                { 
-                    $inc: {"variants.$.stock": itemToReturn.quantity}
-                },
-                { session }
-            );
-            
-            //return info to the item
-            itemToReturn.status = 'returned';
-            itemToReturn.returnedAt = new Date();
+            //update single item return request details
+            itemToReturn.returnRequestStatus = 'pending';
+            itemToReturn.returnRequestedAt = new Date();
             itemToReturn.returnReason = reason;
             itemToReturn.returnedBy = 'user';
-            
-            //check all items are returned
-            const activeItems = order.items.filter(item => item.status === 'active');
-            if (activeItems.length === 0) {
-                order.orderStatus = 'returned';
-                order.returnedAt = new Date();
-                order.returnReason = 'All items returned';
+
+            //if the other all items returnRequestStatus if pending/accepted and items status if returned/cancelled it will apply returnRequestStatus pending(order level)
+            const allPending = order.items.every(item => item.returnRequestStatus === 'pending' || item.returnRequestStatus === 'accepted' || item.status === 'returned' || item.status === 'cancelled');
+            if(allPending){
+                order.returnRequestStatus = 'pending';
+                order.returnRequestedAt = new Date();
+                order.returnReason = 'All items are under return request';
                 order.returnedBy = 'user';
             }
+
+            if (description) {
+                order.adminNotes = description;
+            }
         }
-        
-        await order.save({ session });
-        await session.commitTransaction();
+        await order.save();
         
         const message = returnType === 'entire_order' ? 'Return request for entire order submitted successfully' : 'Return request submitted successfully';
             
         return res.status(200).json({success: true, message});
         
     } catch (error) {
-        await session.abortTransaction();
         console.error('Error processing return:', error);
         return res.status(500).json({success: false, message: 'Error processing return request'});
-    } finally {
-        session.endSession();
     }
 };
 

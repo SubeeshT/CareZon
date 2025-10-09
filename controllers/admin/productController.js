@@ -24,9 +24,11 @@ const loadProductListPage = async (req, res) => {
                 {
                     $lookup: {from: 'brands', localField: 'brand', foreignField: '_id', as: 'brand'}
                 },
+                { $unwind: '$brand' },
                 {
                     $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'category'}
                 },
+                { $unwind: '$category' },
                 {
                     $match: {...searchFilter, variants: { $elemMatch: { isListed: true } }}
                 },
@@ -38,9 +40,11 @@ const loadProductListPage = async (req, res) => {
                 {
                     $lookup: {from: 'brands', localField: 'brand', foreignField: '_id', as: 'brand'}
                 },
+                { $unwind: '$brand' },
                 {
                     $lookup: {from: 'categories', localField: 'category', foreignField: '_id', as: 'category'}
                 },
+                { $unwind: '$category' },
                 {
                     $match: {...searchFilter, variants: { $not: { $elemMatch: { isListed: true } } }}
                 },

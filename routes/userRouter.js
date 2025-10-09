@@ -80,7 +80,7 @@ router.get('/cart/checkout', auth.validateActiveUser, cartController.loadCheckou
 router.post('/order/place', auth.validateActiveUser, cartController.placeOrder);
 
 
-// Order section
+//order section
 router.get('/account/orders/details/:orderId', auth.validateActiveUser, orderController.loadOrderedProductsDetails);
 router.patch('/account/orders/cancel/:orderId', auth.validateActiveUser, orderController.cancelOrder);
 router.get('/account/orders', auth.validateActiveUser, orderController.loadOrdersList);

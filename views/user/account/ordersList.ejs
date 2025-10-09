@@ -114,6 +114,11 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .status-out-for-delivery { 
+            background: #fff3cd; 
+            color: #856404; 
+            border: 1px solid #c3e6cb;
+        }
 
         .status-delivered {
             background: #d4edda;
@@ -431,6 +436,7 @@
                             <button class="filter-btn" data-status="confirmed">Confirmed</button>
                             <button class="filter-btn" data-status="processing">Processing</button>
                             <button class="filter-btn" data-status="shipped">Shipped</button>
+                            <button class="filter-btn" data-status="out for delivery">Out for delivery</button>
                             <button class="filter-btn" data-status="delivered">Delivered</button>
                             <button class="filter-btn" data-status="cancelled">Cancelled</button>
                             <button class="filter-btn" data-status="returned">Returned</button>
@@ -744,6 +750,8 @@
                     return '<small class="text-info">📦 Being prepared</small>';
                 case 'shipped':
                     return '<small class="text-primary">🚚 On the way</small>';
+                case 'out for delivery':
+                    return '<small class="text-warning">🚚 Out for Delivery</small>';    
                 case 'delivered':
                     return '<small class="text-success">✅ Delivered</small>';
                 case 'cancelled':
@@ -756,7 +764,7 @@
         }
 
         function getCancelButton(status, orderId) {
-            if (status === 'pending' || status === 'confirmed') {
+            if (status === 'pending' || status === 'confirmed' || status === 'processing') {
                 return `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${orderId}')">
                             <i class="fas fa-times"></i> Cancel Order
                         </button>`;

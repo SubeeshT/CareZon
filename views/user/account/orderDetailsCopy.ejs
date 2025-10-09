@@ -6,7 +6,6 @@
     <title>Order Details - CareZon</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="/user/css/headerAndFooter.css">
     <link rel="stylesheet" href="/user/css/sidebar.css">
     <style>
@@ -659,30 +658,16 @@
                                             </span>
                                             
                                             <div class="item-actions">
-                                                <% if (['pending', 'confirmed', 'processing'].includes(order.orderStatus) && (!item.displayStatus || item.displayStatus === 'active') && item.returnRequestStatus === 'none') { %>
+                                                <% if (['pending', 'confirmed', 'processing'].includes(order.orderStatus) && (!item.displayStatus || item.displayStatus === 'active')) { %>
                                                     <button class="btn btn-sm btn-cancel" onclick="cancelItem('<%= item._id %>', '<%= order.orderId %>')">
                                                         <i class="fas fa-times"></i> Cancel Item
                                                     </button>
                                                 <% } %>
                                                 
                                                 <% if (order.orderStatus === 'delivered' && (!item.displayStatus || item.displayStatus === 'active')) { %>
-                                                    <% if (item.returnRequestStatus === 'none') { %>
-                                                        <button class="btn btn-sm btn-return" onclick="returnItem('<%= item._id %>', '<%= order.orderId %>')">
-                                                            <i class="fas fa-undo"></i> Return Item
-                                                        </button>
-                                                    <% } else if (item.returnRequestStatus === 'pending') { %>
-                                                        <button class="btn btn-sm btn-warning" onclick="checkReturnStatus('<%= item._id %>', 'pending', null)">
-                                                            <i class="fas fa-clock"></i> Return Requested
-                                                        </button>
-                                                    <% } else if (item.returnRequestStatus === 'accepted') { %>
-                                                        <button class="btn btn-sm btn-success" disabled>
-                                                            <i class="fas fa-check-circle"></i> Return Accepted
-                                                        </button>
-                                                    <% } else if (item.returnRequestStatus === 'rejected') { %>
-                                                        <button class="btn btn-sm btn-danger" onclick="checkReturnStatus('<%= item._id %>', 'rejected', '<%= item.rejectionReason || 'No reason provided' %>')">
-                                                            <i class="fas fa-times-circle"></i> Return Rejected
-                                                        </button>
-                                                    <% } %>
+                                                    <button class="btn btn-sm btn-return" onclick="returnItem('<%= item._id %>', '<%= order.orderId %>')">
+                                                        <i class="fas fa-undo"></i> Return Item
+                                                    </button>
                                                 <% } %>
                                                 
                                                 <% if (item.displayStatus === 'cancelled') { %>
@@ -691,6 +676,13 @@
                                                     </div>
                                                 <% } %>
                                                 
+                                                <% if (item.displayStatus === 'returned') { %>
+                                                    <div class="item-status-text text-warning fw-bold mt-2">
+                                                        <i class="fas fa-undo"></i> Return request submitted for this item
+                                                    </div>
+                                                <% } %>
+                                                
+                                               <!-- Only show rate button for delivered and returned orders with active items -->
                                                 <% if (['delivered', 'returned'].includes(order.orderStatus) && (!item.displayStatus || item.displayStatus === 'active')) { %>
                                                     <button class="btn btn-sm btn-rate" onclick="addRating('<%= item._id %>')">
                                                         <i class="fas fa-star"></i> Rate & Review
@@ -1032,29 +1024,9 @@
             </div>
         </div>
     </div>
-
-    <!-- Return Status Modal -->
-    <div class="modal fade" id="returnStatusModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Return Request Status</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="returnStatusContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     
     <%- include('../../views/partials/user/footer.ejs') %>
     
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -1073,21 +1045,7 @@
             window.location.href = `/account/orders/invoice/${orderId}`;
         }
 
-        // Toast notification helper
-        function showToast(message, type = 'success') {
-            Toastify({
-                text: message,
-                duration: 5000,
-                gravity: "top",
-                position: "right",
-                style: {
-                    background: type === 'success' ? '#28a745' : 
-                            type === 'error' ? '#dc3545' : 
-                            type === 'warning' ? '#ffc107' : '#17a2b8',
-                },
-                stopOnFocus: true
-            }).showToast();
-        }
+       
 
         // Cancel item function
         function cancelItem(itemId, orderId) {
@@ -1102,33 +1060,6 @@
             currentItemId = itemId;
             currentOrderId = orderId;
             const modal = new bootstrap.Modal(document.getElementById('returnModal'));
-            modal.show();
-        }
-
-        function checkReturnStatus(itemId, status, rejectionReason) {
-            const statusContent = document.getElementById('returnStatusContent');
-            
-            if (status === 'pending') {
-                statusContent.innerHTML = `
-                    <div class="alert alert-warning">
-                        <i class="fas fa-clock fa-2x mb-3"></i>
-                        <h5>Return Request Pending</h5>
-                        <p>Your return request is currently being reviewed by our team. You will be notified once a decision is made.</p>
-                        <small class="text-muted">This typically takes 1-2 business days.</small>
-                    </div>
-                `;
-            } else if (status === 'rejected') {
-                statusContent.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-times-circle fa-2x mb-3"></i>
-                        <h5>Return Request Rejected</h5>
-                        <p><strong>Reason:</strong> ${rejectionReason || 'No reason provided'}</p>
-                        <small class="text-muted">If you have questions about this decision, please contact our support team.</small>
-                    </div>
-                `;
-            }
-            
-            const modal = new bootstrap.Modal(document.getElementById('returnStatusModal'));
             modal.show();
         }
 
@@ -1194,11 +1125,11 @@
         function processImages(files) {
             const validImages = files.filter(file => {
                 if (!file.type.startsWith('image/')) {
-                    showToast(`${file.name} is not a valid image file.`,  'warning');
+                    alert(`${file.name} is not a valid image file.`);
                     return false;
                 }
                 if (file.size > maxFileSize) {
-                    showToast(`${file.name} is too large. Maximum size is 5MB.`,  'warning');
+                    alert(`${file.name} is too large. Maximum size is 5MB.`);
                     return false;
                 }
                 return true;
@@ -1206,7 +1137,7 @@
 
             const remainingSlots = maxImages - selectedImages.length;
             if (validImages.length > remainingSlots) {
-                showToast(`You can only upload ${remainingSlots} more image(s). Maximum is ${maxImages} images.`,  'warning');
+                alert(`You can only upload ${remainingSlots} more image(s). Maximum is ${maxImages} images.`);
                 validImages.splice(remainingSlots);
             }
 
@@ -1317,17 +1248,18 @@
             const otherReason = document.getElementById('otherReason').value;
             
             if (!reason) {
-                showToast('Please select a reason for cancellation.', 'warning');
+                alert('Please select a reason for cancellation.');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                showToast('Please specify the reason for cancellation.', 'warning');
+                alert('Please specify the reason for cancellation.');
                 return;
             }
 
             const finalReason = reason === 'other' ? otherReason : reason;
             
+            // Make API call to cancel individual item
             fetch(`/account/orders/cancel/${currentOrderId}`, {
                 method: 'PATCH',
                 headers: {
@@ -1342,36 +1274,39 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('Item has been cancelled successfully.', 'success');
+                    alert('Item has been cancelled successfully.');
+                    
+                    // Update UI for single item cancellation
                     updateSingleItemStatus(currentItemId, 'cancelled');
+                    
                     bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide();
                 } else {
-                    showToast(data.message || 'Error cancelling item', 'error');
+                    alert(data.message || 'Error cancelling item');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error cancelling item. Please try again.', 'error');
+                alert('Error cancelling item. Please try again.');
             });
         }
-
         function confirmReturn() {
             const reason = document.getElementById('returnReason').value;
             const otherReason = document.getElementById('returnOtherReason').value;
             const description = document.getElementById('returnDescription').value;
             
             if (!reason) {
-                showToast('Please select a reason for return.', 'warning');
+                alert('Please select a reason for return.');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                showToast('Please specify the reason for return.', 'warning');
+                alert('Please specify the reason for return.');
                 return;
             }
 
             const finalReason = reason === 'other' ? otherReason : reason;
             
+            // Make API call to return individual item
             fetch(`/account/orders/return/${currentOrderId}`, {
                 method: 'POST',
                 headers: {
@@ -1387,50 +1322,24 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('Return request has been submitted successfully.', 'success');
+                    alert('Return request has been submitted successfully.');
                     
-                    // Update UI without page reload
-                    updateItemReturnStatus(currentItemId, 'pending');
+                    // Update UI for single item return
+                    updateSingleItemStatus(currentItemId, 'returned');
                     
                     bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
                 } else {
-                    showToast(data.message || 'Error processing return request', 'error');
+                    alert(data.message || 'Error processing return request');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error processing return request. Please try again.', 'error');
+                alert('Error processing return request. Please try again.');
             });
         }
-
-        function updateItemReturnStatus(itemId, status) {
-            const itemCards = document.querySelectorAll('.item-card');
-            let targetItemCard = null;
-            
-            itemCards.forEach(card => {
-                const buttons = card.querySelectorAll(`[onclick*="'${itemId}'"]`);
-                if (buttons.length > 0) {
-                    targetItemCard = card;
-                }
-            });
-            
-            if (targetItemCard) {
-                const itemActions = targetItemCard.querySelector('.item-actions');
-                const returnBtn = itemActions.querySelector('.btn-return');
-                
-                if (returnBtn && status === 'pending') {
-                    returnBtn.outerHTML = `
-                        <button class="btn btn-sm btn-warning" onclick="checkReturnStatus('${itemId}', 'pending', null)">
-                            <i class="fas fa-clock"></i> Return Requested
-                        </button>
-                    `;
-                }
-            }
-        }
-
         function submitRating() {
             if (selectedRating === 0) {
-                showToast('Please select a rating.', 'warning');
+                alert('Please select a rating.');
                 return;
             }
             
@@ -1452,9 +1361,9 @@
                 formData.append(`reviewImage${index}`, image.file);
             });
             
-         
+            // API call example:
             /*
-            fetch('/reviews', {
+            fetch('/api/reviews', {
                 method: 'POST',
                 body: formData
             })
@@ -1465,12 +1374,12 @@
             })
             .catch(error => {
                 console.error('Error submitting review:', error);
-                showToast('Error submitting review. Please try again.', 'error');
+                alert('Error submitting review. Please try again.');
             });
             */
             
             // Simulate rating submission success
-            showToast('Thank you for your review! Your rating has been submitted successfully.', 'success');
+            alert('Thank you for your review! Your rating and images have been submitted successfully.');
             
             // Update UI to show the new rating
             const itemCard = document.querySelector(`[onclick*="${currentItemId}"]`).closest('.item-card');
@@ -1649,12 +1558,12 @@
             const otherReason = document.getElementById('cancelEntireOrderOther').value;
             
             if (!reason) {
-                showToast('Please select a reason for cancellation.', 'warning');
+                alert('Please select a reason for cancellation.');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                showToast('Please specify the reason for cancellation.',  'warning');
+                alert('Please specify the reason for cancellation.');
                 return;
             }
 
@@ -1674,15 +1583,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('Entire order has been cancelled successfully.', 'success');
+                    alert('Entire order has been cancelled successfully.');
                     location.reload();
                 } else {
-                    showToast(data.message || 'Error cancelling order', 'error');
+                    alert(data.message || 'Error cancelling order');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error cancelling order. Please try again.', 'error');
+                alert('Error cancelling order. Please try again.');
             });
             
             bootstrap.Modal.getInstance(document.getElementById('cancelEntireOrderModal')).hide();
@@ -1711,12 +1620,12 @@
             const description = document.getElementById('returnEntireOrderDescription').value;
             
             if (!reason) {
-                showToast('Please select a reason for return.',  'warning');
+                alert('Please select a reason for return.');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                showToast('Please specify the reason for return.',  'warning');
+                alert('Please specify the reason for return.');
                 return;
             }
 
@@ -1737,15 +1646,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('Return request for entire order has been submitted successfully.', 'success');
+                    alert('Return request for entire order has been submitted successfully.');
                     location.reload();
                 } else {
-                    showToast(data.message || 'Error processing return request', 'error');
+                    alert(data.message || 'Error processing return request');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error processing return request. Please try again.', 'error');
+                alert('Error processing return request. Please try again.');
             });
             
             bootstrap.Modal.getInstance(document.getElementById('returnEntireOrderModal')).hide();

@@ -5,6 +5,7 @@ const userController = require('../controllers/admin/userController');
 const categoryController = require('../controllers/admin/categoryController');
 const brandController = require('../controllers/admin/brandController');
 const productController = require('../controllers/admin/productController');
+const orderController = require('../controllers/admin/orderController');
 const auth = require('../middlewares/auth');
 const uploadConfigs  = require('../utils/multerConfig');
 
@@ -43,6 +44,13 @@ router.get('/products/details/:id', auth.isAdminLoggedIn, productController.view
 router.get('/products/edit/:id', auth.isAdminLoggedIn, productController.loadEditProductPage);
 router.put('/products/edit/:id', auth.isAdminLoggedIn, uploadConfigs.productImage, productController.editProduct);
 router.patch('/products/status/:id', auth.isAdminLoggedIn, productController.productStatus);
+
+//order management section
+router.get('/orders', orderController.loadOrder);
+router.patch('/order/status/:id', orderController.updateOrderStatus);
+router.patch('/order/return/:id', orderController.updateReturnOrder);
+router.get('/order/viewFullDetails/:id', orderController.orderFullDetails);
+
 
 
 

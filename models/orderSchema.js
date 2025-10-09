@@ -42,6 +42,12 @@ const orderItemSchema = new mongoose.Schema({
     enum: ['active', 'cancelled', 'returned'],
     default: 'active'
     },
+    returnRequestStatus: {
+        type: String,
+        enum: ['none', 'pending', 'accepted', 'rejected'],
+        default: 'none'
+    },
+    returnRequestedAt: Date,
     cancelledAt: Date,
     cancellationReason: String,
     cancelledBy: {
@@ -54,6 +60,7 @@ const orderItemSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'admin', 'system']
     },
+    rejectionReason: String,
 });
 
 const orderSchema = new mongoose.Schema({
@@ -133,6 +140,10 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    discount: {
+        type: Number,
+        default: 0
+    },
     totalAmount: {
         type: Number,
         required: true,
@@ -140,9 +151,17 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: String,
-        enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
+        enum: ['pending', 'confirmed', 'processing', 'shipped', 'out for delivery', 'delivered', 'cancelled', 'returned'],
         default: 'pending'
     },
+    returnRequestStatus: {
+        type: String,
+        enum: ['none', 'pending', 'accepted', 'rejected'],
+        default: 'none'
+    },
+    returnRequestedAt: Date,
+
+
     //delivery date
     estimatedDelivery: Date,
     deliveredAt: Date,
@@ -150,9 +169,10 @@ const orderSchema = new mongoose.Schema({
     //order lifecycle timestamps
     confirmedAt: Date,
     shippedAt: Date,
-    cancelledAt: Date,
+    outForDeliveryAt: Date,
     
     //cancellation details
+    cancelledAt: Date,
     cancellationReason: String,
     cancelledBy: {
         type: String,
@@ -161,10 +181,12 @@ const orderSchema = new mongoose.Schema({
 
     returnedAt: Date,
     returnReason: String,
+    adminNotes: String, //for store return description if have
     returnedBy: {
         type: String,
         enum: ['user', 'admin', 'system']
     },
+    rejectionReason: String,
 
 }, { timestamps: true });
 

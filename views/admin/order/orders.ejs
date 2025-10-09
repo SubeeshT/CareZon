@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <style>
+        /* Additional Order Management Specific Styles */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-info h6 {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-info h3 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.blue { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); }
+        .stat-icon.orange { background: linear-gradient(135deg, #fd7e14 0%, #e55a4e 100%); }
+        .stat-icon.red { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .stat-icon.green { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+
+        /* Search and Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .search-box i.fa-search {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            z-index: 10;
+        }
+
+        .search-box i {
+            position: absolute;
+            /* left: 1rem; */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .orders-table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .orders-table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .orders-table tbody td {
+            padding: 1rem;
+            border-color: #f1f3f4;
+            vertical-align: middle;
+        }
+
+        .orders-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d1ecf1; color: #0c5460; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-out-for-delivery { background: #bee5eb; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-returned { background: #e2e3e5; color: #383d41; }
+
+        .status-select {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+            font-size: 0.85rem;
+            font-weight: 500;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .btn-return {
+            background: linear-gradient(135deg, #fd7e14 0%, #e55a4e 100%);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            display: block;
+            width: 100%;
+        }
+
+        .btn-return:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination {
+            margin: 0;
+        }
+
+        .page-link {
+            border-radius: 8px;
+            margin: 0 0.2rem;
+            border: 1px solid #e9ecef;
+            color: #495057;
+        }
+
+        .page-link:hover {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-color: #dc3545;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            z-index: 10;
+        }
+
+        .search-clear:hover {
+            color: #dc3545;
+        }
+
+        /* Table Scrolling - Works on ALL screen sizes */
+        .table-container {
+            position: relative;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+        }
+
+        .orders-table {
+            width: 100%;
+            min-width: 1100px; /* Ensures table needs scrolling if viewport is smaller */
+            margin-bottom: 0;
+        }
+
+        /* Show scroll hint on all screens when table overflows */
+        @media (max-width: 1400px) {
+            .table-container::after {
+                content: '← Swipe to see more →';
+                display: block;
+                text-align: center;
+                padding: 0.5rem;
+                color: #6c757d;
+                font-size: 0.75rem;
+                font-style: italic;
+                background: #f8f9fa;
+                border-radius: 0 0 15px 15px;
+                margin-top: 0.5rem;
+            }
+
+            .table-container.scrolled::after {
+                display: none;
+            }
+        }
+
+       /* Responsive Design - Comprehensive */
+
+        /* Large Desktop - 1280px and above */
+        @media (min-width: 1281px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Medium Desktop - 1024px to 1280px */
+        @media (max-width: 1280px) and (min-width: 1025px) {
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.3rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.8rem;
+            }
+
+            .filter-section .col-md-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            .filter-section .col-md-2 {
+                flex: 0 0 16.666%;
+                max-width: 16.666%;
+            }
+
+            .orders-table {
+                font-size: 0.85rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.9rem 0.7rem;
+            }
+        }
+
+        /* Tablet Landscape & Small Desktop - 1024px */
+        @media (max-width: 1024px) and (min-width: 913px) {
+            .content-wrapper {
+                padding: 1.5rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.2rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.7rem;
+            }
+
+            .stat-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 1.4rem;
+            }
+
+            .filter-section .row {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .filter-section .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 0.75rem;
+            }
+
+            .filter-section .col-md-2 {
+                flex: 0 0 33.333%;
+                max-width: 33.333%;
+                padding: 0 0.375rem;
+            }
+
+            .orders-table {
+                font-size: 0.82rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.85rem 0.6rem;
+            }
+
+            .status-select {
+                min-width: 130px;
+                font-size: 0.8rem;
+            }
+
+            .btn-view {
+                padding: 0.45rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Tablet Portrait - 912px */
+        @media (max-width: 912px) and (min-width: 854px) {
+            .content-wrapper {
+                padding: 1.3rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.1rem;
+            }
+
+            .stat-info h6 {
+                font-size: 0.85rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.6rem;
+            }
+
+            .stat-icon {
+                width: 52px;
+                height: 52px;
+                font-size: 1.3rem;
+            }
+
+            .filter-section {
+                padding: 1.3rem;
+            }
+
+            .filter-section .row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
+            .filter-section .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .filter-section .col-md-2 {
+                flex: 0 0 calc(33.333% - 0.5rem);
+                max-width: calc(33.333% - 0.5rem);
+            }
+
+            .search-box input {
+                font-size: 0.88rem;
+                padding: 0.7rem 2.5rem 0.7rem 2.5rem;
+            }
+
+            .form-select {
+                font-size: 0.88rem;
+                padding: 0.7rem 2rem 0.7rem 0.75rem;
+            }
+
+            .table-container {
+                padding: 1.3rem;
+                overflow-x: auto;
+            }
+
+            .orders-table {
+                min-width: 850px;
+                font-size: 0.8rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.8rem 0.55rem;
+            }
+
+            .status-select {
+                min-width: 125px;
+                font-size: 0.78rem;
+            }
+
+            .btn-view {
+                padding: 0.42rem 0.75rem;
+                font-size: 0.78rem;
+            }
+
+            .btn-return {
+                font-size: 0.72rem;
+                padding: 0.35rem 0.6rem;
+            }
+        }
+
+        /* Tablet Portrait - 853px */
+        @media (max-width: 853px) and (min-width: 821px) {
+            .content-wrapper {
+                padding: 1.2rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.2rem;
+            }
+
+            .stat-info h6 {
+                font-size: 0.82rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.5rem;
+            }
+
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+
+            .filter-section {
+                padding: 1.2rem;
+            }
+
+            .filter-section .row {
+                display: flex;
+                flex-direction: column;
+                gap: 0.7rem;
+            }
+
+            .filter-section .col-md-6,
+            .filter-section .col-md-2 {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .search-box input {
+                font-size: 0.87rem;
+                padding: 0.68rem 2.5rem 0.68rem 2.5rem;
+            }
+
+            .form-select {
+                font-size: 0.87rem;
+                padding: 0.68rem 2rem 0.68rem 0.75rem;
+            }
+
+            .table-container {
+                padding: 1.2rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .orders-table {
+                min-width: 820px;
+                font-size: 0.78rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .status-select {
+                min-width: 120px;
+                font-size: 0.76rem;
+            }
+
+            .btn-view {
+                padding: 0.4rem 0.7rem;
+                font-size: 0.76rem;
+            }
+
+            .btn-return {
+                font-size: 0.7rem;
+                padding: 0.33rem 0.55rem;
+            }
+
+            .table-container::after {
+                content: '← Swipe to see more →';
+                display: block;
+                text-align: center;
+                padding: 0.5rem;
+                color: #6c757d;
+                font-size: 0.75rem;
+                font-style: italic;
+                background: #f8f9fa;
+                border-radius: 0 0 15px 15px;
+                margin-top: 0.5rem;
+            }
+
+            .table-container.scrolled::after {
+                display: none;
+            }
+        }
+
+        /* Tablet Portrait - 820px */
+        @media (max-width: 820px) and (min-width: 769px) {
+            .content-wrapper {
+                padding: 1.1rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.9rem;
+            }
+
+            .stat-card {
+                padding: 1.1rem;
+            }
+
+            .stat-info h6 {
+                font-size: 0.8rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.45rem;
+            }
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+            }
+
+            .filter-section {
+                padding: 1.1rem;
+            }
+
+            .filter-section .row {
+                display: flex;
+                flex-direction: column;
+                gap: 0.65rem;
+            }
+
+            .filter-section .col-md-6,
+            .filter-section .col-md-2 {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .search-box input {
+                font-size: 0.86rem;
+                padding: 0.65rem 2.5rem 0.65rem 2.5rem;
+            }
+
+            .form-select {
+                font-size: 0.86rem;
+                padding: 0.65rem 1.8rem 0.65rem 0.7rem;
+            }
+
+            .table-container {
+                padding: 1.1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .orders-table {
+                min-width: 800px;
+                font-size: 0.76rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.7rem 0.45rem;
+            }
+
+            .status-select {
+                min-width: 115px;
+                font-size: 0.74rem;
+                padding: 0.38rem 0.65rem;
+            }
+
+            .btn-view {
+                padding: 0.38rem 0.65rem;
+                font-size: 0.74rem;
+            }
+
+            .btn-return {
+                font-size: 0.68rem;
+                padding: 0.3rem 0.5rem;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.7rem;
+            }
+
+            .page-link {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.84rem;
+            }
+
+            .table-container::after {
+                content: '← Swipe to see more →';
+                display: block;
+                text-align: center;
+                padding: 0.5rem;
+                color: #6c757d;
+                font-size: 0.75rem;
+                font-style: italic;
+                background: #f8f9fa;
+                border-radius: 0 0 15px 15px;
+                margin-top: 0.5rem;
+            }
+
+            .table-container.scrolled::after {
+                display: none;
+            }
+        }
+
+        /* Standard Tablet - 768px */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.5rem;
+            }
+
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+
+            .filter-section {
+                padding: 1rem;
+            }
+
+            .filter-section .row {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .filter-section .col-md-6,
+            .filter-section .col-md-2 {
+                width: 100%;
+                margin-bottom: 0;
+            }
+
+            .search-box input {
+                font-size: 0.9rem;
+                padding: 0.65rem 2.5rem 0.65rem 2.5rem;
+            }
+
+            .form-select {
+                font-size: 0.9rem;
+                padding: 0.65rem 2rem 0.65rem 0.75rem;
+            }
+
+            .table-container {
+                padding: 1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .orders-table {
+                min-width: 900px;
+                font-size: 0.8rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.6rem 0.4rem;
+                white-space: nowrap;
+            }
+
+            .orders-table thead th i {
+                display: none;
+            }
+
+            .status-select {
+                min-width: 110px;
+                font-size: 0.75rem;
+                padding: 0.35rem 0.6rem;
+            }
+
+            .btn-view {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem;
+                white-space: nowrap;
+            }
+
+            .btn-view i {
+                display: none;
+            }
+
+            .btn-return {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.5rem;
+            }
+
+            .btn-return i {
+                display: none;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 0.75rem;
+            }
+
+            .pagination {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .page-link {
+                padding: 0.4rem 0.65rem;
+                font-size: 0.85rem;
+                margin: 0.1rem;
+            }
+
+            .table-container::after {
+                content: '← Swipe to see more →';
+                display: block;
+                text-align: center;
+                padding: 0.5rem;
+                color: #6c757d;
+                font-size: 0.75rem;
+                font-style: italic;
+                background: #f8f9fa;
+                border-radius: 0 0 15px 15px;
+                margin-top: 0.5rem;
+            }
+
+            .table-container.scrolled::after {
+                display: none;
+            }
+        }
+
+        /* Mobile Large - 576px to 767px */
+        @media (max-width: 767px) and (min-width: 577px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.9rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.4rem;
+            }
+
+            .orders-table {
+                min-width: 850px;
+            }
+        }
+
+        /* Mobile Medium - 576px and below */
+        @media (max-width: 576px) {
+            .content-wrapper {
+                padding: 0.75rem;
+            }
+
+            h2.fw-bold {
+                font-size: 1.4rem;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-info h6 {
+                font-size: 0.85rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.3rem;
+            }
+
+            .stat-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .filter-section {
+                padding: 0.75rem;
+            }
+
+            .search-box input {
+                font-size: 0.85rem;
+                padding: 0.6rem 2.5rem 0.6rem 2.5rem;
+            }
+
+            .form-select {
+                font-size: 0.85rem;
+                padding: 0.6rem 1.5rem 0.6rem 0.75rem;
+            }
+
+            .table-container {
+                padding: 0.75rem;
+                border-radius: 10px;
+            }
+
+            .orders-table {
+                min-width: 800px;
+                font-size: 0.75rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.5rem 0.3rem;
+                font-size: 0.75rem;
+            }
+
+            .status-select {
+                min-width: 95px;
+                padding: 0.3rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .btn-view {
+                padding: 0.35rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .btn-return {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.4rem;
+            }
+
+            .pagination-container {
+                font-size: 0.85rem;
+            }
+
+            .page-link {
+                padding: 0.35rem 0.55rem;
+                font-size: 0.8rem;
+            }
+
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            .modal-content {
+                border-radius: 10px;
+            }
+
+            .modal-header {
+                padding: 1rem;
+                border-radius: 10px 10px 0 0;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+            }
+
+            .modal-footer {
+                padding: 0.75rem 1rem;
+            }
+
+            .modal-footer .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Mobile Small - 400px and below */
+        @media (max-width: 400px) {
+            .content-wrapper {
+                padding: 0.5rem;
+            }
+
+            h2.fw-bold {
+                font-size: 1.25rem;
+            }
+
+            .stats-container {
+                gap: 0.5rem;
+            }
+
+            .stat-card {
+                padding: 0.85rem;
+            }
+
+            .stat-info h3 {
+                font-size: 1.2rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .filter-section {
+                padding: 0.5rem;
+            }
+
+            .orders-table {
+                min-width: 750px;
+                font-size: 0.7rem;
+            }
+
+            .orders-table thead th,
+            .orders-table tbody td {
+                padding: 0.4rem 0.25rem;
+            }
+
+            .btn-view,
+            .btn-return {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.4rem;
+            }
+
+            .status-select {
+                min-width: 85px;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Landscape Orientation */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .table-container {
+                max-height: 65vh;
+                overflow-y: auto;
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: landscape) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .table-container {
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/admin/header') %>
+
+    <!-- Sidebar -->
+    <%- include('../partials/admin/sidebar') %>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Page Title -->
+            <div class="mb-4">
+                <h2 class="fw-bold" style="color: #2c3e50;">Order Management</h2>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Total Orders</h6>
+                        <h3 id="totalOrders">0</h3>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h6>Total Revenue</h6>
+                        <h3 id="totalRevenue">₹0.00</h3>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="filterReturnRequests()">
+                    <div class="stat-info">
+                        <h6>Return Requests</h6>
+                        <h3 id="returnRequests">0</h3>
+                    </div>
+                    <div class="stat-icon red">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="filter-section">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by Order ID, Customer Name, Email...">
+                            <i class="fas fa-times search-clear" id="searchClear" style="display: none;"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="out for delivery">Out for Delivery</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="returned">Returned</option>
+                            <option value="return-pending">Return Requests</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="sortOrder">
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="itemsPerPageSelect">
+                            <option value="10">10 per page</option>
+                            <option value="25">25 per page</option>
+                            <option value="50">50 per page</option>
+                            <option value="100">100 per page</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="orders-table table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-2"></i>ORDER ID</th>
+                                <th><i class="fas fa-calendar me-2"></i>DATE</th>
+                                <th><i class="fas fa-user me-2"></i>CUSTOMER</th>
+                                <th><i class="fas fa-box me-2"></i>ITEMS</th>
+                                <th><i class="fas fa-rupee-sign me-2"></i>TOTAL</th>
+                                <th><i class="fas fa-info-circle me-2"></i>STATUS</th>
+                                <th><i class="fas fa-cog me-2"></i>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="text-muted">
+                        Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalCount">0</span> orders
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0" id="paginationContainer">
+                            <!-- Pagination will be populated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Change Confirmation Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Status Change</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="statusChangeText"></p>
+                    <div id="cancellationReasonDiv" style="display: none;">
+                        <label class="form-label fw-bold">Cancellation Reason</label>
+                        <textarea class="form-control" id="cancellationReason" rows="3" placeholder="Enter reason for cancellation..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmStatusChange">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Request Modal -->
+    <div class="modal fade" id="returnModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Return Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Order ID</label>
+                        <p id="returnOrderId" class="mb-0"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Customer Return Reason</label>
+                        <div class="alert alert-info" id="returnReason"></div>
+                    </div>
+                    <div id="rejectionReasonDiv" style="display: none;">
+                        <label class="form-label fw-bold">Rejection Reason</label>
+                        <textarea class="form-control" id="rejectionReason" rows="3" placeholder="Enter reason for rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="rejectReturnBtn">Reject</button>
+                    <button type="button" class="btn btn-success" id="acceptReturnBtn">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
+        <div id="responseToast" class="toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        // State
+        let selectedOrderId = '';
+        let selectedNewStatus = '';
+        let currentReturnOrderId = '';
+        let ordersData = []; 
+
+        // Status workflow definition
+        const statusWorkflow = {
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['processing', 'cancelled'],
+            'processing': ['shipped', 'cancelled'],
+            'shipped': ['out for delivery'],
+            'out for delivery': ['delivered'],
+            'delivered': [],
+            'cancelled': [],
+            'returned': []
+        };
+
+        
+        let currentPage = <%= pagination.currentPage || 1 %>;
+        let itemsPerPage = 10;
+        let currentSearch = '';
+        let currentFilter = '';
+        let currentSort = 'desc';
+
+
+        // Sidebar functionality
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    
+                    const icon = this.querySelector('i');
+                    if (sidebar.classList.contains('collapsed')) {
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                    } else {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-left');
+                    }
+                });
+            }
+
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('filterStatus').addEventListener('change', handleFilter);
+            document.getElementById('sortOrder').addEventListener('change', handleSort);
+            document.getElementById('itemsPerPageSelect').addEventListener('change', handleItemsPerPageChange);
+            document.getElementById('confirmStatusChange').addEventListener('click', handleConfirmStatusChange);
+            document.getElementById('acceptReturnBtn').addEventListener('click', handleAcceptReturn);
+            document.getElementById('rejectReturnBtn').addEventListener('click', handleRejectReturn);
+
+            document.getElementById('searchClear').addEventListener('click', function() {
+                document.getElementById('searchInput').value = '';
+                this.style.display = 'none';
+                currentSearch = '';
+                currentPage = 1;
+                loadOrders();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSidebar();
+
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && currentPath.includes('/orders')) {
+                    if (href.includes('/orders')) {
+                        link.classList.add('active');
+                    }
+                }
+            });
+
+            // Set initial values from URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            currentPage = parseInt(urlParams.get('page')) || 1;
+            itemsPerPage = parseInt(urlParams.get('limit')) || 10;
+            currentSearch = urlParams.get('search') || '';
+            currentFilter = urlParams.get('filter') || '';
+            currentSort = urlParams.get('sort') || 'desc';
+
+            // Set form values
+            document.getElementById('searchInput').value = currentSearch;
+            document.getElementById('filterStatus').value = currentFilter;
+            document.getElementById('sortOrder').value = currentSort;
+            document.getElementById('itemsPerPageSelect').value = itemsPerPage;
+
+            updateStatsDisplay();
+            setupEventListeners();
+            
+            // ADD THIS LINE - Load orders initially
+            loadOrders();
+        });
+
+
+        function renderOrdersFromData(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No orders found</td></tr>';
+                return;
+            }
+
+            orders.forEach(order => {
+            // Check if order has pending return request OR any items have pending return request
+            const hasReturnRequest = order.returnRequestStatus === 'pending' || 
+                                    order.items.some(item => item.returnRequestStatus === 'pending');
+                        
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>#${order.orderId}</strong></td>
+                    <td>${formatDate(order.createdAt)}</td>
+                    <td>
+                        <div><strong>${order.userId.fullName}</strong></div>
+                        <div class="text-muted" style="font-size: 0.85rem;">${order.userId.email}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark">Total: ${order.items.length} item${order.items.length > 1 ? 's' : ''}</span></td>
+                    <td><strong>₹${order.totalAmount.toFixed(2)}</strong></td>
+                    <td>${renderStatusDropdownServer(order)}</td>
+                    <td>
+                        <button class="btn btn-view" onclick="viewOrderDetails('${order._id}')">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </button>
+                        ${hasReturnRequest ? `
+                            <button class="btn btn-return" onclick="showReturnModal('${order._id}')">
+                                <i class="fas fa-undo me-1"></i>Handle Return
+                            </button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Render status dropdown
+        function renderStatusDropdown(order) {
+            const allowedStatuses = statusWorkflow[order.status] || [];
+            
+            if (allowedStatuses.length === 0) {
+                return `<span class="status-badge status-${order.status.replace(/\s+/g, '-')}">${capitalize(order.status)}</span>`;
+            }
+
+            let options = `<option value="${order.status}">${capitalize(order.status)}</option>`;
+            allowedStatuses.forEach(status => {
+                options += `<option value="${status}">${capitalize(status)}</option>`;
+            });
+
+            return `<select class="status-select status-${order.status.replace(/\s+/g, '-')}" onchange="handleStatusChange('${order.id}', this.value, this)">
+                ${options}
+            </select>`;
+        }
+
+        function renderStatusDropdownServer(order) {
+            const allowedStatuses = statusWorkflow[order.orderStatus] || [];
+            
+            if (allowedStatuses.length === 0) {
+                return `<span class="status-badge status-${order.orderStatus.replace(/\s+/g, '-')}">${capitalize(order.orderStatus)}</span>`;
+            }
+
+            let options = `<option value="${order.orderStatus}">${capitalize(order.orderStatus)}</option>`;
+            allowedStatuses.forEach(status => {
+                options += `<option value="${status}">${capitalize(status)}</option>`;
+            });
+
+            return `<select class="status-select status-${order.orderStatus.replace(/\s+/g, '-')}" onchange="handleStatusChangeServer('${order._id}', this.value, this)">
+                ${options}
+            </select>`;
+        }
+
+        // Handle status change
+        function handleStatusChange(orderId, newStatus, selectElement) {
+            const order = ordersData.find(o => o.id === orderId);
+            
+            if (!order) return;
+
+            selectedOrderId = orderId;
+            selectedNewStatus = newStatus;
+
+            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            const statusChangeText = document.getElementById('statusChangeText');
+            const cancellationReasonDiv = document.getElementById('cancellationReasonDiv');
+
+            if (newStatus === 'cancelled') {
+                statusChangeText.textContent = `Are you sure you want to cancel order #${orderId}?`;
+                cancellationReasonDiv.style.display = 'block';
+                document.getElementById('cancellationReason').value = '';
+            } else {
+                statusChangeText.textContent = `Are you sure you want to change the order status from "${capitalize(order.status)}" to "${capitalize(newStatus)}"?`;
+                cancellationReasonDiv.style.display = 'none';
+            }
+
+            statusModal.show();
+
+            // Reset select if modal is closed without confirming
+            document.getElementById('statusModal').addEventListener('hidden.bs.modal', function resetSelect() {
+                if (order.status !== newStatus) {
+                    selectElement.value = order.status;
+                }
+                document.getElementById('statusModal').removeEventListener('hidden.bs.modal', resetSelect);
+            }, { once: true });
+        }
+        
+        async function handleStatusChangeServer(orderId, newStatus, selectElement) {
+            selectedOrderId = orderId;
+            selectedNewStatus = newStatus;
+            
+            const order = ordersData.find(o => o._id === orderId);
+            if (!order) return;
+
+            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            const statusChangeText = document.getElementById('statusChangeText');
+            const cancellationReasonDiv = document.getElementById('cancellationReasonDiv');
+
+            if (newStatus === 'cancelled') {
+                statusChangeText.textContent = `Are you sure you want to cancel order #${order.orderId}?`;
+                cancellationReasonDiv.style.display = 'block';
+            } else {
+                statusChangeText.textContent = `Are you sure you want to change the order status from "${capitalize(order.orderStatus)}" to "${capitalize(newStatus)}"?`;
+                cancellationReasonDiv.style.display = 'none';
+            }
+
+            statusModal.show();
+
+            document.getElementById('statusModal').addEventListener('hidden.bs.modal', function resetSelect() {
+                if (order.orderStatus !== newStatus) {
+                    selectElement.value = order.orderStatus;
+                }
+                document.getElementById('statusModal').removeEventListener('hidden.bs.modal', resetSelect);
+            }, { once: true });
+        }
+
+        // Confirm status change
+        async function handleConfirmStatusChange() {
+            try {
+                const requestBody = { orderStatus: selectedNewStatus };
+                
+                if (selectedNewStatus === 'cancelled') {
+                    const reason = document.getElementById('cancellationReason').value.trim();
+                    if (!reason) {
+                        showToast('Please enter a cancellation reason');
+                        return;
+                    }
+                    requestBody.reason = reason;
+                }
+
+                const response = await fetch(`/admin/order/status/${selectedOrderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const statusModal = bootstrap.Modal.getInstance(document.getElementById('statusModal'));
+                    statusModal.hide();
+                    
+                    showToast(data.message, 'success');
+                    loadOrders();
+                } else {
+                    showToast(data.message || 'Failed to update status', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while updating the status', 'error');
+            }
+        }
+
+        function showReturnModal(orderId) {
+            const order = ordersData.find(o => o._id === orderId);
+            if (!order) return;
+
+            currentReturnOrderId = orderId;
+            
+            const pendingReturnItems = order.items.filter(item => item.returnRequestStatus === 'pending');
+            
+            // Get return reason from the first pending item or from user's return request
+            let returnReason = 'No reason provided';
+            if (pendingReturnItems.length > 0 && pendingReturnItems[0].returnReason) {
+                returnReason = pendingReturnItems[0].returnReason;
+            } else if (order.returnReason) {
+                returnReason = order.returnReason;
+            }
+            
+            document.getElementById('returnOrderId').textContent = `#${order.orderId}`;
+            document.getElementById('returnReason').innerHTML = `
+                ${returnReason}
+                ${pendingReturnItems.length > 0 ? `
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-info" onclick="viewReturnItems('${orderId}')">
+                            <i class="fas fa-list me-1"></i>Show Items (${pendingReturnItems.length})
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+            document.getElementById('rejectionReasonDiv').style.display = 'none';
+
+            const returnModal = new bootstrap.Modal(document.getElementById('returnModal'));
+            returnModal.show();
+        }
+
+        function viewReturnItems(orderId) {
+            window.location.href = `/admin/order/viewFullDetails/${orderId}`;
+        }
+
+        async function handleAcceptReturn() {
+            try {
+                const order = ordersData.find(o => o._id === currentReturnOrderId);
+                if (!order) return;
+
+                // Get items with pending return request status
+                const pendingReturnItemIds = order.items
+                    .filter(item => item.returnRequestStatus === 'pending')
+                    .map(item => item._id);
+
+                if (pendingReturnItemIds.length === 0) {
+                    showToast('No pending return items found', 'error');
+                    return;
+                }
+
+                const response = await fetch(`/admin/order/return/${currentReturnOrderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'accept',
+                        itemIds: pendingReturnItemIds,
+                        reason: 'Return accepted by admin'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+                    returnModal.hide();
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Failed to accept return', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while processing the return', 'error');
+            }
+        }
+
+        async function handleRejectReturn() {
+            const rejectionReasonDiv = document.getElementById('rejectionReasonDiv');
+            
+            if (rejectionReasonDiv.style.display === 'none') {
+                rejectionReasonDiv.style.display = 'block';
+                return;
+            }
+
+            const reason = document.getElementById('rejectionReason').value.trim();
+            if (!reason) {
+                showToast('Please enter a rejection reason first', 'error');
+                return;
+            }
+
+            try {
+                const order = ordersData.find(o => o._id === currentReturnOrderId);
+                
+                // Get items with pending return request status
+                const pendingReturnItemIds = order.items
+                    .filter(item => item.returnRequestStatus === 'pending')
+                    .map(item => item._id);
+
+                if (pendingReturnItemIds.length === 0) {
+                    showToast('No pending return items found', 'error');
+                    return;
+                }
+
+                const response = await fetch(`/admin/order/return/${currentReturnOrderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'reject',
+                        itemIds: pendingReturnItemIds,
+                        rejectionReason: reason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+                    returnModal.hide();
+                    showToast('Order rejected successfully completed', 'success');
+                    setTimeout(() => location.reload(), 5000);
+                } else {
+                    setTimeout(() => location.reload(), 5000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                setTimeout(() => location.reload(), 5000);
+            }
+        }
+        
+
+        // View order details
+        function viewOrderDetails(orderId) {
+            // Redirect to order details page
+            window.location.href = `/admin/orders/${orderId}`;
+        }
+
+        // Handle search
+        function handleSearch(e) {
+            currentSearch = e.target.value.trim();
+            const searchClear = document.getElementById('searchClear');
+            searchClear.style.display = currentSearch ? 'block' : 'none';
+            
+            // Debounce search
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadOrders();
+            }, 500);
+        }
+
+        function handleFilter(e) {
+            currentFilter = e.target.value;
+            currentPage = 1;
+            
+            // Handle return requests filter separately
+            if (currentFilter === 'return-pending') {
+                loadOrdersWithReturnFilter();
+            } else {
+                loadOrders();
+            }
+        }
+
+        // Handle sort
+        function handleSort(e) {
+            currentSort = e.target.value;
+            currentPage = 1;
+            loadOrders();
+        }
+
+        function handleItemsPerPageChange(e) {
+            itemsPerPage = parseInt(e.target.value);
+            currentPage = 1;
+            loadOrders();
+        }
+
+        function filterReturnRequests() {
+            currentFilter = 'return-pending'; 
+            currentPage = 1;
+            currentSearch = '';
+            document.getElementById('filterStatus').value = 'return-pending'; // Update dropdown value
+            document.getElementById('searchInput').value = '';
+            
+            loadOrdersWithReturnFilter();
+        }
+
+        async function loadOrdersWithReturnFilter() {
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: itemsPerPage,
+                    sort: currentSort,
+                    returnFilter: 'pending'
+                });
+
+                const response = await fetch(`/admin/orders?${params.toString()}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    ordersData = data.orders;
+                    
+                    // ADD THIS CONDITIONAL
+                    if (data.orders.length === 0) {
+                        renderNoResults();
+                        updatePaginationForFiltered(0);
+                        updateShowingTextForFiltered(0);
+                    } else {
+                        const filteredOrders = data.orders.filter(order => 
+                            order.returnRequestStatus === 'pending' || 
+                            order.items.some(item => item.returnRequestStatus === 'pending')
+                        );
+                        renderOrdersFromData(filteredOrders);
+                        updatePaginationForFiltered(filteredOrders.length);
+                        updateShowingTextForFiltered(filteredOrders.length);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to load return requests', 'error');
+            }
+        }
+
+        function updatePaginationForFiltered(total) {
+            const totalPages = Math.ceil(total / itemsPerPage);
+            const pagination = {
+                currentPage: 1,
+                totalPages: totalPages,
+                hasNextPage: totalPages > 1,
+                hasPrevPage: false,
+                totalOrders: total
+            };
+            renderPaginationFromData(pagination);
+        }
+
+        function updateShowingTextForFiltered(total) {
+            document.getElementById('showingStart').textContent = total === 0 ? 0 : 1;
+            document.getElementById('showingEnd').textContent = Math.min(itemsPerPage, total);
+            document.getElementById('totalCount').textContent = total;
+        }
+
+
+        function renderPaginationFromData(pagination) {
+            const paginationContainer = document.getElementById('paginationContainer');
+            paginationContainer.innerHTML = '';
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${!pagination.hasPrevPage ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>`;
+            paginationContainer.appendChild(prevLi);
+
+            for (let i = 1; i <= pagination.totalPages; i++) {
+                if (i === 1 || i === pagination.totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                    paginationContainer.appendChild(li);
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    const li = document.createElement('li');
+                    li.className = 'page-item disabled';
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${!pagination.hasNextPage ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            paginationContainer.appendChild(nextLi);
+        }
+
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            loadOrders();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateShowingText(pagination) {
+            const startIndex = ((pagination.currentPage - 1) * itemsPerPage) + 1;
+            const endIndex = Math.min(pagination.currentPage * itemsPerPage, pagination.totalOrders);
+            
+            document.getElementById('showingStart').textContent = pagination.totalOrders === 0 ? 0 : startIndex;
+            document.getElementById('showingEnd').textContent = endIndex;
+            document.getElementById('totalCount').textContent = pagination.totalOrders;
+        }
+
+        function updateStatsDisplay() {
+            const stats = <%- JSON.stringify(stats) %>;
+            document.getElementById('totalOrders').textContent = stats.totalOrders;
+            document.getElementById('returnRequests').textContent = stats.returnRequests;
+            document.getElementById('totalRevenue').textContent = `₹${stats.totalRevenue.toFixed(2)}`;
+        }
+
+        // Utility functions
+       function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function capitalize(str) {
+            return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('responseToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastHeader = toast.querySelector('.toast-header');
+            
+            // Set colors based on type
+            toastHeader.className = `toast-header bg-${type === 'success' ? 'success' : 'danger'} text-white`;
+            toastTitle.textContent = type === 'success' ? 'Success' : 'Error';
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+        }
+
+        async function loadOrders() {
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: itemsPerPage,
+                    sort: currentSort
+                });
+
+                if (currentSearch) params.append('search', currentSearch);
+                if (currentFilter && currentFilter !== 'return-pending') params.append('filter', currentFilter); // Exclude return-pending
+
+                const response = await fetch(`/admin/orders?${params.toString()}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    ordersData = data.orders;
+                    
+                    // REPLACE renderOrdersFromData(data.orders) with:
+                    if (data.orders.length === 0) {
+                        renderNoResults();
+                    } else {
+                        renderOrdersFromData(data.orders);
+                    }
+                    
+                    renderPaginationFromData(data.pagination);
+                    updateShowingText(data.pagination);
+                    
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.replaceState({}, '', newUrl);
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showToast('Failed to load orders', 'error');
+            }
+        }
+
+        function renderNoResults() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div style="color: #6c757d;">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <h5>No Orders Found</h5>
+                            <p>No orders match your current search or filter criteria.</p>
+                            <button class="btn btn-primary mt-2" onclick="clearAllFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function clearAllFilters() {
+            currentSearch = '';
+            currentFilter = '';
+            currentPage = 1;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('searchClear').style.display = 'none';
+            loadOrders();
+        }
+
+        // Add scroll detection for ALL screen sizes
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableContainer = document.querySelector('.table-container');
+            const tableResponsive = tableContainer?.querySelector('.table-responsive');
+            
+            if (tableResponsive) {
+                // Check if table needs scrolling
+                const needsScroll = tableResponsive.scrollWidth > tableResponsive.clientWidth;
+                
+                if (needsScroll) {
+                    tableResponsive.addEventListener('scroll', function() {
+                        if (this.scrollLeft > 10) {
+                            tableContainer.classList.add('scrolled');
+                        } else {
+                            tableContainer.classList.remove('scrolled');
+                        }
+                    });
+                } else {
+                    // No scroll needed, hide the hint
+                    tableContainer.classList.add('scrolled');
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

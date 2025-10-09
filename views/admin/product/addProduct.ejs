@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product - Carezon Admin</title>
+    <title>Add Product - WoodLand Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/dashboard.css">
     <link rel="stylesheet" href="/admin/css/productAdd.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
-
-
 </head>
 <body>
     <%- include('../partials/admin/header') %>
@@ -46,13 +44,13 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="productName" class="form-label">Product Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="productName" name="name" required>
+                                <input type="text" class="form-control" id="productName" name="name" >
                                 <div class="field-error" id="productName-error"></div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
                                 <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
-                                <select class="form-select" id="category" name="category" required>
+                                <select class="form-select" id="category" name="category" >
                                     <option value="">Select Category</option>
                                     <% if (categories && Array.isArray(categories)) { %>
                                         <% categories.forEach(cat => { %>
@@ -67,7 +65,7 @@
                             
                             <div class="col-md-6 mb-3">
                                 <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
-                                <select class="form-select" id="brand" name="brand" required>
+                                <select class="form-select" id="brand" name="brand" >
                                     <option value="">Select Brand</option>
                                     <% if (brands && Array.isArray(brands)) { %>
                                         <% brands.forEach(brand => { %>
@@ -82,7 +80,7 @@
                             
                             <div class="col-12 mb-3">
                                 <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                                <textarea class="form-control" id="description" name="description" rows="4" ></textarea>
                                 <div class="field-error" id="description-error"></div>
                             </div>
                             
@@ -93,31 +91,31 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="variantQuantity1" class="form-label">Quantity <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control" id="variantQuantity1" name="variants[0][quantity]" min="0" required>
+                                            <input type="number" class="form-control" id="variantQuantity1" name="variants[0][quantity]" min="0" >
                                             <div class="field-error" id="variantQuantity1-error"></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="variantRegularPrice1" class="form-label">Regular Price <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <span class="input-group-text">₹</span>
-                                                <input type="number" class="form-control" id="variantRegularPrice1" name="variants[0][regularPrice]" step="0.01" min="0" required>
+                                                <input type="number" class="form-control" id="variantRegularPrice1" name="variants[0][regularPrice]" step="0.01" min="0" >
                                             </div>
                                             <div class="field-error" id="variantRegularPrice1-error"></div>
                                         </div>
                                         
                                         <div class="col-md-6 mb-3">
                                             <label for="variantManufacturingDate1" class="form-label">Manufacturing Date <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control" id="variantManufacturingDate1" name="variants[0][manufacturingDate]" required>
+                                            <input type="date" class="form-control" id="variantManufacturingDate1" name="variants[0][manufacturingDate]" >
                                             <div class="field-error" id="variantManufacturingDate1-error"></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="variantExpiryDate1" class="form-label">Expiry Date</label>
-                                            <input type="date" class="form-control" id="variantExpiryDate1" name="variants[0][expiryDate]">
+                                           <input type="date" class="form-control" id="variantExpiryDate1" name="variants[0][expiryDate]">
                                             <div class="field-error" id="variantExpiryDate1-error"></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="variantUom1" class="form-label">Unit of Measure (UOM) <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="variantUom1" name="variants[0][uom]" required>
+                                            <input type="text" class="form-control" id="variantUom1" name="variants[0][uom]" >
                                             <div class="field-error" id="variantUom1-error"></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -132,7 +130,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="variantProductStatus1" class="form-label">Product Status </label>
+                                            <label for="variantProductStatus1" class="form-label">Product Status <span class="text-danger">*</span></label>
                                             <div class="status-toggle">
                                                 <input type="checkbox" id="variantProductStatus1" checked>
                                                 <input type="hidden" name="variants[0][isListed]" id="variantProductStatusValue1" value="true">
@@ -173,7 +171,7 @@
                                                     <i class="fas fa-cloud-upload-alt"></i>
                                                     <p>Drop image here to upload and crop (Min: 3 crops required)</p>
                                                     <p class="text-muted">or click to browse</p> 
-                                                    <input type="file" id="variantImageInput1" name="variants[0][variant_0_images]" accept="image/jpeg,image/png,image/gif" hidden data-variant-index="0" required>
+                                                    <input type="file" id="variantImageInput1" name="variants[0][variant_0_images]" accept="image/jpeg,image/png,image/gif" hidden data-variant-index="0" >
                                                 </div>
                                                 <div class="uploaded-images" id="variantUploadedImages1"></div>
                                                <div class="image-counter" id="variantImageCounter1">Cropped Images: 0/6 (Minimum 3 required)</div>
@@ -198,6 +196,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <!-- Image Crop Modal -->
                         <div class="modal fade" id="imageCropModal" tabindex="-1" aria-labelledby="imageCropModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
@@ -247,6 +246,388 @@
             initializeVariantImageUpload(1);
             initializeCategoryChangeListener();
             initializeStatusToggles();
+            setDateConstraints(); 
+        }
+
+        function setDateConstraints() {
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            for (let i = 1; i <= variantCount; i++) {
+                const mfgDate = document.getElementById(`variantManufacturingDate${i}`);
+                const expDate = document.getElementById(`variantExpiryDate${i}`);
+                
+                if (mfgDate) {
+                    mfgDate.setAttribute('max', today);
+                }
+                if (expDate) {
+                    expDate.setAttribute('min', tomorrowStr);
+                }
+            }
+        }
+
+        // Enhanced form submission that shows ALL errors at once
+        function initializeFormSubmission() {
+            const form = document.getElementById('productForm');
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                
+                // Show ALL validation errors simultaneously
+                const isValid = validateAllFieldsAndShowAllErrors();
+                
+                if (!isValid) {
+                    showToast('Please fix all validation errors before submitting', 'error');
+                    // Scroll to the first error field
+                    const firstErrorField = document.querySelector('.is-invalid');
+                    if (firstErrorField) {
+                        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstErrorField.focus();
+                    }
+                    return;
+                }
+
+                // If validation passes, proceed with form submission
+                const formData = new FormData(form);
+                toggleFormDisabled(true);
+                document.getElementById('spinnerOverlay').style.display = 'block';
+
+                try {
+                    const res = await fetch('/admin/products/add', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        showToast('Product added successfully: ' + result.product.name, 'success');
+                        resetFormToInitialState();
+                    } else {
+                        handleBackendErrors(result);
+                        showToast('Failed to add product: ' + (result.message || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    showToast('Something went wrong!', 'error');
+                } finally {
+                    toggleFormDisabled(false);
+                    document.getElementById('spinnerOverlay').style.display = 'none';
+                }
+            });
+        }
+
+        // Main validation function that shows ALL errors at once
+        function validateAllFieldsAndShowAllErrors() {
+            console.log('reached')
+            let isFormValid = true;
+            let errorCount = 0;
+            
+            // Clear all previous errors first
+            clearAllErrors();
+            
+            // 1. Validate main product fields
+            const mainFields = [
+                { id: 'productName', name: 'Product Name', required: true, minLength: 2, maxLength: 100 },
+                { id: 'category', name: 'Category', required: true },
+                { id: 'brand', name: 'Brand', required: true },
+                { id: 'description', name: 'Description', required: true, minLength: 10, maxLength: 500 }
+            ];
+            
+            mainFields.forEach(field => {
+                if (!validateSingleField(field.id, field.name, field.required, field.minLength, field.maxLength)) {
+                    isFormValid = false;
+                    errorCount++;
+                }
+            });
+            
+            // 2. Validate all variants
+            for (let i = 1; i <= variantCount; i++) {
+                // Basic variant fields
+                const variantFields = [
+                    { id: `variantQuantity${i}`, name: `Variant ${i} Quantity`, required: true, type: 'number', min: 0 },
+                    { id: `variantRegularPrice${i}`, name: `Variant ${i} Price`, required: true, type: 'number', min: 0.01 },
+                    { id: `variantManufacturingDate${i}`, name: `Variant ${i} Manufacturing Date`, required: true, type: 'date' },
+                    { id: `variantUom${i}`, name: `Variant ${i} UOM`, required: true }
+                ];
+                
+                variantFields.forEach(field => {
+                    if (!validateSingleField(field.id, field.name, field.required, field.minLength, field.maxLength, field.type, field.min)) {
+                        isFormValid = false;
+                        errorCount++;
+                    }
+                });
+                
+                // Validate variant attributes
+                const attributeFields = document.querySelectorAll(`#variant${i} input[name*="attributes"][required]`);
+                attributeFields.forEach(field => {
+                    const fieldName = field.previousElementSibling?.textContent?.replace('*', '').trim() || 'Attribute field';
+                    if (!validateSingleField(field.id, fieldName, true)) {
+                        isFormValid = false;
+                        errorCount++;
+                    }
+                });
+                
+                // Validate image count
+                if (!validateImageCount(i)) {
+                    isFormValid = false;
+                    errorCount++;
+                }
+            }
+            
+            if (!isFormValid) {
+                showToast(`Found ${errorCount} validation errors. Please fix all highlighted fields.`, 'error');
+            }
+            
+            return isFormValid;
+        }
+
+        // Validate individual field and show error immediately
+        function validateSingleField(fieldId, fieldName, required = false, minLength = null, maxLength = null, type = null, min = null) {
+            const field = document.getElementById(fieldId);
+            if (!field) return true;
+            
+            let errorDiv = document.getElementById(`${fieldId}-error`);
+            
+            // Create error div if it doesn't exist
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'field-error';
+                errorDiv.id = `${fieldId}-error`;
+                field.parentNode.insertBefore(errorDiv, field.nextSibling);
+            }
+            
+            const value = field.value.trim();
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Required field validation
+            if (required && !value) {
+                isValid = false;
+                errorMessage = `${fieldName} is required`;
+            }
+            
+            // Type-specific validations (only if field has value)
+            if (value && isValid) {
+                if (type === 'number') {
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) {
+                        isValid = false;
+                        errorMessage = `${fieldName} must be a valid number`;
+                    } else if (min !== null && numValue < min) {
+                        isValid = false;
+                        errorMessage = `${fieldName} must be at least ${min}`;
+                    }
+                }
+                
+                if (type === 'date') {
+                    const dateValue = new Date(value);
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999); // End of today
+                    
+                    if (fieldId.includes('Manufacturing') && dateValue > today) {
+                        isValid = false;
+                        errorMessage = `${fieldName} cannot be in the future`;
+                    }
+                }
+                
+                // Length validations
+                if (minLength && value.length < minLength) {
+                    isValid = false;
+                    errorMessage = `${fieldName} must be at least ${minLength} characters`;
+                }
+                if (maxLength && value.length > maxLength) {
+                    isValid = false;
+                    errorMessage = `${fieldName} must be no more than ${maxLength} characters`;
+                }
+            }
+            
+            // Update field appearance and show error
+            if (isValid) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                errorDiv.textContent = '';
+                errorDiv.classList.remove('show-error');
+            } else {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.add('show-error');
+            }
+            
+            return isValid;
+        }
+
+        // Validate image count for a specific variant
+        function validateImageCount(variantId) {
+            const imageCount = variantImageCounts[variantId] || 0;
+            let errorDiv = document.getElementById(`variant${variantId}Images-error`);
+            
+            // Create error div if it doesn't exist
+            if (!errorDiv) {
+                const imageContainer = document.getElementById(`variantImageCounter${variantId}`);
+                if (imageContainer) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'field-error';
+                    errorDiv.id = `variant${variantId}Images-error`;
+                    imageContainer.parentNode.insertBefore(errorDiv, imageContainer.nextSibling);
+                } else {
+                    return true; // Skip if container not found
+                }
+            }
+            
+            const isValid = imageCount >= 3;
+            
+            if (!isValid) {
+                errorDiv.textContent = `Please upload at least 3 images for Variant ${variantId} (currently ${imageCount}/3)`;
+                errorDiv.classList.add('show-error');
+                
+                // Highlight upload area
+                const uploadContainer = document.getElementById(`variantImageUploadArea${variantId}`)?.closest('.image-upload-container');
+                if (uploadContainer) {
+                    uploadContainer.classList.add('has-error');
+                }
+            } else {
+                errorDiv.textContent = '';
+                errorDiv.classList.remove('show-error');
+                
+                // Remove error highlighting
+                const uploadContainer = document.getElementById(`variantImageUploadArea${variantId}`)?.closest('.image-upload-container');
+                if (uploadContainer) {
+                    uploadContainer.classList.remove('has-error');
+                }
+            }
+            
+            return isValid;
+        }
+
+        // Clear all validation errors
+        function clearAllErrors() {
+            // Remove all field validation classes
+            document.querySelectorAll('.is-invalid, .is-valid').forEach(field => {
+                field.classList.remove('is-invalid', 'is-valid');
+            });
+            
+            // Hide all error messages
+            document.querySelectorAll('.field-error').forEach(errorDiv => {
+                errorDiv.textContent = '';
+                errorDiv.classList.remove('show-error');
+            });
+            
+            // Remove upload container error styling
+            document.querySelectorAll('.image-upload-container.has-error').forEach(container => {
+                container.classList.remove('has-error');
+            });
+        }
+
+        // Enhanced toast function with different types
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const typeClasses = {
+                success: 'toast-success',
+                error: 'toast-error', 
+                info: 'toast-info',
+                warning: 'bg-warning text-dark'
+            };
+            
+            toast.className = `toast align-items-center border-0 ${typeClasses[type] || typeClasses.info}`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+            bsToast.show();
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 6000);
+        }
+
+        // Reset form to initial state
+        function resetFormToInitialState() {
+            const form = document.getElementById('productForm');
+            form.reset();
+            clearAllErrors();
+            
+            variantCount = 1;
+            variantImageCounts = { 1: 0 };
+            
+            // Remove extra variants
+            document.querySelectorAll('.variant-container:not(#variant1)').forEach(el => el.remove());
+            
+            // Clear uploaded images
+            document.querySelectorAll('.uploaded-images').forEach(container => container.innerHTML = '');
+            
+            // Reset image counters
+            updateVariantImageCounterGlobal(1);
+            
+            // Reset attribute containers
+            document.querySelectorAll('[id^="variantAttributeContainer"]').forEach(container => {
+                container.innerHTML = '<p class="text-muted">Please select a category to view attributes.</p>';
+            });
+            
+            // Reset status toggles to defaults
+            resetAllStatusToggles();
+        }
+
+        function resetAllStatusToggles() {
+            for (let i = 1; i <= variantCount; i++) {
+                const toggles = [
+                    { id: `variantProductStatus${i}`, valueId: `variantProductStatusValue${i}`, default: true, active: 'Listed', inactive: 'Unlisted' },
+                    { id: `variantDiscountStatus${i}`, valueId: `variantDiscountStatusValue${i}`, default: false, active: 'Active', inactive: 'Inactive' },
+                    { id: `variantOfferStatus${i}`, valueId: `variantOfferStatusValue${i}`, default: false, active: 'Active', inactive: 'Inactive' },
+                    { id: `variantPrescriptionRequired${i}`, valueId: `variantPrescriptionRequiredValue${i}`, default: false, active: 'Active', inactive: 'Inactive' }
+                ];
+                
+                toggles.forEach(toggle => {
+                    const checkbox = document.getElementById(toggle.id);
+                    const hiddenInput = document.getElementById(toggle.valueId);
+                    const label = checkbox?.nextElementSibling?.nextElementSibling;
+                    
+                    if (checkbox && hiddenInput && label) {
+                        checkbox.checked = toggle.default;
+                        hiddenInput.value = toggle.default.toString();
+                        label.textContent = toggle.default ? toggle.active : toggle.inactive;
+                    }
+                });
+            }
+        }
+
+        function handleBackendErrors(result) {
+            if (result.errors && Array.isArray(result.errors)) {
+                result.errors.forEach(error => {
+                    const fieldId = error.field;
+                    const errorDiv = document.getElementById(`${fieldId}-error`);
+                    if (errorDiv) {
+                        errorDiv.textContent = error.message;
+                        errorDiv.classList.add('show-error');
+                    } else {
+                        showToast(error.message, 'error');
+                    }
+                });
+            } else if (result.message) {
+                showToast(result.message, 'error');
+            }
+        }
+
+        function toggleFormDisabled(disabled) {
+            const buttons = document.querySelectorAll('#productForm button, #addVariantBtn, #cancelBtn, #saveProductBtn');
+            const inputs = document.querySelectorAll('#productForm input, #productForm select, #productForm textarea');
+            buttons.forEach(button => {
+                button.disabled = disabled;
+            });
+            inputs.forEach(input => {
+                input.disabled = disabled;
+            });
         }
 
         // Initialize global crop modal handlers (only once)
@@ -397,7 +778,7 @@
             const addVariantBtn = document.getElementById('addVariantBtn');
             addVariantBtn.addEventListener('click', () => {
                 if (variantCount >= maxVariants) {
-                    showToast('Maximum 5 variants allowed.');
+                    showToast('Maximum 5 variants allowed.', 'warning');
                     return;
                 }
                 variantCount++;
@@ -405,28 +786,8 @@
                 initializeVariantImageUpload(variantCount);
                 initializeStatusTogglesForVariant(variantCount);
                 updateVariantAttributesForVariant(variantCount);
+                setDateConstraints();
             });
-        }
-
-        function showToast(message) {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-white bg-danger border-0';
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            `;
-            toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
         }
 
         function addVariantSection(variantId) {
@@ -444,21 +805,21 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="variantQuantity${variantId}" class="form-label">Quantity <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="variantQuantity${variantId}" name="variants[${variantIndex}][quantity]" min="0" required>
+                        <input type="number" class="form-control" id="variantQuantity${variantId}" name="variants[${variantIndex}][quantity]" min="0" >
                         <div class="field-error" id="variantQuantity${variantId}-error"></div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="variantRegularPrice${variantId}" class="form-label">Regular Price <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">₹</span>
-                            <input type="number" class="form-control" id="variantRegularPrice${variantId}" name="variants[${variantIndex}][regularPrice]" step="0.01" min="0" required>
+                            <input type="number" class="form-control" id="variantRegularPrice${variantId}" name="variants[${variantIndex}][regularPrice]" step="0.01" min="0" >
                         </div>
                         <div class="field-error" id="variantRegularPrice${variantId}-error"></div>
                     </div>
                     
                     <div class="col-md-6 mb-3">
                         <label for="variantManufacturingDate${variantId}" class="form-label">Manufacturing Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="variantManufacturingDate${variantId}" name="variants[${variantIndex}][manufacturingDate]" required>
+                        <input type="date" class="form-control" id="variantManufacturingDate${variantId}" name="variants[${variantIndex}][manufacturingDate]" >
                         <div class="field-error" id="variantManufacturingDate${variantId}-error"></div>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -468,7 +829,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="variantUom${variantId}" class="form-label">Unit of Measure (UOM) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="variantUom${variantId}" name="variants[${variantIndex}][uom]" required>
+                        <input type="text" class="form-control" id="variantUom${variantId}" name="variants[${variantIndex}][uom]" >
                         <div class="field-error" id="variantUom${variantId}-error"></div>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -524,7 +885,7 @@
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <p>Drop image here to upload and crop (Min: 3 crops required)</p>
                                 <p class="text-muted">or click to browse</p>
-                                <input type="file" id="variantImageInput${variantId}" name="variants[${variantIndex}][variant_${variantIndex}_images]" accept="image/jpeg,image/png,image/gif" hidden data-variant-index="${variantIndex}" required>
+                                <input type="file" id="variantImageInput${variantId}" name="variants[${variantIndex}][variant_${variantIndex}_images]" accept="image/jpeg,image/png,image/gif" hidden data-variant-index="${variantIndex}" >
                             </div>
                             <div class="uploaded-images" id="variantUploadedImages${variantId}"></div>
                            <div class="image-counter" id="variantImageCounter${variantId}">Cropped Images: 0/6 (Minimum 3 required)</div>
@@ -725,7 +1086,7 @@
 
             function handleImageFile(file, variantId) {
                 if (variantImageCounts[variantId] >= 6) {
-                    showToast('Maximum 6 images allowed per variant');
+                    showToast('Maximum 6 images allowed per variant', 'warning');
                     return;
                 }
 
@@ -758,29 +1119,6 @@
 
             updateVariantImageCounter(variantId);
         }
-
-        window.removeVariantImage = function(button, variantId) {
-            const imageContainer = button.closest('.uploaded-image');
-            const index = Array.from(imageContainer.parentElement.children).indexOf(imageContainer);
-            const imageInput = document.getElementById(`variantImageInput${variantId}`);
-            
-            const dt = new DataTransfer();
-            const files = Array.from(imageInput.files);
-            files.forEach((file, i) => {
-                if (i !== index) {
-                    dt.items.add(file);
-                }
-            });
-            imageInput.files = dt.files;
-            
-            imageContainer.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => {
-                imageContainer.remove();
-                variantImageCounts[variantId]--;
-                const imageCounter = document.getElementById(`variantImageCounter${variantId}`);
-                imageCounter.textContent = `Images: ${variantImageCounts[variantId]}/6 (Minimum 3 required)`;
-            }, 300);
-        };
 
         function initializeStatusToggles() {
             initializeStatusTogglesForVariant(1);
@@ -819,145 +1157,14 @@
                         offerToggle.checked = false;
                         offerValue.value = 'false';
                         offerToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
-                        showToast('Discount Status and Offer Status cannot be selected at the same time.');
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.', 'warning');
                     } else if (toggle === offerToggle && toggle.checked && discountToggle.checked) {
                         discountToggle.checked = false;
                         discountValue.value = 'false';
                         discountToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
-                        showToast('Discount Status and Offer Status cannot be selected at the same time.');
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.', 'warning');
                     }
                 });
-            });
-        }
-
-        function initializeFormSubmission() {
-            const form = document.getElementById('productForm');
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                clearErrors();
-
-                // Client-side validation for required fields
-                let isValid = true;
-                const requiredFields = form.querySelectorAll('[required]');
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        const errorDiv = document.getElementById(`${field.id}-error`);
-                        errorDiv.textContent = `Please fill in the ${field.labels[0]?.textContent || field.name} field.`;
-                    }
-                });
-
-                // Validate image count for each variant
-                for (let i = 1; i <= variantCount; i++) {
-                    if (variantImageCounts[i] < 3) {
-                        isValid = false;
-                        const errorDiv = document.getElementById(`variant${i}Images-error`);
-                        errorDiv.textContent = `Please upload at least 3 images for Variant ${i}.`;
-                    }
-                }
-
-                if (!isValid) {
-                    return;
-                }
-
-                // Log FormData for debugging
-                const formData = new FormData(form);
-                toggleFormDisabled(true);
-                document.getElementById('spinnerOverlay').style.display = 'block';
-
-                try {
-                    const res = await fetch('/admin/products/add', {
-                        method: 'POST',
-                        body: formData,
-                    });
-
-                    const result = await res.json();
-                    if (res.ok && result.success) {
-                        showToast('Product added successfully: ' + result.product.name);
-                        form.reset();
-                        variantCount = 1;
-                        document.querySelectorAll('.variant-container:not(#variant1)').forEach(el => el.remove());
-                        variantImageCounts = { 1: 0 };
-                        updateVariantImageCounter(1);
-                        document.querySelectorAll('.uploaded-images').forEach(container => container.innerHTML = '');
-                        document.querySelectorAll('[id^="variantAttributeContainer"]').forEach(container => {
-                            container.innerHTML = '<p class="text-muted">Please select a category to view attributes.</p>';
-                        });
-                        // Reset status toggles to default
-                        for (let i = 1; i <= variantCount; i++) {
-                            const productStatus = document.getElementById(`variantProductStatus${i}`);
-                            const discountStatus = document.getElementById(`variantDiscountStatus${i}`);
-                            const offerStatus = document.getElementById(`variantOfferStatus${i}`);
-                            const prescriptionStatus = document.getElementById(`variantPrescriptionRequired${i}`);
-                            const productStatusValue = document.getElementById(`variantProductStatusValue${i}`);
-                            const discountStatusValue = document.getElementById(`variantDiscountStatusValue${i}`);
-                            const offerStatusValue = document.getElementById(`variantOfferStatusValue${i}`);
-                            const prescriptionStatusValue = document.getElementById(`variantPrescriptionRequiredValue${i}`);
-                            if (productStatus && productStatusValue) {
-                                productStatus.checked = true;
-                                productStatusValue.value = 'true';
-                                productStatus.nextElementSibling.nextElementSibling.textContent = 'Listed';
-                            }
-                            if (discountStatus && discountStatusValue) {
-                                discountStatus.checked = false;
-                                discountStatusValue.value = 'false';
-                                discountStatus.nextElementSibling.nextElementSibling.textContent = 'Inactive';
-                            }
-                            if (offerStatus && offerStatusValue) {
-                                offerStatus.checked = false;
-                                offerStatusValue.value = 'false';
-                                offerStatus.nextElementSibling.nextElementSibling.textContent = 'Inactive';
-                            }
-                            if (prescriptionStatus && prescriptionStatusValue) {
-                                prescriptionStatus.checked = false;
-                                prescriptionStatusValue.value = 'false';
-                                prescriptionStatus.nextElementSibling.nextElementSibling.textContent = 'Inactive';
-                            }
-                        }
-                    } else {
-                        handleBackendErrors(result);
-                        showToast('Failed to add product: ' + (result.message || 'Unknown error'));
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                    showToast('Something went wrong!');
-                } finally {
-                    toggleFormDisabled(false);
-                    document.getElementById('spinnerOverlay').style.display = 'none';
-                }
-            });
-        }
-
-        function clearErrors() {
-            document.querySelectorAll('.field-error').forEach(error => {
-                error.textContent = '';
-            });
-        }
-
-        function handleBackendErrors(result) {
-            if (result.errors && Array.isArray(result.errors)) {
-                result.errors.forEach(error => {
-                    const fieldId = error.field;
-                    const errorDiv = document.getElementById(`${fieldId}-error`);
-                    if (errorDiv) {
-                        errorDiv.textContent = error.message;
-                    } else {
-                        showToast(error.message);
-                    }
-                });
-            } else if (result.message) {
-                showToast(result.message);
-            }
-        }
-
-        function toggleFormDisabled(disabled) {
-            const buttons = document.querySelectorAll('#productForm button, #addVariantBtn, #cancelBtn, #saveProductBtn');
-            const inputs = document.querySelectorAll('#productForm input, #productForm select, #productForm textarea');
-            buttons.forEach(button => {
-                button.disabled = disabled;
-            });
-            inputs.forEach(input => {
-                input.disabled = disabled;
             });
         }
 
