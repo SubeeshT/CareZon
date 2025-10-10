@@ -168,10 +168,18 @@ const signIn = async (req,res) => {
             return res.status(403).json({message: "This account is blocked, please contact us."});
         }
 
-        req.session.userId = user._id 
-        console.log(`Loged user is : ${user.fullName}`);
+        req.session.userId = user._id //Changes data in session memory (RAM)
 
-        return res.redirect('/home');
+        req.session.save((err) => { //Forces add to MongoDB collection immediately
+            if(err){
+                console.error("session save user get error : ", error);
+                return res.status(500).json({message: "Session save get error, please try again"})
+            }
+
+            console.log(`Logged user is : ${user.fullName}`);
+            return res.redirect('/home');
+        })
+        
 
     } catch (error) {
         console.error("failed to signIn : ", error);
@@ -333,6 +341,24 @@ const resendOTPResetPassword = async (req,res) => {
     }
 }
 
+const googleAuthCallback = (req, res) => {
+   
+    if(req.user.isBlocked){
+        return res.redirect('/signIn?error=blocked');
+    }
+
+    req.session.userId = req.user._id; //Changes data in session memory (RAM)
+
+    req.session.save((err) => { //Forces add to MongoDB collection immediately
+        if(err) {
+            console.error('Google OAuth session save error:', err);
+            return res.redirect('/signIn?error=sessionError');
+        }
+        console.log(`Logged in user: ${req.user.fullName} via Google`);
+        res.redirect('/home');
+    });
+};
+
 module.exports = { 
     loadSignUp,
     signUp,
@@ -345,5 +371,6 @@ module.exports = {
     loadForgotPassword,
     forgotPassword,
     resendOTPResetPassword,
+    googleAuthCallback
 }
 

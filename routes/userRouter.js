@@ -27,16 +27,7 @@ router.post('/changePassword', authController.forgotPassword);
 router.patch('/changePassword', authController.forgotPassword);
 router.post('/resendOTPResetPassword', authController.resendOTPResetPassword)
 router.get('/auth/google', passport.authenticate('google', {scope: ['profile', 'email']})); //start google oauth login
-router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/signUp'}), //google oauth callBack
-(req,res) => {
-    if(req.user.isBlocked){
-        return res.redirect('/signIn?error=blocked');
-    }
-    req.session.userId = req.user._id;
-    console.log(`loged user is ${req.user.fullName} by google`);
-    res.redirect('/home')
-})
-
+router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/signUp', keepSessionInfo: true}), authController.googleAuthCallback); //google oauth callBack
 
 //Landing page
 router.get('/', auth.getUserData, shopController.loadHomePage);

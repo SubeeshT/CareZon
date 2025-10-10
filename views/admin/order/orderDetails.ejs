@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - CAREZON Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <style>
+        .order-details-container {
+            padding: 2rem;
+        }
+        
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .back-button:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .order-header {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .order-id {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .order-date {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cfe2ff; color: #084298; }
+        .status-confirmed { background: #d1ecf1; color: #0c5460; }
+        .status-shipped { background: #d3d3f5; color: #383d6c; }
+        .status-delivered { background: #d1e7dd; color: #0f5132; }
+        .status-cancelled { background: #f8d7da; color: #842029; }
+        .status-returned { background: #e7e7e7; color: #383838; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-icon.blue { background: #cfe2ff; color: #084298; }
+        .stat-icon.purple { background: #e7d9f8; color: #6f42c1; }
+        .stat-icon.green { background: #d1e7dd; color: #0f5132; }
+        .stat-icon.orange { background: #fff3cd; color: #856404; }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .section-icon.green { background: #d1e7dd; color: #0f5132; }
+        .section-icon.blue { background: #cfe2ff; color: #084298; }
+        .section-icon.red { background: #f8d7da; color: #842029; }
+        .section-icon.orange { background: #fff3cd; color: #856404; }
+        
+        .order-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .order-item:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+        
+        .item-meta {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .item-variant {
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        
+        .item-price-section {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+        
+        .item-quantity {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        
+        .item-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        
+        .item-status.active { background: #d1e7dd; color: #0f5132; }
+        .item-status.cancelled { background: #f8d7da; color: #842029; }
+        .item-status.returned { background: #e7e7e7; color: #383838; }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .address-text {
+            color: #495057;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .timeline-container {
+            margin-top: 1.5rem;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            width: 2px;
+            height: calc(100% - 20px);
+            background: #e9ecef;
+        }
+        
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 1;
+            background: white;
+        }
+        
+        .timeline-icon.completed { background: #d1e7dd; color: #0f5132; }
+        .timeline-icon.pending { background: #e7e7e7; color: #6c757d; }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .timeline-date {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        
+        .action-button {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-view-reason {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-view-reason:hover {
+            background: #e0a800;
+        }
+        
+        .btn-return-action {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-return-action:hover {
+            background: #c82333;
+        }
+        
+        .return-request-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .reason-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin-top: 1rem;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            min-width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toast-header {
+            border-radius: 10px 10px 0 0;
+        }
+        
+        @media (max-width: 992px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .order-details-container {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .order-item {
+                flex-direction: column;
+            }
+            
+            .item-image {
+                width: 100%;
+                height: 200px;
+            }
+            
+            .item-price-section {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/admin/header') %>
+    <%- include('../partials/admin/sidebar') %>
+    
+    <main class="main-content" id="main-content">
+        <div class="order-details-container">
+            <a href="/admin/orders" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Orders</span>
+            </a>
+            
+            <div class="order-header">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h1 class="order-id">
+                            <i class="fas fa-receipt"></i>
+                            Order #<%= order.orderId %>
+                        </h1>
+                        <p class="order-date">
+                            Placed on <%= new Date(order.createdAt).toLocaleString('en-IN', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                year: 'numeric', 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: true 
+                            }) %>
+                        </p>
+                    </div>
+                    <div>
+                        <span class="status-badge status-<%= order.orderStatus.toLowerCase().replace(/ /g, '-') %>">
+                            <%= order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1) %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        <% if (order.returnRequestStatus === 'pending' && order.items.some(item => item.returnRequestStatus === 'pending')) { %>
+        <div class="section-card mb-3" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-left: 5px solid #ffc107;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="section-title mb-2">
+                        <span class="section-icon orange">
+                            <i class="fas fa-undo"></i>
+                        </span>
+                        Order Return Request
+                    </h2>
+                    <div style="color: #856404; font-size: 0.95rem;">
+                        <i class="fas fa-clock"></i> <strong>Requested At:</strong> 
+                        <%= order.returnRequestedAt ? new Date(order.returnRequestedAt).toLocaleString('en-IN', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: true 
+                        }) : 'N/A' %>
+                    </div>
+                </div>
+                <button class="btn btn-danger" onclick="showOrderReturnModal()" style="white-space: nowrap;">
+                    <i class="fas fa-tasks"></i> Handle Return
+                </button>
+            </div>
+        </div>
+        <% } %>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-label">Total Items</div>
+                    <div class="stat-value"><%= orderSummary.totalItems %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="stat-label">Total Quantity</div>
+                    <div class="stat-value"><%= order.items.reduce((sum, item) => sum + item.quantity, 0) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-label">Order Total</div>
+                    <div class="stat-value">₹<%= order.totalAmount.toFixed(2) %></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stat-label">Payment Status</div>
+                    <div class="stat-value" style="font-size: 1.2rem;">
+                        <%= order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) %>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-grid">
+                <div>
+                    <div class="section-card">
+                        <h2 class="section-title">
+                            <span class="section-icon green">
+                                <i class="fas fa-shopping-bag"></i>
+                            </span>
+                            Ordered Items
+                        </h2>
+                        
+                        <% order.items.forEach((item) => { 
+                            const variant = item.productId.variants.find(v => v._id.toString() === item.variantId.toString());
+                            let variantLabel = '';
+                            if (variant && item.productId.category) {
+                                const categoryAttributes = {
+                                    'TABLET': ['mg'], 'CAPSULE': ['mg'], 'NRX TABLET': ['mg'],
+                                    'OINTMENT': ['mg'], 'DROPS': ['ml'], 'SYRUP': ['ml'],
+                                    'FOOD': ['kg'], 'MEDICAL EQUIPMENTS': ['color'], 'BODY SUPPORT': ['size']
+                                };
+                                const categoryName = item.productId.category?.name || item.productId.category || '';
+                                const distinguishingAttrs = categoryAttributes[categoryName.toString().toUpperCase()] || [];
+                                const attrs = variant.attributes instanceof Map ? Object.fromEntries(variant.attributes) : (variant.attributes || {});
+                                const filteredAttrs = { ...attrs };
+                                delete filteredAttrs.ingredients;
+                                
+                                if (distinguishingAttrs.length > 0) {
+                                    for (const attr of distinguishingAttrs) {
+                                        if (filteredAttrs[attr] && attr !== 'ingredients') {
+                                            variantLabel = `${attr.toUpperCase()}: ${filteredAttrs[attr]}`;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (!variantLabel) {
+                                    const priorityKeys = ['mg', 'ml', 'kg', 'size', 'color'];
+                                    for (const key of priorityKeys) {
+                                        if (filteredAttrs[key]) {
+                                            variantLabel = `${key.toUpperCase()}: ${filteredAttrs[key]}`;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                if (!variantLabel) {
+                                    const entries = Object.entries(filteredAttrs);
+                                    if (entries.length > 0) {
+                                        const [key, value] = entries[0];
+                                        variantLabel = `${key.toUpperCase()}: ${value}`;
+                                    }
+                                }
+                            }
+                        %>
+                        <div class="order-item">
+                            <img src="<%= variant && variant.images && variant.images.length > 0 ? variant.images[0].url : '/user/images/logo.png' %>" 
+                                 alt="<%= item.productId.name %>" 
+                                 class="item-image">
+                            <div class="item-details">
+                                <div class="item-name"><%= item.productId.name %></div>
+                                <div class="item-meta">Category: <%= item.productId.category?.name || 'N/A' %></div>
+                                <div class="item-meta">Brand: <%= item.productId.brand?.name || 'N/A' %></div>
+                                <% if (variantLabel) { %>
+                                <div class="item-meta"><%= variantLabel %></div>
+                                <% } %>
+                                <div class="mt-2">
+                                    <span class="item-status <%= item.status %>">
+                                        <%= item.status.charAt(0).toUpperCase() + item.status.slice(1) %>
+                                    </span>
+                                    <% if (item.returnRequestStatus === 'pending') { %>
+                                    <span class="return-request-badge">Return Requested</span>
+                                    <% } else if (item.returnRequestStatus === 'rejected') { %>
+                                    <span class="return-request-badge" style="background: #f8d7da; color: #842029; cursor: pointer;" 
+                                        onclick="showRejectionModal('<%= item.productId.name %>', '<%= item.rejectionReason || 'No reason provided' %>')">
+                                        <i class="fas fa-eye"></i> Return Rejected
+                                    </span>
+                                    <% } %>
+                                </div>
+                                <% if (item.status === 'cancelled' && item.cancellationReason) { %>
+                                <div class="mt-2">
+                                    <button class="action-button btn-view-reason" 
+                                            onclick="showCancellationModal('<%= item._id %>', '<%= item.cancellationReason %>', '<%= item.cancelledBy || 'N/A' %>', '<%= item.cancelledAt ? new Date(item.cancelledAt).toLocaleString() : 'N/A' %>')">
+                                        <i class="fas fa-eye"></i> View Reason
+                                    </button>
+                                </div>
+                                <% } %>
+                                <% if (item.returnRequestStatus === 'pending') { %>
+                                <div class="mt-2">
+                                    <button class="action-button btn-return-action" 
+                                            onclick="showReturnModal('<%= item._id %>', '<%= item.productId.name %>', '<%= item.returnReason || 'No reason provided' %>', '<%= item.returnRequestedAt ? new Date(item.returnRequestedAt).toLocaleString() : 'N/A' %>')">
+                                        <i class="fas fa-undo"></i> Handle Return
+                                    </button>
+                                </div>
+                                <% } %>
+                            </div>
+                            <div class="item-price-section">
+                                <div>
+                                    <div class="item-price">₹<%= item.totalPrice.toFixed(2) %></div>
+                                    <div class="item-quantity">Qty: <%= item.quantity %></div>
+                                    <div class="item-quantity">₹<%= item.unitPrice.toFixed(2) %> each</div>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                    
+                </div>
+                
+                <div>
+                    <div class="section-card mb-3">
+                        <h2 class="section-title">
+                            <span class="section-icon blue">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            Customer Information
+                        </h2>
+                        <div class="d-flex align-items-center mb-3">
+                            <% if (order.userId.imageURL) { %>
+                                <img src="<%= order.userId.imageURL %>" alt="<%= order.userId.fullName %>" 
+                                    class="profile-avatar me-3" 
+                                    style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                            <% } else { %>
+                                <div class="profile-avatar me-3" 
+                                    style="width: 50px; height: 50px; background: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem;">
+                                    <%= order.userId.fullName.charAt(0).toUpperCase() %>
+                                </div>
+                            <% } %>
+                            <div>
+                                <div style="font-weight: 600; color: #2c3e50;"><%= order.userId.fullName %></div>
+                                <div style="color: #6c757d; font-size: 0.9rem;"><%= order.userId.email %></div>
+                            </div>
+                        </div>
+                        <% if (order.userId.phone) { %>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value"><%= order.userId.phone %></span>
+                        </div>
+                        <% } %>
+                    </div>
+                    
+                    <div class="section-card mb-3">
+                        <h2 class="section-title">
+                            <span class="section-icon red">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            Shipping Address
+                        </h2>
+                        <div class="address-text">
+                            <strong><%= order.shippingAddress.fullName %></strong><br>
+                            <%= order.shippingAddress.area %>, <%= order.shippingAddress.locality %><br>
+                            <% if (order.shippingAddress.landmark) { %>
+                            <%= order.shippingAddress.landmark %><br>
+                            <% } %>
+                            <%= order.shippingAddress.district %>, <%= order.shippingAddress.state %><br>
+                            <%= order.shippingAddress.country %> - <%= order.shippingAddress.pin %><br>
+                            <strong>Phone:</strong> <%= order.shippingAddress.phoneOne %>
+                            <% if (order.shippingAddress.phoneTwo) { %>
+                            , <%= order.shippingAddress.phoneTwo %>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <div class="section-card mb-3">
+                        <h2 class="section-title">
+                            <span class="section-icon green">
+                                <i class="fas fa-credit-card"></i>
+                            </span>
+                            Payment Details
+                        </h2>
+                        <div class="info-row">
+                            <span class="info-label">Payment Method</span>
+                            <span class="info-value"><%= order.paymentMethod.toUpperCase() %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment Status</span>
+                            <span class="info-value">
+                                <span class="status-badge status-<%= order.paymentStatus %>">
+                                    <%= order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) %>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Subtotal</span>
+                            <span class="info-value">₹<%= order.subtotal.toFixed(2) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Delivery Fee</span>
+                            <span class="info-value">₹<%= order.deliveryFee.toFixed(2) %></span>
+                        </div>
+                        <% if (order.discount > 0) { %>
+                        <div class="info-row">
+                            <span class="info-label">Discount</span>
+                            <span class="info-value">-₹<%= order.discount.toFixed(2) %></span>
+                        </div>
+                        <% } %>
+                        <div class="info-row" style="border-top: 2px solid #e9ecef; padding-top: 1rem; margin-top: 0.5rem;">
+                            <span class="info-label" style="font-weight: 600; color: #2c3e50;">Total Amount</span>
+                            <span class="info-value" style="font-weight: 700; font-size: 1.2rem; color: #28a745;">
+                                ₹<%= order.totalAmount.toFixed(2) %>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h2 class="section-title">
+                            <span class="section-icon orange">
+                                <i class="fas fa-clock"></i>
+                            </span>
+                            Order Timeline
+                        </h2>
+                        <div class="timeline-container">
+                            <% 
+                            const orderTimelineEvents = [
+                                { status: 'pending', date: order.createdAt, label: 'Order Placed' },
+                                { status: 'confirmed', date: order.confirmedAt, label: 'Order Confirmed' },
+                                { status: 'processing', date: order.createdAt, label: 'Processing' },
+                                { status: 'shipped', date: order.shippedAt, label: 'Shipped' },
+                                { status: 'out for delivery', date: order.outForDeliveryAt, label: 'Out for Delivery' },
+                                { status: 'delivered', date: order.deliveredAt, label: 'Delivered' }
+                            ];
+
+                            const statusOrder = ['pending', 'confirmed', 'processing', 'shipped', 'out for delivery', 'delivered', 'cancelled', 'returned'];
+                            const currentStatusIndex = statusOrder.indexOf(order.orderStatus);
+
+                            orderTimelineEvents.forEach((event, index) => {
+                                const eventStatusIndex = statusOrder.indexOf(event.status);
+                                const isCompleted = eventStatusIndex <= currentStatusIndex && event.date;
+                                const isPending = eventStatusIndex > currentStatusIndex;
+                            %>
+                            <% if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'returned') { %>
+                            <div class="timeline-item">
+                                <div class="timeline-icon <%= isCompleted ? 'completed' : 'pending' %>">
+                                    <i class="fas fa-<%= isCompleted ? 'check' : 'circle' %>"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title"><%= event.label %></div>
+                                    <div class="timeline-date">
+                                        <%= event.date ? new Date(event.date).toLocaleString('en-IN', { 
+                                            day: '2-digit', 
+                                            month: 'short', 
+                                            year: 'numeric', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit',
+                                            hour12: true 
+                                        }) : 'Pending' %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                            <% }); %>
+                            
+                            <% if (order.orderStatus === 'cancelled') { %>
+                            <div class="timeline-item">
+                                <div class="timeline-icon completed" style="background: #f8d7da; color: #842029;">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Order Cancelled</div>
+                                    <div class="timeline-date">
+                                        <%= order.cancelledAt ? new Date(order.cancelledAt).toLocaleString('en-IN', { 
+                                            day: '2-digit', 
+                                            month: 'short', 
+                                            year: 'numeric', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit',
+                                            hour12: true 
+                                        }) : 'N/A' %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                            
+                            <% if (order.orderStatus === 'returned') { %>
+                            <div class="timeline-item">
+                                <div class="timeline-icon completed" style="background: #e7e7e7; color: #383838;">
+                                    <i class="fas fa-undo"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Order Returned</div>
+                                    <div class="timeline-date">
+                                        <%= order.returnedAt ? new Date(order.returnedAt).toLocaleString('en-IN', { 
+                                            day: '2-digit', 
+                                            month: 'short', 
+                                            year: 'numeric', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit',
+                                            hour12: true 
+                                        }) : 'N/A' %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Cancellation Reason Modal -->
+    <div class="modal fade" id="cancellationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-ban me-2"></i>
+                        Cancellation Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Cancelled By:</strong>
+                        <div id="cancelledBy" style="color: #2c3e50; font-size: 1rem; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Cancelled At:</strong>
+                        <div id="cancelledAt" style="color: #2c3e50; font-size: 1rem; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div>
+                        <strong style="color: #6c757d;">Reason:</strong>
+                        <div class="reason-box">
+                            <div id="cancellationReason"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Item Return Modal -->
+    <div class="modal fade" id="returnModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-undo me-2"></i>
+                        Item Return Request
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Product:</strong>
+                        <div id="returnProductName" style="color: #2c3e50; font-size: 1rem; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Requested At:</strong>
+                        <div id="returnRequestedAt" style="color: #2c3e50; font-size: 1rem; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Return Reason:</strong>
+                        <div class="reason-box">
+                            <div id="returnReason"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rejectionReasonInput" class="form-label" style="color: #6c757d;">
+                            <strong>Rejection Reason (optional):</strong>
+                        </label>
+                        <textarea class="form-control" id="rejectionReasonInput" rows="3" 
+                                  placeholder="Enter reason if rejecting..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="handleItemReturn('reject')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="handleItemReturn('accept')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Return Modal -->
+    <div class="modal fade" id="orderReturnModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-tasks me-2"></i>
+                        Handle Order Return Request
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color: #6c757d; margin-bottom: 1.5rem;">
+                        Select items to accept or reject for return. You can partially accept/reject items.
+                    </p>
+                    
+                    <div id="orderReturnItems">
+                        <% order.items.filter(item => item.returnRequestStatus === 'pending').forEach(item => { %>
+                        <div class="form-check mb-3 p-3" style="border: 1px solid #e9ecef; border-radius: 8px;">
+                            <input class="form-check-input return-item-checkbox" type="checkbox" 
+                                   value="<%= item._id %>" id="item_<%= item._id %>" checked>
+                            <label class="form-check-label" for="item_<%= item._id %>" style="flex: 1;">
+                                <strong><%= item.productId.name %></strong><br>
+                                <small style="color: #6c757d;">
+                                    Qty: <%= item.quantity %> | Price: ₹<%= item.totalPrice.toFixed(2) %>
+                                </small>
+                                <% if (item.returnReason) { %>
+                                <br><small style="color: #dc3545;">Reason: <%= item.returnReason %></small>
+                                <% } %>
+                            </label>
+                        </div>
+                        <% }); %>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <label for="orderRejectionReasonInput" class="form-label">
+                            <strong>Rejection Reason (for rejected items):</strong>
+                        </label>
+                        <textarea class="form-control" id="orderRejectionReasonInput" rows="3" 
+                                  placeholder="Enter reason if rejecting any items..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="handleOrderReturn('reject')">
+                        <i class="fas fa-times"></i> Reject All
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="handleOrderReturn('accept')">
+                        <i class="fas fa-check"></i> Accept Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Reason Modal -->
+    <div class="modal fade" id="rejectionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Return Rejection Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong style="color: #6c757d;">Product:</strong>
+                        <div id="rejectionProductName" style="color: #2c3e50; font-size: 1rem; margin-top: 0.5rem;"></div>
+                    </div>
+                    <div>
+                        <strong style="color: #6c757d;">Rejection Reason:</strong>
+                        <div class="reason-box">
+                            <div id="rejectionReasonText"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    const icon = sidebarToggle.querySelector('i');
+                    icon.classList.toggle('fa-chevron-left');
+                    icon.classList.toggle('fa-chevron-right');
+                });
+            }
+            
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+            
+            // Set active sidebar link
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active'); // Remove active class from all links first
+            });
+
+            // Only add active class to the Orders link
+            const ordersLink = document.querySelector('.sidebar-link[href="/admin/orders"]');
+            if (ordersLink) {
+                ordersLink.classList.add('active');
+            }
+        });
+
+
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = 'toast_' + Date.now();
+            
+            const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-warning';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            const toastHTML = `
+                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header ${bgClass} text-white">
+                        <i class="fas ${icon} me-2"></i>
+                        <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+        
+        // Show cancellation modal
+        function showCancellationModal(itemId, reason, cancelledBy, cancelledAt) {
+            document.getElementById('cancellationReason').textContent = reason || 'No reason provided';
+            document.getElementById('cancelledBy').textContent = cancelledBy || 'N/A';
+            document.getElementById('cancelledAt').textContent = cancelledAt || 'N/A';
+            const modal = new bootstrap.Modal(document.getElementById('cancellationModal'));
+            modal.show();
+        }
+
+        // Show rejection modal
+        function showRejectionModal(productName, rejectionReason) {
+            document.getElementById('rejectionProductName').textContent = productName;
+            document.getElementById('rejectionReasonText').textContent = rejectionReason || 'No reason provided';
+            const modal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+            modal.show();
+        }
+        
+        // Show return modal
+        let currentReturnItemId = null;
+        function showReturnModal(itemId, productName, returnReason, requestedAt) {
+            currentReturnItemId = itemId;
+            document.getElementById('returnProductName').textContent = productName;
+            document.getElementById('returnReason').textContent = returnReason || 'No reason provided';
+            document.getElementById('returnRequestedAt').textContent = requestedAt || 'N/A';
+            document.getElementById('rejectionReasonInput').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('returnModal'));
+            modal.show();
+        }
+        
+        // Handle item return
+        async function handleItemReturn(action) {
+            if (!currentReturnItemId) return;
+            
+            const rejectionReason = document.getElementById('rejectionReasonInput').value.trim();
+            
+            if (action === 'reject' && !rejectionReason) {
+                showToast('Please provide a rejection reason', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/order/return/<%= order._id %>', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        itemIds: [currentReturnItemId],
+                        rejectionReason: rejectionReason || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+                    modal.hide();
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Failed to process return', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while processing the return', 'error');
+            }
+        }
+        
+        // Show order return modal
+        function showOrderReturnModal() {
+            const modal = new bootstrap.Modal(document.getElementById('orderReturnModal'));
+            modal.show();
+        }
+        
+        // Handle order return
+        async function handleOrderReturn(action) {
+            const checkboxes = document.querySelectorAll('.return-item-checkbox');
+            const selectedItems = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            const rejectedItems = Array.from(checkboxes)
+                .filter(cb => !cb.checked)
+                .map(cb => cb.value);
+            
+            const rejectionReason = document.getElementById('orderRejectionReasonInput').value.trim();
+            
+            if (action === 'reject' && !rejectionReason) {
+                showToast('Please provide a rejection reason', 'error');
+                return;
+            }
+            
+            if (action === 'accept' && selectedItems.length === 0) {
+                showToast('Please select at least one item to accept', 'error');
+                return;
+            }
+            
+            if (action === 'accept' && rejectedItems.length > 0 && !rejectionReason) {
+                showToast('Please provide a rejection reason for unselected items', 'error');
+                return;
+            }
+            
+            try {
+                let requestBody;
+                
+                if (action === 'reject') {
+                    // Reject all items
+                    const allItemIds = Array.from(checkboxes).map(cb => cb.value);
+                    requestBody = {
+                        action: 'reject',
+                        itemIds: allItemIds,
+                        rejectionReason: rejectionReason
+                    };
+                } else {
+                    // Accept selected, reject unselected
+                    requestBody = {
+                        action: 'accept',
+                        itemIds: selectedItems,
+                        rejectedItemIds: rejectedItems.length > 0 ? rejectedItems : undefined,
+                        rejectionReason: rejectedItems.length > 0 ? rejectionReason : undefined
+                    };
+                }
+                
+                const response = await fetch('/admin/order/return/<%= order._id %>', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('orderReturnModal'));
+                    modal.hide();
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Failed to process return', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while processing the return', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

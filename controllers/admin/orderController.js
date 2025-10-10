@@ -328,7 +328,12 @@ const orderFullDetails = async (req,res) => {
     try {
         const id = req.params.id;
 
-        const order = await Order.findById(id).populate('userId', 'fullName email phone DOB gender imageURL').populate({path: 'items.productId', select: 'name brand category variants'});
+        const order = await Order.findById(id)
+            .populate('userId', 'fullName email phone DOB gender imageURL')
+            .populate({path: 'items.productId', select: 'name brand category variants', 
+            populate: [{path: 'brand', select: 'name'}, {path: 'category', select: 'name'}]
+            });
+
         if(!order){
             return res.status(404).json({success: false, message: "order not found"});
         }
@@ -344,10 +349,10 @@ const orderFullDetails = async (req,res) => {
         }
         
         if (req.headers.accept && req.headers.accept.includes('application/json')) {//ajax response
-            return res.status(200).json({success: true, order, orderSummary, timeline});
+            return res.status(200).json({success: true, order, orderSummary});
         }
 
-        return res.status(200).render('admin/order/orderDetails', {order, orderSummary, timeline});
+        return res.status(200).render('admin/order/orderDetails', {order, orderSummary});
 
     } catch (error) {
         console.error("Internal error while loading order details: ", error);

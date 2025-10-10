@@ -194,10 +194,10 @@ body.shop-page .navbar .search-container {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
   animation: fadeInLeft 0.8s ease 0.3s both;
-  height: fit-content;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: auto;
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: visible;
   position: relative;
   top: 100px;
   z-index: 1;
@@ -460,6 +460,10 @@ body.shop-page .navbar .search-container {
   margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 .product-name {
   font-weight: 400;

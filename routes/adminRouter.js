@@ -46,10 +46,10 @@ router.put('/products/edit/:id', auth.isAdminLoggedIn, uploadConfigs.productImag
 router.patch('/products/status/:id', auth.isAdminLoggedIn, productController.productStatus);
 
 //order management section
-router.get('/orders', orderController.loadOrder);
-router.patch('/order/status/:id', orderController.updateOrderStatus);
-router.patch('/order/return/:id', orderController.updateReturnOrder);
-router.get('/order/viewFullDetails/:id', orderController.orderFullDetails);
+router.get('/orders', auth.isAdminLoggedIn, orderController.loadOrder);
+router.patch('/order/status/:id', auth.isAdminLoggedIn, orderController.updateOrderStatus);
+router.patch('/order/return/:id', auth.isAdminLoggedIn, orderController.updateReturnOrder);
+router.get('/order/viewFullDetails/:id', auth.isAdminLoggedIn, orderController.orderFullDetails);
 
 
 

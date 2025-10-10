@@ -30,14 +30,20 @@ const signIn = async (req, res) => {
     if(admin.isBlocked){
         return res.status(403).json({success: false, message: "this account was blocked"});
     }
-    req.session.isAdminAuth = true
-    req.session.admin = {
+    req.session.isAdminAuth = true 
+    req.session.admin = { //Changes data in session memory (RAM)
         id: admin._id,
         email: admin.email
     }
-    console.log(`Admin logged in: ${admin.email}`)
 
-    return res.status(200).json({success: true, message: "Admin login successful", redirectUrl: '/admin/dashboard'})
+    req.session.save((err) => { //Forces add to MongoDB collection immediately
+        if(err) {
+            console.error('Admin session save error:', err);
+            return res.status(500).json({success: false, message: "Session save get error"});
+        }
+        console.log(`Admin logged in: ${admin.email}`)
+        return res.status(200).json({success: true, message: "Admin login successful", redirectUrl: '/admin/dashboard'})
+    });
 
   } catch (error) {
     console.error("failed to signin", error);

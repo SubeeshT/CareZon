@@ -1,3 +1,4 @@
+const MongoStore = require('connect-mongo');
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -13,10 +14,15 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({ //tell express-session to use MongoDB for store session user data
+        mongoUrl: process.env.MONGO_URI, //where to store sessions
+        collectionName: 'sessions',
+        ttl: 7 * 24 * 60 * 60 //7 days in seconds , TTL(Time To Live): How long MongoDB stores the session
+    }),
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,//7 days in milliseconds , maxAge: How long the browser keeps the session cookie
         httpOnly: true,
-        secure: false,
+        secure: false, //set to true in production with HTTPS
         sameSite: 'lax'
     }
 }));

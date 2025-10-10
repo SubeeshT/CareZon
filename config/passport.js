@@ -25,9 +25,11 @@ async (accessToken, refreshToken, profile, done) => {
         return done(error, null)
     }
 }))
+
 passport.serializeUser((user, done) => {
     done(null, user._id) //Store user ID in session
 })
+
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findById(id)
@@ -36,5 +38,14 @@ passport.deserializeUser(async (id, done) => {
         done(error, null)
     }
 })
+
+//prevent session regeneration during OAuth after admin sign in
+passport.authenticate = ((originalAuthenticate) => {
+    return function(strategy, options) {
+        options = options || {};
+        options.keepSessionInfo = true; //this prevents session regeneration
+        return originalAuthenticate.call(this, strategy, options);
+    };
+})(passport.authenticate);
 
 module.exports = passport

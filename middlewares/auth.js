@@ -2,6 +2,7 @@ const User = require('../models/userSchema');
 const mongoose = require('mongoose');
 
 function isAdminLoggedIn(req,res,next) {
+    
     if(req.session.isAdminAuth && req.session.admin){
         return next();
     }else{
