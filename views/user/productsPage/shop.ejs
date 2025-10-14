@@ -117,7 +117,7 @@
                                     <div class="product-card" onclick="window.location.href='/products/details/<%= product._id %>'" style="cursor: pointer;">
                                     <div class="product-image">
                                         <img src="<%= product.activeVariant.images[0]?.url || '/default-image.jpg' %>" alt="<%= product.name %>" loading="lazy">
-                                        <button class="wishlist-btn" onclick="event.stopPropagation(); toggleWishlist('<%= product._id %>')">
+                                        <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', event)">
                                             <i class="far fa-heart"></i>
                                         </button>
                                     </div>
@@ -582,8 +582,8 @@
         }
 
         function renderProducts(productsToRender = filteredProducts) {
-             console.log('Products to render:', productsToRender); // Add this line
-    console.log('First product ID:', productsToRender[0]?._id);
+            console.log('Products to render:', productsToRender); // Add this line
+            console.log('First product ID:', productsToRender[0]?._id);
             if (!productsToRender || productsToRender.length === 0) {
                 productsGrid.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -606,8 +606,8 @@
                     <div class="product-card" onclick="window.location.href='/products/details/${product._id}'" style="cursor: pointer;">
                         <div class="product-image">
                             <img src="${imageUrl}" alt="${product.name}" loading="lazy">
-                            <button class="wishlist-btn" onclick="event.stopPropagation(); toggleWishlist('${product._id}')">
-                                <i class="far fa-heart"></i>
+                            <button class="wishlist-btn" onclick="toggleWishlist('${product._id}', event)">
+                                <i class="${product.isInWishlist ? 'fas' : 'far'} fa-heart" style="${product.isInWishlist ? 'color: #dc3545;' : ''}"></i>
                             </button>
                         </div>
                         <div class="product-info">
@@ -718,11 +718,58 @@
         await fetchProducts(page);
     }
 
-        function toggleWishlist(productId) {
-            // Placeholder function - you'll implement this later
-            console.log('Toggle wishlist for product:', productId);
-            // You can add a visual feedback here for now
-            showPopup('Wishlist feature coming soon!', 'info');
+        async function toggleWishlist(productId, event) {
+            try {
+                // Stop the event from bubbling up to the product card
+                event.stopPropagation();
+                event.preventDefault();
+                
+                const wishlistBtn = event.target.closest('.wishlist-btn');
+                const heartIcon = wishlistBtn.querySelector('i');
+                
+                // Get the product to find its active variant
+                const product = filteredProducts.find(p => p._id === productId);
+                if (!product || !product.activeVariant) {
+                    showPopup('Product variant not found', 'error');
+                    return;
+                }
+                
+                const variantId = product.activeVariant._id;
+                
+                const response = await fetch(`/account/wishlist/add/${productId}/${variantId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update the product's wishlist status in the array
+                    const productIndex = filteredProducts.findIndex(p => p._id === productId);
+                    if (productIndex > -1) {
+                        filteredProducts[productIndex].isInWishlist = data.isInWishlist;
+                    }
+                    
+                    // Toggle heart icon style based on backend response
+                    if (data.isInWishlist) {
+                        heartIcon.classList.remove('far');
+                        heartIcon.classList.add('fas');
+                        heartIcon.style.color = '#dc3545';
+                    } else {
+                        heartIcon.classList.remove('fas');
+                        heartIcon.classList.add('far');
+                        heartIcon.style.color = '';
+                    }
+                    showPopup(data.message, 'success');
+                } else {
+                    showPopup(data.message || 'Failed to update wishlist', 'error');
+                }
+            } catch (error) {
+                console.error('Error toggling wishlist:', error);
+                showPopup('Something went wrong', 'error');
+            }
         }
     </script>
 </body>

@@ -936,6 +936,116 @@
         margin-bottom: 1rem;
     }
 }
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.custom-toast {
+    min-width: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.3s ease-out;
+    border-left: 4px solid;
+}
+
+.custom-toast.success {
+    border-left-color: #27ae60;
+}
+
+.custom-toast.error {
+    border-left-color: #e74c3c;
+}
+
+.custom-toast i {
+    font-size: 1.2rem;
+}
+
+.custom-toast.success i {
+    color: #27ae60;
+}
+
+.custom-toast.error i {
+    color: #e74c3c;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #2c3e50;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-close:hover {
+    color: #2c3e50;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast-removing {
+    animation: slideOutRight 0.3s ease-out forwards;
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        right: 10px;
+        left: 10px;
+        top: 70px;
+    }
+    
+    .custom-toast {
+        min-width: auto;
+    }
+}
     </style>
 </head>
 <body>
@@ -2099,20 +2209,119 @@
             });
         }
 
-        function toggleWishlist() {
+        async function toggleWishlist() {
+            if (!isUserAuthenticated()) {
+                showToast('error', 'Sign In Required', 'Please sign in first to add items to wishlist');
+                return;
+            }
+
             const wishlistBtn = document.getElementById('wishlistBtn');
             const icon = wishlistBtn.querySelector('i');
             
-            isInWishlist = !isInWishlist;
+            // Disable button during request
+            wishlistBtn.disabled = true;
             
-            if (isInWishlist) {
-                icon.className = 'fas fa-heart';
-                wishlistBtn.innerHTML = '<i class="fas fa-heart"></i> Added to Wishlist';
-                showSuccessMessage('Product added to wishlist!');
-            } else {
-                icon.className = 'far fa-heart';
-                wishlistBtn.innerHTML = '<i class="far fa-heart"></i> Wishlist';
-                showSuccessMessage('Product removed from wishlist!');
+            try {
+                const currentVariantIndex = new URLSearchParams(window.location.search).get('variantIndex') || 0;
+                const currentVariant = productData.allVariants ? 
+                    productData.allVariants[currentVariantIndex] : 
+                    productData.variant;
+                
+                const variantId = currentVariant._id || currentVariant.id;
+                
+                const response = await fetch(`/account/wishlist/add/${productData.id}/${variantId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.isInWishlist) {
+                        icon.className = 'fas fa-heart';
+                        icon.style.color = '#e74c3c';
+                        showToast('success', 'Added to Wishlist', 'Product has been added to your wishlist');
+                    } else {
+                        icon.className = 'far fa-heart';
+                        icon.style.color = '';
+                        showToast('success', 'Removed from Wishlist', 'Product has been removed from your wishlist');
+                    }
+                } else {
+                    showToast('error', 'Failed', result.message || 'Failed to update wishlist');
+                }
+            } catch (error) {
+                console.error('Wishlist error:', error);
+                showToast('error', 'Error', 'Failed to update wishlist');
+            } finally {
+                wishlistBtn.disabled = false;
+            }
+        }
+
+        function showToast(type, title, message) {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}`;
+            
+            const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            toast.innerHTML = `
+                <i class="fas ${iconClass}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('toast-removing');
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        async function checkWishlistStatus() {
+            if (!isUserAuthenticated()) {
+                return;
+            }
+            
+            try {
+                const currentVariantIndex = new URLSearchParams(window.location.search).get('variantIndex') || 0;
+                const currentVariant = productData.allVariants ? 
+                    productData.allVariants[currentVariantIndex] : 
+                    productData.variant;
+                
+                const variantId = currentVariant._id || currentVariant.id;
+                
+                const response = await fetch(`/account/wishlist/check/${productData.id}/${variantId}`);
+                const result = await response.json();
+                
+                if (result.success && result.isInWishlist) {
+                    const wishlistBtn = document.getElementById('wishlistBtn');
+                    const icon = wishlistBtn.querySelector('i');
+                    icon.className = 'fas fa-heart';
+                    icon.style.color = '#e74c3c';
+                }
+            } catch (error) {
+                console.error('Error checking wishlist status:', error);
             }
         }
 
@@ -2195,6 +2404,7 @@
             // Initialize quantity controls
             updateQuantity('reset');
             checkCartStatus();
+            checkWishlistStatus();
         });
 
     function populateProductData(data) {
@@ -2687,6 +2897,7 @@ function getAttributesObject(attributes) {
                     }, 100);
                     
                     showSuccessMessage('Variant updated successfully!');
+                    checkWishlistStatus();
                 } else {
                     showErrorMessage('Failed to load variant data .then');
                 }

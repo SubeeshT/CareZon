@@ -78,8 +78,8 @@ const validateActiveUser = async (req,res,next) => {
             return res.status(403).redirect('/signIn?error=youAreAdmin');
         }
 
-        req.user = user;
-        res.locals.user = user;
+        req.user = user; //access user by req.user
+        res.locals.user = user; //for UI
         return next();
 
     } catch (error) {

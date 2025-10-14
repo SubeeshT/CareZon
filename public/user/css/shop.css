@@ -398,10 +398,17 @@ body.shop-page .navbar .search-container {
   pointer-events: auto !important;
 }
 .product-card * {
-  pointer-events: none; /* Prevent child elements from blocking clicks */
+  pointer-events: none;
 }
+
 .product-card {
-  pointer-events: auto !important; /* Re-enable on the card itself */
+  pointer-events: auto !important;
+}
+
+/* Allow wishlist button to be clickable */
+.wishlist-btn,
+.wishlist-btn * {
+  pointer-events: auto !important;
 }
 .product-card:hover {
   transform: translateY(-10px);

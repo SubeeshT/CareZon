@@ -7,6 +7,8 @@ const profileController = require('../controllers/user/ProfileController');
 const addressController = require('../controllers/user/addressController');
 const cartController = require('../controllers/user/cartController');
 const orderController =  require('../controllers/user/orderController');
+const wishlistController = require('../controllers/user/wishlistController');
+const walletController = require('../controllers/user/walletController');
 const auth = require('../middlewares/auth');
 const passport = require('passport');
 const uploadConfigs = require('../utils/multerConfig');
@@ -77,6 +79,15 @@ router.patch('/account/orders/cancel/:orderId', auth.validateActiveUser, orderCo
 router.get('/account/orders', auth.validateActiveUser, orderController.loadOrdersList);
 router.post('/account/orders/return/:orderId', auth.validateActiveUser, orderController.returnOrder);
 router.get('/account/orders/invoice/:orderId', auth.validateActiveUser, orderController.downloadInvoice);
+
+//Wishlist section
+router.get('/account/wishlists', auth.validateActiveUser, wishlistController.loadWishlist);
+router.post('/account/wishlist/add/:productId/:variantId', auth.validateActiveUser, wishlistController.addToWishlist);
+router.delete('/account/wishlist/delete/:variantId', auth.validateActiveUser, wishlistController.removeFromWishlist);
+router.get('/account/wishlist/check/:productId/:variantId', auth.validateActiveUser, wishlistController.checkWishlistStatus);
+
+//wallet section
+router.get('/account/wallet', auth.validateActiveUser, walletController.loadWallet);
 
 
 

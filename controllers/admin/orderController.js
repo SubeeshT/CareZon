@@ -36,9 +36,6 @@ const loadOrder = async (req,res) => {
         const sorted = sort === 'desc'? -1 : 1;
 
         const orders = await Order.find(searchFilter).sort({createdAt: sorted}).skip(skip).limit(limit).populate('userId', 'fullName email');
-        // if(orders.length === 0){
-        //     return res.status(404).json({success: false, message: "Orders are not found"});
-        // }
 
         const totalOrders = await Order.countDocuments(searchFilter);
 

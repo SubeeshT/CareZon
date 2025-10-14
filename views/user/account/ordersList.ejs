@@ -400,6 +400,40 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        /* Toast Styling */
+        .toast {
+            min-width: 300px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .toast-body {
+            padding: 15px;
+            color: white;
+            font-weight: 500;
+            border-radius: 8px;
+        }
+
+        .toast-body.toast-success {
+            background-color: #28a745;
+        }
+
+        .toast-body.toast-error {
+            background-color: #dc3545;
+        }
+
+        .toast-body.toast-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .toast-body .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+
+        .toast-body.toast-warning .btn-close-white {
+            filter: none;
+        }
     </style>
 </head>
 <body>
@@ -551,6 +585,17 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-warning" onclick="confirmEntireOrderReturn()">Request Return</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="responseToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+            <div class="toast-body d-flex align-items-center" id="toastBody">
+                <i class="fas fa-check-circle me-2" id="toastIcon"></i>
+                <span id="toastMessage" class="flex-grow-1"></span>
+                <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
@@ -716,7 +761,7 @@
                         <button class="btn btn-info btn-sm" onclick="generateInvoice('${order.orderId}')">
                             <i class="fas fa-file-invoice"></i> Download Invoice
                         </button>
-                        ${getCancelButton(order.status, order.orderId)}
+                        ${getCancelButton(order.status, order.orderId, order.returnRequestStatus)}
                     </div>
                 </div>
             `;
@@ -763,16 +808,32 @@
             }
         }
 
-        function getCancelButton(status, orderId) {
+        function getCancelButton(status, orderId, returnRequestStatus) {
             if (status === 'pending' || status === 'confirmed' || status === 'processing') {
                 return `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${orderId}')">
                             <i class="fas fa-times"></i> Cancel Order
                         </button>`;
             }
             if (status === 'delivered') {
-                return `<button class="btn btn-warning btn-sm" onclick="returnOrder('${orderId}')">
-                            <i class="fas fa-undo"></i> Return Order
-                        </button>`;
+                // Check return request status
+                if (returnRequestStatus === 'pending') {
+                    return `<span class="badge bg-warning text-dark">
+                                <i class="fas fa-clock"></i> Return Requested
+                            </span>`;
+                } else if (returnRequestStatus === 'rejected') {
+                    return `<span class="badge bg-danger">
+                                <i class="fas fa-times-circle"></i> Return Request Rejected
+                            </span>`;
+                } else if (returnRequestStatus === 'none') {
+                    return `<button class="btn btn-warning btn-sm" onclick="returnOrder('${orderId}')">
+                                <i class="fas fa-undo"></i> Return Order
+                            </button>`;
+                }
+            }
+            if (status === 'returned') {
+                return `<span class="badge bg-secondary">
+                            <i class="fas fa-check-circle"></i> Returned
+                        </span>`;
             }
             return '';
         }
@@ -875,12 +936,12 @@
             const otherReason = document.getElementById('cancelEntireOrderOther').value;
             
             if (!reason) {
-                alert('Please select a cancellation reason');
+                showToast('Validation Error', 'Please select a cancellation reason', 'warning');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                alert('Please specify the reason');
+                showToast('Validation Error', 'Please specify the reason', 'warning');
                 return;
             }
             
@@ -905,17 +966,17 @@
                 modal.hide();
                 
                 if (data.success) {
-                    alert('Order cancelled successfully!');
+                    showToast('Order cancelled successfully!', 'success');
                     // Reset form
                     document.getElementById('cancelEntireOrderForm').reset();
                     document.getElementById('cancelEntireOrderOtherDiv').style.display = 'none';
                     await loadOrders();
                 } else {
-                    alert(data.message || 'Error cancelling order');
+                    showToast('Error', data.message || 'Error cancelling order', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error cancelling order');
+                showToast('Error', 'Error cancelling order. Please try again.', 'error');
             }
         }
 
@@ -926,12 +987,12 @@
             const description = document.getElementById('returnEntireOrderDescription').value;
             
             if (!reason) {
-                alert('Please select a return reason');
+                showToast('Please select a return reason', 'warning');
                 return;
             }
             
             if (reason === 'other' && !otherReason.trim()) {
-                alert('Please specify the reason');
+                showToast('Please specify the reason', 'warning');
                 return;
             }
             
@@ -957,21 +1018,55 @@
                 modal.hide();
                 
                 if (data.success) {
-                    alert('Return request submitted successfully!');
+                    showToast('Return request submitted successfully!', 'success');
                     // Reset form
                     document.getElementById('returnEntireOrderForm').reset();
                     document.getElementById('returnEntireOrderOtherDiv').style.display = 'none';
                     await loadOrders();
                 } else {
-                    alert(data.message || 'Error processing return request');
+                    showToast(data.message || 'Error processing return request', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error processing return request');
+                showToast('Error processing return request', 'error');
             }
         }
 
-
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('responseToast');
+            const toastBody = document.getElementById('toastBody');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            // Remove previous classes
+            toastBody.classList.remove('toast-success', 'toast-error', 'toast-warning');
+            
+            // Set icon and color based on type
+            let iconClass = '';
+            switch(type) {
+                case 'success':
+                    toastBody.classList.add('toast-success');
+                    iconClass = 'fa-check-circle';
+                    break;
+                case 'error':
+                    toastBody.classList.add('toast-error');
+                    iconClass = 'fa-times-circle';
+                    break;
+                case 'warning':
+                    toastBody.classList.add('toast-warning');
+                    iconClass = 'fa-exclamation-triangle';
+                    break;
+                default:
+                    toastBody.classList.add('toast-success');
+                    iconClass = 'fa-check-circle';
+            }
+            
+            toastIcon.className = `fas ${iconClass} me-2`;
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
+            bsToast.show();
+        }
     </script>
 </body>
 </html>

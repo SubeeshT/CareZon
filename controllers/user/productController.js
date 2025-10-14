@@ -1,7 +1,8 @@
 const Product = require('../../models/productSchema');
 const Brand = require('../../models/brandSchema');
 const Category = require('../../models/categorySchema');
-const User = require('../../models/userSchema')
+const User = require('../../models/userSchema');
+const Wishlist = require('../../models/wishlistSchema');
 const mongoose = require('mongoose');
 
 const loadShopPage = async (req, res) => {
@@ -142,6 +143,25 @@ const loadShopPage = async (req, res) => {
             
         const activeBrands = await Brand.find({ isListed: true }).select('_id name').sort({ name: 1 });
 
+        //check wishlist status for logged-in users
+        if (req.session.userId) {
+            const wishlist = await Wishlist.findOne({ userId: req.session.userId }).lean();
+            const wishlistItems = wishlist ? wishlist.items : [];
+            
+            //create a Set for faster lookup (product_variant combination)
+            const wishlistSet = new Set(wishlistItems.map(item => `${item.productId.toString()}_${item.variantId.toString()}`));
+            
+            //add isInWishlist property to each product
+            products.forEach(product => {
+                const key = `${product._id.toString()}_${product.activeVariant._id.toString()}`;
+                product.isInWishlist = wishlistSet.has(key);
+            });
+        } else {
+            products.forEach(product => { //not logged in - all products are not in wishlist
+                product.isInWishlist = false;
+            });
+        }
+
         const responseData = {
             products,
             categories: activeCategories,
@@ -164,7 +184,7 @@ const loadShopPage = async (req, res) => {
             }
         };
       
-        //handle AJAX request
+        //handle AJAX/json request
         if (req.headers.accept?.includes('application/json')) {
             return res.json({success: true,...responseData,});
         }

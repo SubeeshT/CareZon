@@ -14,7 +14,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ //tell express-session to use MongoDB for store session user data
+    store: MongoStore.create({ //tell express-session to use MongoDB also, for store session user data
         mongoUrl: process.env.MONGO_URI, //where to store sessions
         collectionName: 'sessions',
         ttl: 7 * 24 * 60 * 60 //7 days in seconds , TTL(Time To Live): How long MongoDB stores the session

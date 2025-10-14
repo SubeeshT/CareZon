@@ -61,6 +61,7 @@ const loadOrdersList = async (req, res) => {
                 orderId: order.orderId,
                 orderDate: new Date(order.createdAt).toLocaleDateString(),
                 status: order.orderStatus,
+                returnRequestStatus: order.returnRequestStatus || 'none',
                 totalAmount: order.totalAmount,
                 products: order.items.map(item => ({
                     name: item.productSnapshot.name,

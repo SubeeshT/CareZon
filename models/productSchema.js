@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const variantSchema = new mongoose.Schema({
-  quantity: {
+  quantity: {//use while adding stock
     type: Number,
     required: true,
     min: 0
   },
-   stock: {
+   stock: {//total stock
     type: Number,
     required: false,
     min: 0,
@@ -45,7 +45,7 @@ const variantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  uom: {
+  uom: {//ex: one strip of tablet have 10 units
     type: Number,
     required: true
   },
