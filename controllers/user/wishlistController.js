@@ -163,8 +163,7 @@ const checkWishlistStatus = async (req, res) => {
             return res.status(400).json({success: false, message: "Invalid product or variant"});
         }
 
-        const wishlist = await Wishlist.findOne({userId}).lean();
-        
+        const wishlist = await Wishlist.findOne({userId}).lean();   
         if (!wishlist) {
             return res.json({success: true, isInWishlist: false});
         }
