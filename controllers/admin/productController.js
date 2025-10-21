@@ -406,6 +406,7 @@ const editProduct = async (req, res) => {
 
             //build processed variant
             const processedVariant = {
+                _id: variant._id || undefined,
                 quantity: parseInt(variant.quantity),
                 stock: parseInt(variant.quantity),
                 regularPrice: parseFloat(variant.regularPrice),

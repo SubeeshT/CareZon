@@ -215,6 +215,16 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        .summary-row .text-success {
+                color: #10b981 !important;
+            }
+
+            /* For order summary discount specifically */
+            .order-summary .summary-row .text-success,
+            .order-summary .summary-row #discount-amount {
+                color: #ffffff !important; /* Light green that works on dark background */
+        }
+
         .summary-row:last-child {
             border-bottom: none;
             font-weight: 600;
@@ -450,6 +460,72 @@
             position: absolute;
             right: 0;
         }
+
+        .coupon-card {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .coupon-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .coupon-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .coupon-card .coupon-code {
+            background: var(--light-bg);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Toast Styles */
+        .toast-container {
+            z-index: 9999;
+        }
+
+        .toast {
+            min-width: 300px;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .toast-body {
+            padding: 1rem;
+            font-weight: 500;
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
     </style>
 </head>
 <body>
@@ -624,6 +700,24 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <div class="payment-option" data-payment="wallet">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <i class="fas fa-wallet text-info"></i>
+                                                    <strong>Wallet</strong>
+                                                </div>
+                                                <small class="text-muted">Pay from wallet balance</small>
+                                                <div class="mt-2">
+                                                    <small class="text-info" id="wallet-balance">Balance: ₹0</small>
+                                                </div>
+                                            </div>
+                                            <input type="radio" name="payment" value="wallet" class="form-check-input">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
                                     <div class="payment-option" data-payment="cod">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <div>
@@ -687,6 +781,33 @@
                         <div class="card-body">
                            
                         <div class="mt-4">
+
+                        <!-- Coupon Section -->
+                        <div class="coupon-section mb-3">
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="coupon-code-input" placeholder="Enter coupon code">
+                                <button class="btn btn-outline-light" id="apply-coupon-code-btn" type="button">
+                                    <i class="fas fa-check me-1"></i>Apply
+                                </button>
+                            </div>
+                            <button class="btn btn-link text-white p-0 text-decoration-none" id="select-coupon-btn">
+                                <i class="fas fa-ticket-alt me-1"></i>View Available Coupons
+                            </button>
+                            
+                            <!-- Applied Coupon Display -->
+                            <div id="applied-coupon-display" style="display: none;" class="mt-2 p-2 bg-white bg-opacity-10 rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-white"><strong id="applied-coupon-code"></strong></small>
+                                        <small class="d-block text-white-50" id="applied-coupon-desc"></small>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-white p-0" id="remove-coupon-btn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                             <div class="summary-row">
                                 <span>Subtotal (<%= cart?.items?.length || 0 %> items)</span>
                                 <span>₹<%= cart?.totalAmount || 0 %></span>
@@ -694,6 +815,11 @@
                             <div class="summary-row">
                                 <span>Delivery Fee</span>
                                 <span id="delivery-fee">₹50</span>
+                            </div>
+
+                            <div class="summary-row" id="discount-row" style="display: none;">
+                                <span>Discount (Coupon)</span>
+                                <span class="text-success" id="discount-amount">-₹0</span>
                             </div>
 
                             <div class="text-center mt-2 mb-3">
@@ -754,6 +880,23 @@
                     <a href="/products/shop"><button class="btn btn-outline-primary" id="continue-shopping">
                         <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
                     </button></a>       
+                </div>
+            </div>
+
+            <!-- Payment Failure Page -->
+            <div id="failure-content" class="success-page" style="display: none;">
+                <div class="success-animation" style="background: var(--danger-color);">
+                    <i class="fas fa-times"></i>
+                </div>
+                <h2 class="text-danger mb-3">Payment Failed!</h2>
+                <p class="text-muted mb-4" id="failure-message">Unfortunately, we couldn't process your payment. Please try again.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <button class="btn btn-primary" id="retry-payment">
+                        <i class="fas fa-redo me-2"></i>Retry Payment
+                    </button>
+                    <a href="/cart"><button class="btn btn-outline-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>Back to Cart
+                    </button></a>
                 </div>
             </div>
         </div>
@@ -887,6 +1030,131 @@
         </div>
     </div>
 
+    <!-- Insufficient Balance Modal -->
+    <div class="modal fade" id="insufficientBalanceModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Insufficient Balance
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="mb-0">Your wallet balance is insufficient to complete this order.</p>
+                    <p class="text-muted mt-2">Please add money to your wallet or choose another payment method.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="/account/wallet" class="btn btn-primary">Go to Wallet</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon Selection Modal -->
+    <div class="modal fade" id="couponModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-ticket-alt me-2"></i>Select Coupon
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Coupon Filter Tabs -->
+                    <ul class="nav nav-pills mb-3" id="coupon-tabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-filter="all">All Coupons</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-filter="available">Available</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-filter="expired">Expired</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-filter="upcoming">Upcoming</button>
+                        </li>
+                    </ul>
+                    
+                    <!-- Coupon List -->
+                    <div id="coupon-list" class="row g-3">
+                        <!-- Coupons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon Confirmation Modal -->
+    <div class="modal fade" id="couponConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Important Notice
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Once you apply this coupon:</strong></p>
+                    <ul class="text-muted">
+                        <li>You cannot cancel or return individual items from this order</li>
+                        <li>You can only cancel or return the entire order</li>
+                        <li>This restriction is necessary to maintain coupon validity</li>
+                    </ul>
+                    <p class="mb-0">Do you want to proceed with this coupon?</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-coupon-btn">Apply Coupon</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Retry Modal -->
+    <div class="modal fade" id="paymentRetryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>Payment Incomplete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p>Your order has been created but payment was not completed.</p>
+                    <p class="text-muted mb-0">You can retry the payment now or view order details to pay later.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-primary" id="view-pending-order-btn">
+                        <i class="fas fa-eye me-2"></i>View Details
+                    </button>
+                    <button type="button" class="btn btn-primary" id="retry-payment-btn">
+                        <i class="fas fa-redo me-2"></i>Retry Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="toast" class="toast align-items-center border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="toast-icon me-2"></i>
+                    <span class="toast-message"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script>
         // Application State
@@ -1061,6 +1329,43 @@
             totalAmount.textContent = `₹${total}`;
         }
 
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toastEl = document.getElementById('toast');
+            const toastBody = toastEl.querySelector('.toast-message');
+            const toastIcon = toastEl.querySelector('.toast-icon');
+            
+            // Remove previous type classes
+            toastEl.classList.remove('success', 'error', 'warning', 'info');
+            
+            // Set message
+            toastBody.textContent = message;
+            
+            // Set icon based on type
+            let icon = 'fa-info-circle';
+            if (type === 'success') {
+                icon = 'fa-check-circle';
+                toastEl.classList.add('success');
+            } else if (type === 'error') {
+                icon = 'fa-exclamation-circle';
+                toastEl.classList.add('error');
+            } else if (type === 'warning') {
+                icon = 'fa-exclamation-triangle';
+                toastEl.classList.add('warning');
+            } else {
+                toastEl.classList.add('info');
+            }
+            
+            toastIcon.className = `toast-icon fas ${icon} me-2`;
+            
+            // Show toast
+            const toast = new bootstrap.Toast(toastEl, {
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+        }
+
         function updatePlaceOrderButton() {
             if (selectedAddress && selectedPayment) {
                 placeOrderBtn.disabled = false;
@@ -1083,13 +1388,27 @@
         async function placeOrder() {
             if (!selectedAddress || !selectedPayment || !cart.items || cart.items.length === 0) return;
             
+             // Check wallet balance if wallet payment is selected
+            if (selectedPayment === 'wallet') {
+                const subtotal = cart.totalAmount || 0;
+                const fee = subtotal < 300 ? 50 : 0;
+                const totalAmount = subtotal + fee - (appliedCoupon ? appliedCoupon.discountValue : 0);
+                
+                if (walletBalance < totalAmount) {
+                    insufficientBalanceModal.show();
+                    return;
+                }
+            }
+
             // Show loading state
             loadingSpinner.style.display = 'inline-block';
-            btnText.textContent = 'PLACING ORDER...';
+            btnText.textContent = 'PROCESSING...';
             placeOrderBtn.disabled = true;
             
             try {
-                showProcessingPage();
+                const subtotal = cart.totalAmount || 0;
+                const fee = subtotal < 300 ? 50 : 0;
+                const totalAmount = subtotal + fee;
                 
                 const orderData = {
                     addressId: selectedAddress._id,
@@ -1098,8 +1417,101 @@
                         productId: item.productId._id,
                         variantId: item.variantId,
                         quantity: item.quantity
-                    }))
+                    })),
+                    couponId: appliedCoupon ? appliedCoupon._id : null
                 };
+                
+                // If COD or Wallet, process directly
+                if (selectedPayment === 'cod' || selectedPayment === 'wallet') {
+                    await processOrder(orderData);
+                } else {
+                    // For online payments, create Razorpay order first
+                    const razorpayResponse = await fetch('/order/create-razorpay-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ amount: totalAmount })
+                    });
+                    
+                    const razorpayData = await razorpayResponse.json();
+                    
+                    if (!razorpayData.success) {
+                        throw new Error(razorpayData.message || 'Error creating payment order');
+                    }
+                    
+                    // Initialize Razorpay payment
+                    const options = {
+                        key: razorpayData.key_id,
+                        amount: razorpayData.order.amount,
+                        currency: razorpayData.order.currency,
+                        name: "CareZon", 
+                        description: "Order Payment",
+                        order_id: razorpayData.order.id,
+                        handler: async function (response) {
+                            // Payment successful
+                            orderData.razorpay_order_id = response.razorpay_order_id;
+                            orderData.razorpay_payment_id = response.razorpay_payment_id;
+                            orderData.razorpay_signature = response.razorpay_signature;
+                            orderData.paymentStatus = 'completed';
+                            
+                            await processOrder(orderData);
+                        },
+                        prefill: {
+                            name: selectedAddress.fullName,
+                            contact: selectedAddress.phoneOne
+                        },
+                        theme: {
+                            color: "#4f46e5"
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                // Payment cancelled - show retry option
+                                showPaymentRetryModal();
+                            }
+                        }
+                    };
+                    
+                    // CREATE RAZORPAY INSTANCE HERE
+                    const rzp = new Razorpay(options);
+                    
+                    rzp.on('payment.failed', async function (response){
+                        // Payment failed - create pending order only once
+                        if (!pendingOrderId) {  // Check if pending order already created
+                            orderData.paymentStatus = 'failed';
+                            orderData.paymentFailureReason = response.error.description;
+                            
+                            await processFailedPaymentOrder(orderData);
+                        } else {
+                            // If pending order already exists, just show retry modal
+                            showPaymentRetryModal();
+                        }
+                    });
+                    
+                    // Open Razorpay payment modal
+                    rzp.open();
+                    
+                    // Reset button for Razorpay modal
+                    loadingSpinner.style.display = 'none';
+                    btnText.textContent = 'PLACE ORDER';
+                    placeOrderBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Error placing order:', error);
+                showPaymentFailurePage(error.message || 'Error placing order');
+                
+                // Reset loading state
+                loadingSpinner.style.display = 'none';
+                btnText.textContent = 'PLACE ORDER';
+                placeOrderBtn.disabled = false;
+            }
+        }
+
+        // this NEW helper function
+        async function processOrder(orderData) {
+            try {
+                showProcessingPage();
                 
                 const response = await fetch('/order/place', {
                     method: 'POST',
@@ -1112,31 +1524,36 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    const orderId = data.orderId;
-
                     setTimeout(() => {
-                        showSuccessPage(orderId);
+                        showSuccessPage(data.orderId);
                     }, 2000);
-
                 } else {
-                    alert(data.message || 'Error placing order');
-                    // Reset to checkout
-                    processingContent.style.display = 'none';
-                    checkoutContent.style.display = 'block';
+                    throw new Error(data.message || 'Error placing order');
                 }
             } catch (error) {
-                console.error('Error placing order:', error);
-                alert('Error placing order');
-                // Reset to checkout
-                processingContent.style.display = 'none';
-                checkoutContent.style.display = 'block';
-            } finally {
-                // Reset loading state
-                loadingSpinner.style.display = 'none';
-                btnText.textContent = 'PLACE ORDER';
-                placeOrderBtn.disabled = false;
+                showPaymentFailurePage(error.message);
             }
         }
+
+        let walletBalance = 0;
+        const insufficientBalanceModal = new bootstrap.Modal(document.getElementById('insufficientBalanceModal'));
+
+        // Fetch wallet balance
+        async function fetchWalletBalance() {
+            try {
+                const response = await fetch('/account/wallet/balance');
+                const data = await response.json();
+                if (data.success) {
+                    walletBalance = data.balance;
+                    document.getElementById('wallet-balance').textContent = `Balance: ₹${walletBalance}`;
+                }
+            } catch (error) {
+                console.error('Error fetching wallet balance:', error);
+            }
+        }
+
+        // Call on page load
+        fetchWalletBalance();
 
         function showProcessingPage() {
             checkoutContent.style.display = 'none';
@@ -1219,12 +1636,12 @@
                     if (data.success) {
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Error deleting address');
+                        showToast(data.message || 'Error deleting address', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error deleting address');
+                    showToast('Error deleting address', 'error');
                 });
             }
         }
@@ -1249,7 +1666,7 @@
             const requiredFields = ['fullName', 'phoneOne', 'pin', 'locality', 'area', 'district', 'state', 'country'];
             for (let field of requiredFields) {
                 if (!addressData[field]) {
-                    alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                    showToast(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
                     return;
                 }
             }
@@ -1271,12 +1688,12 @@
                     // Reload the page to reflect changes
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Error saving address');
+                    showToast(data.message || 'Error saving address', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error saving address');
+                showToast('Error saving address', 'error');
             });
         }
 
@@ -1375,6 +1792,384 @@
 
         // Initialize delivery fee calculation
         updateDeliveryFee();
+
+        function showPaymentFailurePage(message) {
+            processingContent.style.display = 'none';
+            checkoutContent.style.display = 'none';
+            successContent.style.display = 'none';
+            
+            const failureContent = document.getElementById('failure-content');
+            failureContent.style.display = 'block';
+            failureContent.classList.add('fade-in-up');
+            
+            document.getElementById('failure-message').textContent = message || 'Payment failed. Please try again.';
+            
+            // Add retry handler
+            document.getElementById('retry-payment').onclick = function() {
+                window.location.reload();
+            };
+        }
+
+        let appliedCoupon = null;
+        const couponModal = new bootstrap.Modal(document.getElementById('couponModal'));
+
+        // Event listeners for coupon
+        document.getElementById('select-coupon-btn').addEventListener('click', loadCoupons);
+        document.getElementById('apply-coupon-code-btn').addEventListener('click', applyCouponCode);
+        document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
+
+        // Coupon filter tabs
+        document.querySelectorAll('#coupon-tabs .nav-link').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('#coupon-tabs .nav-link').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+                renderCoupons(allCoupons, filter); // Use stored coupons
+            });
+        });
+
+        let allCoupons = []; 
+
+        async function loadCoupons() {
+            try {
+                const subtotal = cart.totalAmount || 0;
+                const response = await fetch(`/cart/coupons?orderAmount=${subtotal}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCoupons = data.coupons; // Store globally
+                    renderCoupons(allCoupons, 'all');
+                    couponModal.show();
+                }
+            } catch (error) {
+                console.error('Error loading coupons:', error);
+            }
+        }
+
+        function renderCoupons(coupons, filter = 'all') {
+            const couponList = document.getElementById('coupon-list');
+            const subtotal = cart.totalAmount || 0;
+            
+            let filteredCoupons = coupons;
+            if (filter === 'available') {
+                filteredCoupons = coupons.filter(c => c.canUse && c.minPurchaseValue <= subtotal);
+            } else if (filter === 'expired') {
+                filteredCoupons = coupons.filter(c => c.status === 'expired');
+            } else if (filter === 'upcoming') {
+                filteredCoupons = coupons.filter(c => c.status === 'upcoming');
+            }
+            
+            if (filteredCoupons.length === 0) {
+                couponList.innerHTML = '<div class="col-12 text-center py-4"><p class="text-muted">No coupons available in this category</p></div>';
+                return;
+            }
+            
+            couponList.innerHTML = filteredCoupons.map(coupon => {
+                const isAvailable = coupon.canUse && coupon.minPurchaseValue <= subtotal;
+                let statusBadge = '';
+                let statusClass = '';
+                
+                if (coupon.status === 'expired') {
+                    statusBadge = '<span class="badge bg-danger">Expired</span>';
+                    statusClass = 'disabled';
+                } else if (coupon.status === 'upcoming') {
+                    statusBadge = '<span class="badge bg-warning">Upcoming</span>';
+                    statusClass = 'disabled';
+                } else if (coupon.usageCount >= coupon.limit) {
+                    statusBadge = '<span class="badge bg-secondary">Limit Reached</span>';
+                    statusClass = 'disabled';
+                } else if (!isAvailable) {
+                    statusBadge = '<span class="badge bg-secondary">Not Eligible</span>';
+                    statusClass = 'disabled';
+                }
+                
+                return `
+                    <div class="col-12">
+                        <div class="coupon-card ${statusClass}" 
+                            data-coupon='${JSON.stringify(coupon)}' 
+                            ${isAvailable ? `onclick="selectCoupon(this)"` : ''}>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="coupon-code mb-2">${coupon.code}</div>
+                                    <p class="mb-1">${coupon.description}</p>
+                                    <small class="text-muted">
+                                        Save ₹${coupon.discountValue} • Min purchase: ₹${coupon.minPurchaseValue}
+                                        ${coupon.usageCount > 0 ? ` • Used: ${coupon.usageCount}/${coupon.limit}` : ''}
+                                    </small>
+                                </div>
+                                ${isAvailable ? '<i class="fas fa-chevron-right text-primary"></i>' : statusBadge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterCoupons(filter) {
+            // This will be called when filter tabs are clicked
+            // Re-fetch or re-render with filter
+            loadCoupons(); // You'll need to modify this to pass filter
+        }
+
+        function selectCoupon(element) {
+            const coupon = JSON.parse(element.dataset.coupon);
+            showCouponConfirmation(coupon);
+        }
+
+        async function applyCouponCode() {
+            const code = document.getElementById('coupon-code-input').value.trim();
+            if (!code) return;
+            
+            try {
+                const subtotal = cart.totalAmount || 0;
+                const response = await fetch('/cart/apply-coupon', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ code, orderAmount: subtotal })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showCouponConfirmation(data.coupon);
+                } else {
+        
+                    showToast(data.message || 'Invalid coupon code', 'error');
+                }
+            } catch (error) {
+                console.error('Error applying coupon:', error);
+                showToast('Error applying coupon', 'error');
+            }
+        }
+
+        const couponConfirmModal = new bootstrap.Modal(document.getElementById('couponConfirmModal'));
+        let pendingCoupon = null;
+
+        function showCouponConfirmation(coupon) {
+            pendingCoupon = coupon;
+            couponModal.hide();
+            couponConfirmModal.show();
+        }
+
+        document.getElementById('confirm-coupon-btn').addEventListener('click', function() {
+            if (pendingCoupon) {
+                applyCoupon(pendingCoupon);
+                couponConfirmModal.hide();
+            }
+        });
+
+        function applyCoupon(coupon) {
+            appliedCoupon = coupon;
+            
+            // Update UI
+            document.getElementById('coupon-code-input').value = coupon.code;
+            document.getElementById('applied-coupon-code').textContent = coupon.code;
+            document.getElementById('applied-coupon-desc').textContent = `Saved ₹${coupon.discountValue}`;
+            document.getElementById('applied-coupon-display').style.display = 'block';
+            document.getElementById('select-coupon-btn').innerHTML = '<i class="fas fa-times me-1"></i>Remove Coupon';
+            document.getElementById('select-coupon-btn').id = 'remove-coupon-btn-alt';
+            
+            // Show discount row
+            document.getElementById('discount-row').style.display = 'flex';
+            document.getElementById('discount-amount').textContent = `-₹${coupon.discountValue}`;
+            
+            // Update total
+            updateOrderTotal();
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            document.getElementById('coupon-code-input').value = '';
+            document.getElementById('applied-coupon-display').style.display = 'none';
+            document.getElementById('discount-row').style.display = 'none';
+            
+            const btn = document.getElementById('remove-coupon-btn-alt');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-ticket-alt me-1"></i>View Available Coupons';
+                btn.id = 'select-coupon-btn';
+            }
+            
+            updateOrderTotal();
+        }
+
+        function updateOrderTotal() {
+            const subtotal = cart.totalAmount || 0;
+            const fee = subtotal < 300 ? 50 : 0;
+            const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+            const total = subtotal + fee - discount;
+            
+            totalAmount.textContent = `₹${total}`;
+        }
+
+        const paymentRetryModal = new bootstrap.Modal(document.getElementById('paymentRetryModal'));
+
+        function showPaymentRetryModal() {
+            loadingSpinner.style.display = 'none';
+            btnText.textContent = 'PLACE ORDER';
+            placeOrderBtn.disabled = false;
+            paymentRetryModal.show();
+        }
+
+        let pendingOrderId = null; 
+
+        document.getElementById('retry-payment-btn').addEventListener('click', async function() {
+            if (!pendingOrderId) {
+                showToast('Order ID not found', 'warning');
+                return;
+            }
+            
+            paymentRetryModal.hide();
+            
+            // Show loading
+            loadingSpinner.style.display = 'inline-block';
+            btnText.textContent = 'PROCESSING...';
+            placeOrderBtn.disabled = true;
+            
+            try {
+                const subtotal = cart.totalAmount || 0;
+                const fee = subtotal < 300 ? 50 : 0;
+                const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+                const totalAmount = subtotal + fee - discount;
+                
+                // For COD or Wallet, directly retry
+                if (selectedPayment === 'cod' || selectedPayment === 'wallet') {
+                    await retryOrderPayment(pendingOrderId);
+                } else {
+                    // For online payments, create new Razorpay order
+                    const razorpayResponse = await fetch('/order/create-razorpay-order', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ amount: totalAmount })
+                    });
+                    
+                    const razorpayData = await razorpayResponse.json();
+                    
+                    if (!razorpayData.success) {
+                        throw new Error(razorpayData.message || 'Error creating payment order');
+                    }
+                    
+                    // Initialize Razorpay payment
+                    const options = {
+                        key: razorpayData.key_id,
+                        amount: razorpayData.order.amount,
+                        currency: razorpayData.order.currency,
+                        name: "Your Store Name",
+                        description: "Retry Order Payment",
+                        order_id: razorpayData.order.id,
+                        handler: async function (response) {
+                            await retryOrderPayment(pendingOrderId, response);
+                        },
+                        prefill: {
+                            name: selectedAddress.fullName,
+                            contact: selectedAddress.phoneOne
+                        },
+                        theme: {
+                            color: "#4f46e5"
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                loadingSpinner.style.display = 'none';
+                                btnText.textContent = 'PLACE ORDER';
+                                placeOrderBtn.disabled = false;
+                            }
+                        }
+                    };
+                    
+                    const rzp = new Razorpay(options);
+                    
+                    rzp.on('payment.failed', function (response){
+                        showToast('Payment failed: ' + response.error.description, 'error');
+                        loadingSpinner.style.display = 'none';
+                        btnText.textContent = 'PLACE ORDER';
+                        placeOrderBtn.disabled = false;
+                    });
+                    
+                    rzp.open();
+                    
+                    // Reset button
+                    loadingSpinner.style.display = 'none';
+                    btnText.textContent = 'PLACE ORDER';
+                    placeOrderBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Error retrying payment:', error);
+                showToast(error.message || 'Error processing payment', 'error');
+                loadingSpinner.style.display = 'none';
+                btnText.textContent = 'PLACE ORDER';
+                placeOrderBtn.disabled = false;
+            }
+        });
+
+        document.getElementById('view-pending-order-btn').addEventListener('click', function() {
+            if (pendingOrderId) {
+                window.location.href = `/account/orders/details/${pendingOrderId}`;
+            } else {
+                // Fallback to orders list if orderId not available
+                window.location.href = '/account/orders';
+            }
+        });
+
+
+            async function processFailedPaymentOrder(orderData) {
+                try {
+                    // Add coupon info if applied
+                    if (appliedCoupon) {
+                        orderData.couponId = appliedCoupon._id;
+                    }
+                    
+                    const response = await fetch('/order/place-failed', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(orderData)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        pendingOrderId = data.orderId; // Store the orderId
+                        showPaymentRetryModal();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showPaymentRetryModal();
+                }
+            }
+
+        async function retryOrderPayment(orderId, razorpayResponse = null) {
+            try {
+                showProcessingPage();
+                
+                const retryData = {
+                    orderId: orderId
+                };
+                
+                // Add Razorpay details for online payments
+                if (razorpayResponse) {
+                    retryData.razorpay_order_id = razorpayResponse.razorpay_order_id;
+                    retryData.razorpay_payment_id = razorpayResponse.razorpay_payment_id;
+                    retryData.razorpay_signature = razorpayResponse.razorpay_signature;
+                }
+                
+                const response = await fetch('/order/retry-payment', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(retryData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    setTimeout(() => {
+                        showSuccessPage(orderId);
+                    }, 2000);
+                } else {
+                    
+                    showToast(data.message || 'Error processing payment', 'error');
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showPaymentFailurePage(error.message);
+            }
+        }
     </script>
 </body>
 </html>

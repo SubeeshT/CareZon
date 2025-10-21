@@ -1254,7 +1254,7 @@
 
         // Status workflow definition
         const statusWorkflow = {
-            'pending': ['confirmed', 'cancelled'],
+            'pending': ['cancelled'],
             'confirmed': ['processing', 'cancelled'],
             'processing': ['shipped', 'cancelled'],
             'shipped': ['out for delivery'],

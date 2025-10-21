@@ -1,1094 +1,942 @@
-<% 
-    const pageData = {
-        title: 'Products - Carezon Admin',
-        pageTitle: 'Products Management',
-        breadcrumb: [
-            { name: 'dashboard', url: '/admin/dashboard' },
-            { name: 'Products', url: '/admin/products' }
-        ],
-        pageActions: '<button class="btn btn-success" onclick="window.location.href=\'/admin/products/add\'"><i class="fas fa-plus"></i> Add Product</button>'
-    };
-%>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageData.title %></title>
+    <title>Edit Product - Carezon Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/css/dashboard.css">
-    <link rel="stylesheet" href="/admin/css/product.css">
-    
+    <link rel="stylesheet" href="/admin/css/productAdd.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 </head>
 <body>
-    <!-- Header -->
     <%- include('../partials/admin/header') %>
-
-    <!-- Sidebar -->
     <%- include('../partials/admin/sidebar') %>
 
-    <!-- Main Content -->
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="spinner-overlay" id="spinnerOverlay">
+        <div class="spinner"></div>
+    </div>
+
     <main class="main-content" id="main-content">
         <div class="content-wrapper">
-            <!-- Page Header -->
             <div class="page-header mb-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="page-title"><%= pageData.pageTitle %></h1>
+                        <h1 class="page-title">Edit Products</h1>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <% pageData.breadcrumb.forEach(function(item, index) { %>
-                                    <li class="breadcrumb-item <%= index === pageData.breadcrumb.length - 1 ? 'active' : '' %>">
-                                        <% if (index < pageData.breadcrumb.length - 1) { %>
-                                            <a href="<%= item.url %>"><%= item.name %></a>
-                                        <% } else { %>
-                                            <%= item.name %>
-                                        <% } %>
-                                    </li>
-                                <% }); %>
+                                <li class="breadcrumb-item"><a href='/admin/dashboard'>Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href='/admin/products'>Products</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Edit</li>
                             </ol>
                         </nav>
                     </div>
-                    <div class="page-actions">
-                        <%- pageData.pageActions %>
-                    </div>
                 </div>
             </div>
-
-            <!-- Products Content -->
+            
             <div class="page-content">
-                <!-- Search and Filter Section -->
-                <div class="row mb-4 align-items-center">
-                    <div class="col-md-5 position-relative">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Search products..." value="<%= currentSearch || '' %>">
-                            <button class="clear-btn" id="clearSearch" title="Clear search"><i class="fas fa-times"></i></button>
-                            <button class="history-toggle" id="historyToggle" title="Toggle search history"></i></button>
-                        </div>
-                        <div class="search-history" id="searchHistory">
-                            <div class="search-history-header">
-                                <span>Recent Searches</span>
-                                <button class="clear-all-btn" id="clearAllHistory">Clear All</button>
+                <div class="main-product-section">
+                    <h4 class="mb-4">Edit Product Information</h4>
+                    <form id="productForm" enctype="multipart/form-data">
+                        <!-- Hidden input for product ID -->
+                        <!-- Product ID of the item being edited -->
+                        <input type="hidden" name="_id" id="productId">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <!-- Product name -->
+                                <label for="productName" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="productName" name="name" required>
+                                <div class="field-error" id="productName-error"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <!-- Product category selection -->
+                                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <% if (categories && Array.isArray(categories)) { %>
+                                        <% categories.forEach(cat => { %>
+                                            <option value="<%= cat._id %>"><%= cat.name %></option>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <option value="" disabled>No categories available</option>
+                                    <% } %>
+                                </select>
+                                <div class="field-error" id="category-error"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <!-- Product brand selection -->
+                                <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
+                                <select class="form-select" id="brand" name="brand" required>
+                                    <option value="">Select Brand</option>
+                                    <% if (brands && Array.isArray(brands)) { %>
+                                        <% brands.forEach(brand => { %>
+                                            <option value="<%= brand._id %>"><%= brand.name %></option>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <option value="" disabled>No brands available</option>
+                                    <% } %>
+                                </select>
+                                <div class="field-error" id="brand-error"></div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <!-- Product description -->
+                                <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                                <div class="field-error" id="description-error"></div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <h4 class="mb-4">Variant Information</h4>
+                                <div id="variantsContainer">
+                                    <!-- Variants will be dynamically populated here -->
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="window.location.href='/admin/products'">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="addVariantBtn">
+                                        <i class="fas fa-plus"></i> Add Variant
+                                    </button>
+                                    <button type="submit" class="btn btn-success" id="updateProductBtn">
+                                        <i class="fas fa-save"></i> Update Product
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-4 offset-md-3">
-                        <div class="sort-filter-group d-flex gap-2">
-                            <select class="form-select" id="statusFilter">
-                                <option value="">All Products</option>
-                                <option value="active" <%= currentStatus === 'active' ? 'selected' : '' %>>Active Products</option>
-                                <option value="blocked" <%= currentStatus === 'blocked' ? 'selected' : '' %>>Blocked Products</option>
-                            </select>
-                            <select class="form-select" id="limitSelect" style="max-width: 100px;">
-                                <option value="10" <%= currentLimit === 10 ? 'selected' : '' %>>10</option>
-                                <option value="30" <%= currentLimit === 30 ? 'selected' : '' %>>30</option>
-                                <option value="50" <%= currentLimit === 50 ? 'selected' : '' %>>50</option>
-                                <option value="100" <%= currentLimit === 100 ? 'selected' : '' %>>100</option>
-                            </select>
+                        <!-- Image Crop Modal -->
+                        <div class="modal fade" id="imageCropModal" tabindex="-1" aria-labelledby="imageCropModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="imageCropModalLabel">Crop Image</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="crop-container">
+                                            <img id="cropImage" style="max-width: 100%;">
+                                        </div>
+                                        <div class="mt-3">
+                                            <button type="button" class="btn btn-secondary" id="resetCrop">Reset</button>
+                                            <button type="button" class="btn btn-primary" id="rotateCrop">Rotate</button>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-success" id="saveCrop">Save Crop</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Products Table -->
-                <div class="table-responsive">
-                    <table class="table table-hover" id="productsTable">
-                        <thead>
-                            <tr>
-                                <th>S.No</th>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Brand</th>
-                                <th>MRP</th>
-                                <th>S Price</th>
-                                <th>Stock</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (products.length === 0) { %>
-                                <tr>
-                                    <td colspan="8" class="text-center">No Products found, Please Add Products</td>
-                                </tr>
-                            <% } else { %>
-                                <% products.forEach(pro => { %>
-                                    <tr data-product-id="<%= pro._id %>">
-                                        <td class="font-weight-bold"><%= pro.serialNo %></td>
-                                        <td class="font-weight-semibold"><%= pro.name %></td>
-                                        <td class="font-weight-semibold"><%= pro.category %></td>
-                                        <td class="font-weight-semibold"><%= pro.brand %></td>
-                                        <td class="text-light-red">₹<%= pro.regularPrice %></td>
-                                        <td class="text-light-green">₹<%= pro.salesPrice %></td>
-                                        <td class="<%= pro.stock < 10 ? 'text-danger' : 'text-success' %>"><%= pro.stock %></td>
-                                        
-                                        <td>
-                                            <div class="action-dropdown">
-                                                <button class="dropdown-toggle-btn" onclick="toggleActionDropdown(event, '${pro._id}')">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </button>
-                                                <div class="dropdown-menu-custom" id="dropdown-${pro._id}">
-                                                    <button class="dropdown-item status-item" onclick="showVariantStatusModal('${pro._id}'); closeDropdown('${pro._id}')">
-                                                        <i class="fas fa-toggle-on"></i>
-                                                        <span>Variant Status</span>
-                                                    </button>
-                                                    <button class="dropdown-item view-item" onclick="viewProduct('${pro._id}'); closeDropdown('${pro._id}')">
-                                                        <i class="fas fa-eye"></i>
-                                                        <span>View More</span>
-                                                    </button>
-                                                    <button class="dropdown-item edit-item" onclick="editProduct('${pro._id}'); closeDropdown('${pro._id}')">
-                                                        <i class="fas fa-edit"></i>
-                                                        <span>Edit</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    
-                                    </tr>
-                                <% }); %>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination-section">
-                   <div>Showing <%= ((currentPage - 1) * currentLimit + 1) %> to <%= Math.min(currentPage * currentLimit, products.length + ((currentPage - 1) * currentLimit)) %> of <%= totalProducts %> products | Page <%= currentPage %> of <%= totalPages %></div>
-                    <div class="pagination-controls">
-                       <button class="btn" <%= currentPage === 1 ? 'disabled' : '' %> onclick="navigateToPage(<%= currentPage - 1 %>)"><i class="fas fa-chevron-left"></i></button>
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <button class="btn <%= i === currentPage ? 'active' : '' %>" onclick="navigateToPage(<%= i %>)"><%= i %></button>
-                        <% } %>
-                        <button class="btn" <%= currentPage === totalPages ? 'disabled' : '' %> onclick="navigateToPage(<%= currentPage + 1 %>)"><i class="fas fa-chevron-right"></i></button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Variant Status Management Modal -->
-    <div class="modal fade variant-status-modal" id="variantStatusModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="variant-status-header">
-                        <h5><i class="fas fa-layer-group me-2"></i>Manage Product Variants Status</h5>
-                        <p>Control the active/inactive status of individual product variants</p>
-                    </div>
-                    <div id="variantStatusContent">
-                        <!-- Variants will be loaded here -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="modal-footer-actions">
-                        <div class="changes-indicator hidden" id="changesIndicator">
-                            <i class="fas fa-info-circle me-1"></i>
-                            <span id="changesCount">0</span> changes pending
-                        </div>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-success" id="applyChangesBtn" disabled>
-                            <i class="fas fa-save me-1"></i>Apply Changes
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Details Modal -->
-    <div class="modal fade product-details-modal" id="viewModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="productModalTitle">Product Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="viewModalBody"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="editCurrentProduct()">
-                        <i class="fas fa-edit"></i> Edit Product
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Image Lightbox -->
-    <div class="image-lightbox" id="imageLightbox">
-        <div class="lightbox-content">
-            <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
-            <button class="lightbox-nav lightbox-prev" onclick="previousImage()"><i class="fas fa-chevron-left"></i></button>
-            <img class="lightbox-image" id="lightboxImage" src="/placeholder.svg" alt="Product Image">
-            <button class="lightbox-nav lightbox-next" onclick="nextImage()"><i class="fas fa-chevron-right"></i></button>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
-        // Global variables
-        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-        let isHistoryVisible = false;
-        let currentProductData = null;
-        let lightboxImages = [];
-        let currentImageIndex = 0;
-        let variantChanges = new Map();
-        let currentProductId = null;
+        let variantImageCounts = {};
+        let variantCount = 0;
+        const maxVariants = 5;
+        const categories = JSON.parse('<%- JSON.stringify(categories || []) %>');
 
-        // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
-            initializePage();
-            initializeModals();
+            initializeEditProductPage();
+            initializeCropModalHandlers();
+            initializeAddVariantButton();
+            initializeFormSubmission();
+            populateProductData();
         });
 
-        function initializePage() {
-            const sidebar = document.getElementById("sidebar");
-            const mainContent = document.getElementById("main-content");
-            const sidebarToggle = document.getElementById("sidebar-toggle");
-            const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
-            const sidebarLinks = document.querySelectorAll(".sidebar-link");
-            const searchInput = document.getElementById('searchInput');
-            const clearSearch = document.getElementById('clearSearch');
-            const searchHistoryDiv = document.getElementById('searchHistory');
-            const historyToggle = document.getElementById('historyToggle');
-            const clearAllHistoryBtn = document.getElementById('clearAllHistory');
-            const categorySort = document.getElementById('categorySort');
-            const sortOrder = document.getElementById('sortOrder');
-
-            // Sidebar initialization
-            const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-            if (isCollapsed) {
-                sidebar.classList.add("collapsed");
-                mainContent.classList.add("expanded");
-                sidebarToggle.querySelector("i").classList.replace("fa-chevron-left", "fa-chevron-right");
-            }
-
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener("click", () => {
-                    const isCollapsed = sidebar.classList.toggle("collapsed");
-                    mainContent.classList.toggle("expanded");
-                    const icon = sidebarToggle.querySelector("i");
-                    icon.classList.toggle("fa-chevron-left", !isCollapsed);
-                    icon.classList.toggle("fa-chevron-right", isCollapsed);
-                    localStorage.setItem("sidebarCollapsed", isCollapsed);
-                });
-            }
-
-            if (mobileMenuToggle) {
-                mobileMenuToggle.addEventListener("click", () => {
-                    sidebar.classList.toggle("show");
-                });
-            }
-
-            const currentPath = window.location.pathname;
-            sidebarLinks.forEach(link => {
-                link.classList.toggle("active", new URL(link.href).pathname === currentPath);
-            });
-
-            // Products page initialization
-            document.querySelectorAll('#productsTable tbody tr').forEach((row, index) => {
-                row.style.animationDelay = `${index * 0.1}s`;
-                row.classList.add('fade-in');
-            });
-            
-            updateSearchButtons();
-
-            if (searchInput) {
-            // Set current search value from URL params
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentSearch = urlParams.get('search');
-            if (currentSearch) {
-                searchInput.value = currentSearch;
-            }
-            
-            const debouncedSearch = debounce(handleSearch, 500); // Increased debounce
-            searchInput.addEventListener('input', (event) => {
-                updateSearchButtons(); // Update button visibility immediately
-                debouncedSearch(event); // Then handle the search
-            });
-            clearSearch.addEventListener('click', async () => {
-                searchInput.value = '';
-                updateSearchButtons(); // Update button visibility
-                await fetchProductsAjax({
-                    search: '',
-                    page: 1
-                });
-            });
-            updateSearchHistoryUI();
+        function initializeEditProductPage() {
+            // Initialize for existing variants (will be populated dynamically)
+            initializeCategoryChangeListener();
         }
 
-        searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                handleSearch({ target: searchInput });
-            }
-        });
+        function populateProductData() {
+            const product = <%- JSON.stringify(product || {}) %>;
+            if (!product || !product._id) return;
 
-           if (categorySort) categorySort.addEventListener('change', handleCategorySort);
-            const statusFilter = document.getElementById('statusFilter');
-            const limitSelect = document.getElementById('limitSelect');
-            if (statusFilter) statusFilter.addEventListener('change', handleStatusFilter);
-            if (limitSelect) limitSelect.addEventListener('change', handleLimitChange);
+            // Populate main product fields
+            document.getElementById('productId').value = product._id;
+            document.getElementById('productName').value = product.name || '';
+            document.getElementById('category').value = product.category?._id || '';
+            document.getElementById('brand').value = product.brand?._id || '';
+            document.getElementById('description').value = product.description || '';
 
-            // Update status button colors based on variant status
-            updateStatusButtonColors();
-        }
-
-        function updateStatusButtonColors() {
-            document.querySelectorAll('#productsTable tbody tr').forEach(async (row) => {
-                const productId = row.dataset.productId;
-                try {
-                    const response = await fetch(`/admin/products/details/${productId}`);
-                    const data = await response.json();
-                    if (data.success && data.product.variants) {
-                        const statusBtn = row.querySelector('.status-btn');
-                        const hasActiveVariant = data.product.variants.some(variant => variant.isListed);
-                        statusBtn.classList.remove('red', 'green');
-                        statusBtn.classList.add(hasActiveVariant ? 'green' : 'red');
-                    }
-                } catch (error) {
-                    console.error('Error fetching product details:', error);
-                }
-            });
-        }
-
-        function handleSortOrder() {
-            const sortOrder = document.getElementById('sortOrder').value;
-            const table = document.getElementById('productsTable');
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-
-            rows.sort((a, b) => {
-                const nameA = a.cells[1].textContent.toLowerCase();
-                const nameB = b.cells[1].textContent.toLowerCase();
-                return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-            });
-
-            tbody.innerHTML = '';
-            rows.forEach((row, index) => {
-                row.cells[0].textContent = index + 1;
-                tbody.appendChild(row);
-            });
-        }
-
-        function initializeModals() {
-            const applyChangesBtn = document.getElementById('applyChangesBtn');
-            applyChangesBtn.addEventListener('click', applyVariantStatusChanges);
-
-            document.getElementById('variantStatusModal').addEventListener('hidden.bs.modal', () => {
-                variantChanges.clear();
-                updateChangesIndicator();
-                currentProductId = null;
-            });
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function (...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func(...args), wait);
-            };
-        }
-
-        async function showVariantStatusModal(productId) {
-            if (!productId || productId === 'undefined') {
-                console.error('Invalid product ID:', productId);
-                showNotification('Invalid product ID', 'error');
-                return;
-            }
-            try {
-                currentProductId = productId;
-                const response = await fetch(`/admin/products/details/${productId}`);
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error('Failed to load product details');
-                }
-
-                const product = data.product;
-                renderVariantStatusContent(product);
-                
-                new bootstrap.Modal(document.getElementById('variantStatusModal')).show();
-            } catch (error) {
-                console.error('Error loading product variants:', error);
-                showNotification('Failed to load product variants', 'error');
-            }
-        }
-
-        function renderVariantStatusContent(product) {
-            const content = document.getElementById('variantStatusContent');
-            
-            if (!product.variants || product.variants.length === 0) {
-                content.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No Variants Found</h5>
-                        <p class="text-muted">This product doesn't have any variants to manage.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const variantsHtml = product.variants.map((variant, index) => {
-                const variantId = variant._id || index;
-                const attributes = variant.attributes || {};
-                const attributesHtml = Object.keys(attributes).length > 0 ? 
-                    Object.entries(attributes).map(([key, value]) => 
-                        `<span class="attribute-tag">${key}: ${value}</span>`
-                    ).join('') : '<span class="text-muted">No attributes</span>';
-
-                return `
-                    <div class="variant-status-card" data-variant-id="${variantId}">
-                        <div class="variant-card-header">
-                            <div class="variant-name">${product.name} - Variant ${index + 1}</div>
-                            <div class="variant-current-status ${variant.isListed ? 'active' : 'inactive'}">
-                                ${variant.isListed ? 'Active' : 'Inactive'}
-                            </div>
-                        </div>
-                        
-                        <div class="variant-details-grid">
-                            <div class="variant-attributes">
-                                <div class="variant-detail-label">Attributes</div>
-                                <div class="attributes-list">
-                                    ${attributesHtml}
-                                </div>
-                            </div>
-                            <div class="variant-detail">
-                                <div class="variant-detail-label">MRP</div>
-                                <div class="variant-detail-value price-value text-light-red">₹${variant.regularPrice || '0'}</div>
-                            </div>
-                            <div class="variant-detail">
-                                <div class="variant-detail-label">UOM</div>
-                                <div class="variant-detail-value">${variant.uom || 'N/A'}</div>
-                            </div>
-                        </div>
-
-                        <div class="variant-action-section">
-                            <div class="variant-info-text">
-                                Current Status: <strong>${variant.isListed ? 'Active' : 'Inactive'}</strong>
-                            </div>
-                            <button class="variant-toggle-btn ${variant.isListed ? 'active' : 'inactive'}" 
-                                    onclick="toggleVariantStatus('${variantId}', ${!variant.isListed})"
-                                    data-current-status="${variant.isListed}">
-                                <i class="fas fa-${variant.isListed ? 'pause' : 'play'} me-1"></i>
-                                ${variant.isListed ? 'Deactivate' : 'Activate'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            content.innerHTML = `
-                <div class="variants-grid">
-                    ${variantsHtml}
-                </div>
-            `;
-        }
-
-        function toggleVariantStatus(variantId, newStatus) {
-            const card = document.querySelector(`[data-variant-id="${variantId}"]`);
-            const button = card.querySelector('.variant-toggle-btn');
-            const currentStatus = button.dataset.currentStatus === 'true';
-
-            if (newStatus !== currentStatus) {
-                variantChanges.set(variantId, newStatus);
-            } else {
-                variantChanges.delete(variantId);
-            }
-
-            button.className = `variant-toggle-btn ${newStatus ? 'active' : 'inactive'}`;
-            button.innerHTML = `<i class="fas fa-${newStatus ? 'pause' : 'play'} me-1"></i>${newStatus ? 'Deactivate' : 'Activate'}`;
-            button.onclick = () => toggleVariantStatus(variantId, !newStatus);
-
-            const statusIndicator = card.querySelector('.variant-current-status');
-            const infoText = card.querySelector('.variant-info-text');
-            
-            if (variantChanges.has(variantId)) {
-                card.style.borderColor = '#667eea';
-                card.style.backgroundColor = '#f8f9ff';
-                statusIndicator.innerHTML = `${newStatus ? 'Active' : 'Inactive'} <i class="fas fa-arrow-right mx-1"></i> <span style="color: #667eea;">PENDING</span>`;
-                infoText.innerHTML = `Will change to: <strong style="color: #667eea;">${newStatus ? 'Active' : 'Inactive'}</strong>`;
-            } else {
-                card.style.borderColor = '#e9ecef';
-                card.style.backgroundColor = '#fff';
-                statusIndicator.className = `variant-current-status ${currentStatus ? 'active' : 'inactive'}`;
-                statusIndicator.innerHTML = currentStatus ? 'Active' : 'Inactive';
-                infoText.innerHTML = `Current Status: <strong>${currentStatus ? 'Active' : 'Inactive'}</strong>`;
-            }
-
-            updateChangesIndicator();
-        }
-
-        function updateChangesIndicator() {
-            const indicator = document.getElementById('changesIndicator');
-            const count = document.getElementById('changesCount');
-            const applyBtn = document.getElementById('applyChangesBtn');
-
-            count.textContent = variantChanges.size;
-            
-            if (variantChanges.size > 0) {
-                indicator.classList.remove('hidden');
-                applyBtn.disabled = false;
-            } else {
-                indicator.classList.add('hidden');
-                applyBtn.disabled = true;
-            }
-        }
-
-        async function applyVariantStatusChanges() {
-            if (variantChanges.size === 0) return;
-
-            try {
-                const changesArray = Array.from(variantChanges.entries());
-                const updates = changesArray.map(([variantId, newStatus]) => ({
-                    variantId,
-                    isListed: newStatus
-                }));
-
-                const response = await fetch(`/admin/products/status/${currentProductId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ variants: updates })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    changesArray.forEach(([variantId, newStatus]) => {
-                        const card = document.querySelector(`[data-variant-id="${variantId}"]`);
-                        const variantName = card.querySelector('.variant-name').textContent;
-                        showNotification(`${variantName} Status Changed`);
-                        
-                        const button = card.querySelector('.variant-toggle-btn');
-                        const statusIndicator = card.querySelector('.variant-current-status');
-                        const infoText = card.querySelector('.variant-info-text');
-
-                        button.className = `variant-toggle-btn ${newStatus ? 'active' : 'inactive'}`;
-                        button.innerHTML = `<i class="fas fa-${newStatus ? 'pause' : 'play'} me-1"></i>${newStatus ? 'Deactivate' : 'Activate'}`;
-                        button.onclick = () => toggleVariantStatus(variantId, !newStatus);
-                        button.dataset.currentStatus = newStatus;
-
-                        statusIndicator.className = `variant-current-status ${newStatus ? 'active' : 'inactive'}`;
-                        statusIndicator.innerHTML = newStatus ? 'Active' : 'Inactive';
-
-                        infoText.innerHTML = `Current Status: <strong>${newStatus ? 'Active' : 'Inactive'}</strong>`;
-
-                        card.style.borderColor = '#e9ecef';
-                        card.style.backgroundColor = '#fff';
-                    });
-
-                    variantChanges.clear();
-                    updateChangesIndicator();
-                    bootstrap.Modal.getInstance(document.getElementById('variantStatusModal')).hide();
-                    updateStatusButtonColors();
-                } else {
-                    showNotification(data.message || 'Failed to update variant status', 'error');
-                }
-            } catch (error) {
-                console.error('Error updating variant status:', error);
-                showNotification('Failed to update variant status', 'error');
-            }
-        }
-
-        function updateSearchButtons() {
-            const searchInput = document.getElementById('searchInput');
-            const clearSearch = document.getElementById('clearSearch');
-            
-            // Show/hide clear button based on input content
-            clearSearch.classList.toggle('active', !!searchInput.value.trim());
-        }
-
-        function showSearchHistory() {
-            const searchHistoryDiv = document.getElementById('searchHistory');
-            if (searchHistory.length > 0) searchHistoryDiv.style.display = 'block';
-        }
-
-        function updateSearchHistoryUI() {
-            const searchHistoryDiv = document.getElementById('searchHistory');
-            const itemsContainer = searchHistoryDiv.querySelector('.search-history-header').parentNode;
-            itemsContainer.querySelectorAll('.search-history-item').forEach(item => item.remove());
-
-            searchHistory.forEach((term, index) => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'search-history-item';
-                historyItem.innerHTML = `
-                    <span>${term}</span>
-                    <button class="clear-item-btn" title="Clear this search"><i class="fas fa-times"></i></button>
-                `;
-                historyItem.querySelector('span').addEventListener('click', () => {
-                    const currentUrl = new URL(window.location);
-                    currentUrl.searchParams.set('search', term);
-                    currentUrl.searchParams.set('page', '1');
-                    window.location.href = currentUrl.toString();
-                });
-                historyItem.querySelector('.clear-item-btn').addEventListener('click', () => {
-                    searchHistory.splice(index, 1);
-                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-                    updateSearchHistoryUI();
-                    if (searchHistory.length === 0) searchHistoryDiv.style.display = 'none';
-                });
-                itemsContainer.appendChild(historyItem);
-            });
-
-            document.getElementById('clearAllHistory').style.display = searchHistory.length > 0 ? 'block' : 'none';
-        }
-
-        function addToSearchHistory(term) {
-            if (term && !searchHistory.includes(term)) {
-                searchHistory.unshift(term);
-                if (searchHistory.length > 5) searchHistory.pop();
-                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-                updateSearchHistoryUI();
-            }
-        }
-
-        async function handleSearch(event) {
-            const searchTerm = event.target.value.trim();
-            
-            // Update clear button visibility
-            updateSearchButtons();
-            
-            if (searchTerm) {
-                addToSearchHistory(searchTerm);
-            }
-            
-            await fetchProductsAjax({
-                search: searchTerm || '',
-                page: 1
-            });
-        }
-
-        function handleCategorySort() {
-            const category = document.getElementById('categorySort').value;
-            const tableRows = document.querySelectorAll('#productsTable tbody tr');
-
-            tableRows.forEach(row => {
-                row.style.display = !category || row.cells[2].textContent.trim() === category ? '' : 'none';
-                if (!row.style.display) row.classList.add('slide-up');
-            });
-
-            updateTableVisibility();
-        }
-
-        function updateTableVisibility() {
-            const visibleRows = document.querySelectorAll('#productsTable tbody tr:not([style*="display: none"])');
-            const tbody = document.querySelector('#productsTable tbody');
-            const noResultsRow = document.getElementById('noResultsRow');
-
-            if (visibleRows.length === 0) {
-                if (!noResultsRow) {
-                    const newRow = document.createElement('tr');
-                    newRow.id = 'noResultsRow';
-                    newRow.innerHTML = `<td colspan="8" class="text-center py-4"><i class="fas fa-search fa-2x text-muted mb-2"></i><p class="text-muted mb-0">No products found matching your criteria</p></td>`;
-                    tbody.appendChild(newRow);
-                }
-            } else {
-                if (noResultsRow) noResultsRow.remove();
-                visibleRows.forEach((row, index) => row.cells[0].textContent = index + 1);
-                const totalCount = document.querySelectorAll('#productsTable tbody tr').length;
-                document.querySelector('.pagination-section div:first-child').textContent = `Showing 1 to ${visibleRows.length} of ${totalCount} products | Page 1 of 1`;
-            }
-        }
-
-        function editProduct(productId) {
-            if (!productId || productId === 'undefined') {
-                console.error('Invalid product ID:', productId);
-                showNotification('Invalid product ID', 'error');
-                return;
-            }
-            window.location.href = `/admin/products/edit/${productId}`;
-        }
-
-        function editCurrentProduct() {
-            if (currentProductData?.id) window.location.href = `/admin/products/edit/${currentProductData.id}`;
-        }
-
-        function openLightbox(imageIndex) {
-            if (!lightboxImages.length) return;
-            currentImageIndex = imageIndex;
-            const lightbox = document.getElementById('imageLightbox');
-            const lightboxImage = document.getElementById('lightboxImage');
-            lightboxImage.src = lightboxImages[currentImageIndex];
-            lightbox.style.display = 'flex';
-            document.querySelector('.lightbox-prev').style.display = lightboxImages.length > 1 ? 'block' : 'none';
-            document.querySelector('.lightbox-next').style.display = lightboxImages.length > 1 ? 'block' : 'none';
-        }
-
-        function closeLightbox() {
-            document.getElementById('imageLightbox').style.display = 'none';
-        }
-
-        function previousImage() {
-            if (lightboxImages.length <= 1) return;
-            currentImageIndex = currentImageIndex > 0 ? currentImageIndex - 1 : lightboxImages.length - 1;
-            document.getElementById('lightboxImage').src = lightboxImages[currentImageIndex];
-        }
-
-        function nextImage() {
-            if (lightboxImages.length <= 1) return;
-            currentImageIndex = currentImageIndex < lightboxImages.length - 1 ? currentImageIndex + 1 : 0;
-            document.getElementById('lightboxImage').src = lightboxImages[currentImageIndex];
-        }
-
-        async function viewProduct(productId) {
-            if (!productId || productId === 'undefined') {
-                console.error('Invalid product ID:', productId);
-                showNotification('Invalid product ID', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/admin/products/details/${productId}`);
-                const data = await response.json();
-                if (!data.success) throw new Error('Failed to load product details');
-
-                const product = data.product;
-                currentProductData = { id: product._id };
-                lightboxImages = [];
-
-                product.variants.forEach(variant => {
-                    if (variant.images?.length) {
-                        variant.images.forEach(img => {
-                            const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
-                            if (imageUrl) lightboxImages.push(imageUrl);
+            // Populate variants
+            variantCount = product.variants?.length || 0;
+            if (variantCount > 0) {
+                product.variants.forEach((variant, index) => {
+                    addVariantSection(index + 1, variant);
+                    initializeVariantImageUpload(index + 1);
+                    initializeStatusTogglesForVariant(index + 1);
+                    updateVariantAttributesForVariant(index + 1); // Render attributes first
+                    // Populate attribute values after rendering
+                    if (variant.attributes) {
+                        Object.entries(variant.attributes).forEach(([key, value]) => {
+                            const attrInput = document.getElementById(`variant_attr_${key}${index + 1}`);
+                            if (attrInput) {
+                                attrInput.value = value;
+                            }
                         });
                     }
+                    // Populate variant images
+                    if (variant.images?.length) {
+                        variantImageCounts[index + 1] = variant.images.length;
+                        variant.images.forEach((img, imgIndex) => {
+                            const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
+                            addExistingImage(imageUrl, index + 1, img.altText || '');
+                        });
+                        updateVariantImageCounterGlobal(index + 1);
+                        
+                        // Remove required attribute if variant already has images
+                        const imageInput = document.getElementById(`variantImageInput${index + 1}`);
+                        if (imageInput && variant.images.length >= 3) {
+                            imageInput.removeAttribute('required');
+                        }
+                    }
                 });
+            } else {
+                addVariantSection(1);
+                initializeVariantImageUpload(1);
+                initializeStatusTogglesForVariant(1);
+                updateVariantAttributesForVariant(1);
+            }
+        }
+        function addExistingImage(imageUrl, variantId, altText) {
+            const variantIndex = variantId - 1;
+            const uploadedImagesContainer = document.getElementById(`variantUploadedImages${variantId}`);
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'uploaded-image';
+            imageContainer.innerHTML = `
+                <img src="${imageUrl}" alt="${altText}">
+                <input type="text" class="form-control mt-2" placeholder="Enter alt text" name="variants[${variantIndex}][imageAltText][]" value="${altText}">
+                <!-- Add this hidden input to track existing images -->
+                <input type="hidden" name="variants[${variantIndex}][existingImages][]" value="${imageUrl}">
+                <button type="button" class="remove-image" onclick="removeCroppedImage(this, ${variantId})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            uploadedImagesContainer.appendChild(imageContainer);
+        }
 
-                const variantsHtml = product.variants.length ? `
-                    <div class="variants-section">
-                        <div class="variants-header">
-                            <h4><i class="fas fa-layer-group"></i> Product Variants</h4>
-                            <span class="variants-count">${product.variants.length} Variants</span>
+        // Initialize global crop modal handlers
+        function initializeCropModalHandlers() {
+            const cropModal = document.getElementById('imageCropModal');
+            
+            const newResetBtn = document.getElementById('resetCrop').cloneNode(true);
+            const newRotateBtn = document.getElementById('rotateCrop').cloneNode(true);
+            const newSaveBtn = document.getElementById('saveCrop').cloneNode(true);
+            
+            document.getElementById('resetCrop').parentNode.replaceChild(newResetBtn, document.getElementById('resetCrop'));
+            document.getElementById('rotateCrop').parentNode.replaceChild(newRotateBtn, document.getElementById('rotateCrop'));
+            document.getElementById('saveCrop').parentNode.replaceChild(newSaveBtn, document.getElementById('saveCrop'));
+
+            cropModal.addEventListener('shown.bs.modal', () => {
+                const cropImage = document.getElementById('cropImage');
+                
+                if (window.currentCropSession && window.currentCropSession.cropper) {
+                    window.currentCropSession.cropper.destroy();
+                }
+                
+                window.currentCropSession.cropper = new Cropper(cropImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.8,
+                    restore: false,
+                    guides: false,
+                    center: false,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+            });
+
+            cropModal.addEventListener('hidden.bs.modal', () => {
+                if (window.currentCropSession && window.currentCropSession.cropper) {
+                    window.currentCropSession.cropper.destroy();
+                    window.currentCropSession.cropper = null;
+                }
+            });
+
+            document.getElementById('resetCrop').addEventListener('click', () => {
+                if (window.currentCropSession && window.currentCropSession.cropper) {
+                    window.currentCropSession.cropper.reset();
+                }
+            });
+
+            document.getElementById('rotateCrop').addEventListener('click', () => {
+                if (window.currentCropSession && window.currentCropSession.cropper) {
+                    window.currentCropSession.cropper.rotate(90);
+                }
+            });
+
+            document.getElementById('saveCrop').addEventListener('click', () => {
+                if (window.currentCropSession && window.currentCropSession.cropper) {
+                    const canvas = window.currentCropSession.cropper.getCroppedCanvas({
+                        width: 800,
+                        height: 800,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high',
+                    });
+                    
+                    canvas.toBlob((blob) => {
+                        const croppedFile = new File([blob], window.currentCropSession.file.name, {
+                            type: window.currentCropSession.file.type,
+                            lastModified: Date.now()
+                        });
+                        
+                        addCroppedImage(canvas.toDataURL(), croppedFile, window.currentCropSession.variantId);
+                        
+                        const modal = bootstrap.Modal.getInstance(cropModal);
+                        modal.hide();
+                    }, window.currentCropSession.file.type, 0.9);
+                }
+            });
+        }
+
+        function addCroppedImage(src, file, variantId) {
+            const variantIndex = variantId - 1;
+            const uploadedImagesContainer = document.getElementById(`variantUploadedImages${variantId}`);
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'uploaded-image';
+            imageContainer.innerHTML = `
+                <img src="${src}" alt="Cropped image">
+                <input type="text" class="form-control mt-2" placeholder="Enter alt text" name="variants[${variantIndex}][imageAltText][]" value="">
+                <button type="button" class="remove-image" onclick="removeCroppedImage(this, ${variantId})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            uploadedImagesContainer.appendChild(imageContainer);
+            
+            if (!window.croppedImages[variantId]) {
+                window.croppedImages[variantId] = [];
+            }
+            window.croppedImages[variantId].push(file);
+            
+            variantImageCounts[variantId]++;
+            updateVariantImageCounterGlobal(variantId);
+            
+            updateFileInputGlobal(variantId);
+        }
+
+        function updateFileInputGlobal(variantId) {
+            const imageInput = document.getElementById(`variantImageInput${variantId}`);
+            const dt = new DataTransfer();
+            
+            if (window.croppedImages[variantId]) {
+                window.croppedImages[variantId].forEach(file => {
+                    dt.items.add(file);
+                });
+            }
+            
+            imageInput.files = dt.files;
+        }
+
+        function updateVariantImageCounterGlobal(variantId) {
+            const imageCounter = document.getElementById(`variantImageCounter${variantId}`);
+            if (imageCounter) {
+                imageCounter.textContent = `Cropped Images: ${variantImageCounts[variantId] || 0}/6 (Minimum 3 required)`;
+            }
+        }
+
+        window.removeCroppedImage = function(button, variantId) {
+            const imageContainer = button.closest('.uploaded-image');
+            const index = Array.from(imageContainer.parentElement.children).indexOf(imageContainer);
+            
+            if (window.croppedImages[variantId]) {
+                window.croppedImages[variantId].splice(index, 1);
+            }
+            
+            imageContainer.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                imageContainer.remove();
+                variantImageCounts[variantId]--;
+                updateVariantImageCounterGlobal(variantId);
+                updateFileInputGlobal(variantId);
+            }, 300);
+        };
+
+        function initializeAddVariantButton() {
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            addVariantBtn.addEventListener('click', () => {
+                if (variantCount >= maxVariants) {
+                    showToast('Maximum 5 variants allowed.');
+                    return;
+                }
+                variantCount++;
+                addVariantSection(variantCount);
+                initializeVariantImageUpload(variantCount);
+                initializeStatusTogglesForVariant(variantCount);
+                updateVariantAttributesForVariant(variantCount);
+            });
+        }
+
+        function showToast(message) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-white bg-danger border-0';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            setTimeout(() => {
+                toast.remove();
+            }, 6000);
+        }
+
+        function addVariantSection(variantId, variantData = {}) {
+            const variantIndex = variantId - 1;
+            const variantContainer = document.createElement('div');
+            variantContainer.className = 'variant-container';
+            variantContainer.id = `variant${variantId}`;
+            variantContainer.innerHTML = `
+                <div class="row">
+                    <!-- Add this hidden input to preserve variant ID -->
+                    <input type="hidden" name="variants[${variantIndex}][_id]" id="variantId${variantId}" value="${variantData._id || ''}">
+                    
+                    <div class="col-12 mb-3">
+                        <h5>Variant ${variantId}</h5>
+                        <button type="button" class="btn btn-danger btn-sm float-end" onclick="removeVariant(${variantId})">
+                            <i class="fas fa-trash"></i> Remove Variant
+                        </button>
+                    </div>
+                    <!-- Variant quantity -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantQuantity${variantId}" class="form-label">Quantity <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="variantQuantity${variantId}" name="variants[${variantIndex}][quantity]" min="0" required>
+                        <div class="field-error" id="variantQuantity${variantId}-error"></div>
+                    </div>
+                    <!-- Variant regular price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantRegularPrice${variantId}" class="form-label">Regular Price <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="variantRegularPrice${variantId}" name="variants[${variantIndex}][regularPrice]" step="0.01" min="0" required>
                         </div>
-                        <div class="variants-container">
-                            ${product.variants.map((variant, index) => `
-                                <div class="variant-card">
-                                    <div class="variant-header">
-                                        <div class="variant-name">${product.name} - Variant ${index + 1}</div>
-                                        <div class="variant-status ${variant.isListed ? 'active' : 'inactive'}">${variant.isListed ? 'ACTIVE' : 'INACTIVE'}</div>
-                                    </div>
-                                    <div class="variant-details">
-                                        ${variant.images?.length ? `
-                                            <div class="variant-images mb-3">
-                                                <div class="variant-images-label">Images:</div>
-                                                <div class="variant-images-grid">
-                                                    ${variant.images.slice(0, 4).map((img, index) => {
-                                                        const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
-                                                        const globalIndex = lightboxImages.findIndex(i => (typeof i === 'string' ? i : (i.url || i.secure_url || i)) === imageUrl);
-                                                        return `<img src="${imageUrl}" alt="Variant Image" onclick="openLightbox(${globalIndex >= 0 ? globalIndex : lightboxImages.length})" class="variant-thumbnail" onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">`;
-                                                    }).join('')}
-                                                    ${variant.images.length > 4 ? `<div class="more-images">+${variant.images.length - 4} more</div>` : ''}
-                                                </div>
-                                            </div>
-                                        ` : ''}
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">MRP:</span>
-                                            <span class="variant-detail-value price-highlight text-light-red">₹${variant.regularPrice}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Sales Price:</span>
-                                            <span class="variant-detail-value price-highlight text-light-green">₹${variant.salesPrice}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Stock:</span>
-                                            <span class="variant-detail-value stock-highlight ${variant.stock < 10 ? 'text-danger' : 'text-success'}">${variant.stock} : ${variant.stock > 0 ? 'Available' : 'Out of Stock'}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">UOM:</span>
-                                            <span class="variant-detail-value">${variant.uom || 'N/A'}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Expiry Date:</span>
-                                            <span class="variant-detail-value">${variant.expiryDate ? new Date(variant.expiryDate).toLocaleDateString() : 'N/A'}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Manufacturing Date:</span>
-                                            <span class="variant-detail-value">${variant.manufacturingDate ? new Date(variant.manufacturingDate).toLocaleDateString() : 'N/A'}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Prescription Required:</span>
-                                            <span class="variant-detail-value ${variant.prescriptionRequired ? 'text-danger' : 'text-success'}">${variant.prescriptionRequired ? "Yes" : "No Need"}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Discount:</span>
-                                            <span class="variant-detail-value stock-highlight ${variant.discountStatus ? 'text-success' : 'text-danger'}">${variant.discountStatus ? 'Active' : 'Inactive'}</span>
-                                        </div>
-                                        <div class="variant-detail-item">
-                                            <span class="variant-detail-label">Offer:</span>
-                                            <span class="variant-detail-value stock-highlight ${variant.offerStatus ? 'text-success' : 'text-danger'}">${variant.offerStatus ? 'Active' : 'Inactive'}</span>
-                                        </div>
-                                        ${variant.attributes && Object.keys(variant.attributes).length ? `
-                                            <div class="variant-detail-item full-width">
-                                                <span class="variant-detail-label">Attributes:</span>
-                                                <div class="variant-detail-value">
-                                                    <div class="attributes-grid">
-                                                        ${Object.entries(variant.attributes).map(([key, value]) => `
-                                                            <div class="attribute-item">
-                                                                <span class="attribute-key">${key}:</span>
-                                                                <span class="attribute-value">${value}</span>
-                                                            </div>
-                                                        `).join('')}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            `).join('')}
+                        <div class="field-error" id="variantRegularPrice${variantId}-error"></div>
+                    </div>
+                    <!-- Variant sales price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantSalesPrice${variantId}" class="form-label">Sales Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="variantSalesPrice${variantId}" name="variants[${variantIndex}][salesPrice]" step="0.01" min="0">
+                        </div>
+                        <div class="field-error" id="variantSalesPrice${variantId}-error"></div>
+                    </div>
+                    <!-- Variant manufacturing date -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantManufacturingDate${variantId}" class="form-label">Manufacturing Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="variantManufacturingDate${variantId}" name="variants[${variantIndex}][manufacturingDate]" required>
+                        <div class="field-error" id="variantManufacturingDate${variantId}-error"></div>
+                    </div>
+                    <!-- Variant expiry date -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantExpiryDate${variantId}" class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" id="variantExpiryDate${variantId}" name="variants[${variantIndex}][expiryDate]">
+                        <div class="field-error" id="variantExpiryDate${variantId}-error"></div>
+                    </div>
+                    <!-- Variant unit of measure -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantUom${variantId}" class="form-label">Unit of Measure (UOM) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="variantUom${variantId}" name="variants[${variantIndex}][uom]" required>
+                        <div class="field-error" id="variantUom${variantId}-error"></div>
+                    </div>
+                    <!-- Variant prescription required status -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantPrescriptionRequired${variantId}" class="form-label">Prescription Required</label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="variantPrescriptionRequired${variantId}">
+                            <input type="hidden" name="variants[${variantIndex}][prescriptionRequired]" id="variantPrescriptionRequiredValue${variantId}" value="false">
+                            <span>Inactive</span>
                         </div>
                     </div>
-                ` : '';
-
-                const modalBody = document.getElementById('viewModalBody');
-                const modalTitle = document.getElementById('productModalTitle');
-                modalTitle.textContent = `${product.name} - Complete Details`;
-                modalBody.innerHTML = `
-                    <div class="row">
-                        <div class="col-lg-7">
-                            <div class="product-info-section">
-                                <h3 class="mb-3">${product.name}</h3>
-                                <p class="text-muted mb-4"><span>Description : ><br></span> ${product.description || 'No description available'}</p>
-                                <div class="product-info-grid">
-                                    <div class="info-item">
-                                        <div class="info-label">Category</div>
-                                        <div class="info-value">${product.category?.name || product.category}</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <div class="info-label">Brand</div>
-                                        <div class="info-value">${product.brand?.name || product.brand}</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <div class="info-label">Created</div>
-                                        <div class="info-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <div class="info-label">Updated</div>
-                                        <div class="info-value">${product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A'}</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <div class="info-label">Total Variants</div>
-                                        <div class="info-value">${product.variants.length}</div>
-                                    </div>
-                                </div>
+                    <!-- Variant product status -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantProductStatus${variantId}" class="form-label">Product Status <span class="text-danger">*</span></label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="variantProductStatus${variantId}" checked>
+                            <input type="hidden" name="variants[${variantIndex}][isListed]" id="variantProductStatusValue${variantId}" value="true">
+                            <span>Listed</span>
+                        </div>
+                        <div class="field-error" id="variantProductStatus${variantId}-error"></div>
+                    </div>
+                    <!-- Variant discount status -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantDiscountStatus${variantId}" class="form-label">Discount Status</label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="variantDiscountStatus${variantId}">
+                            <input type="hidden" name="variants[${variantIndex}][discountStatus]" id="variantDiscountStatusValue${variantId}" value="false">
+                            <span>Inactive</span>
+                        </div>
+                        <div class="field-error" id="variantDiscountStatus${variantId}-error"></div>
+                    </div>
+                    <!-- Variant offer status -->
+                    <div class="col-md-6 mb-3">
+                        <label for="variantOfferStatus${variantId}" class="form-label">Offer Status</label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="variantOfferStatus${variantId}">
+                            <input type="hidden" name="variants[${variantIndex}][offerStatus]" id="variantOfferStatusValue${variantId}" value="false">
+                            <span>Inactive</span>
+                        </div>
+                        <div class="field-error" id="variantOfferStatus${variantId}-error"></div>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <div class="attribute-group">
+                            <h6 class="mb-3">Variant Attributes</h6>
+                            <div class="row" id="variantAttributeContainer${variantId}">
+                                <p class="text-muted">Please select a category to view attributes.</p>
                             </div>
                         </div>
                     </div>
-                    ${variantsHtml}
-                `;
-
-                new bootstrap.Modal(document.getElementById('viewModal')).show();
-            } catch (error) {
-                console.error('Error loading product details:', error);
-                showNotification('Failed to load product details', 'error');
-            }
-        }
-        
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type} notification-toast`;
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                ${message}
+                    <div class="col-12 mb-4">
+                        <!-- Variant images -->
+                        <label class="form-label">Upload Variant Images (3-6 images) <span class="text-danger">*</span></label>
+                        <div class="image-upload-container">
+                            <div class="image-upload-area" id="variantImageUploadArea${variantId}">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drop image here to upload and crop (Min: 3 crops required)</p>
+                                <p class="text-muted">or click to browse</p>
+                               <input type="file" id="variantImageInput${variantId}" name="variants[${variantIndex}][variant_${variantIndex}_images]" accept="image/jpeg,image/png,image/gif" hidden data-variant-index="${variantIndex}">
+                            </div>
+                            <div class="uploaded-images" id="variantUploadedImages${variantId}"></div>
+                            <div class="image-counter" id="variantImageCounter${variantId}">Cropped Images: 0/6 (Minimum 3 required)</div>
+                        </div>
+                        <div class="field-error" id="variant${variantId}Images-error"></div>
+                    </div>
+                </div>
             `;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                min-width: 300px;
-                animation: slideInRight 0.3s ease-out;
-            `;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
+            document.getElementById('variantsContainer').appendChild(variantContainer);
+            variantImageCounts[variantId] = 0;
 
-        async function handleStatusFilter() {
-            const status = document.getElementById('statusFilter').value;
-            
-            await fetchProductsAjax({
-                status: status || '',
-                page: 1
-            });
-        }
-
-        async function handleLimitChange() {
-            const limit = document.getElementById('limitSelect').value;
-            
-            await fetchProductsAjax({
-                limit: limit,
-                page: 1
-            });
-        }
-
-        async function navigateToPage(page) {
-            await fetchProductsAjax({ page });
-        }
-
-        async function fetchProductsAjax(params = {}) {
-            try {
-                showLoadingState();
-                
-                const currentUrl = new URL(window.location);
-                
-                // Update URL params
-                Object.entries(params).forEach(([key, value]) => {
-                    if (value) {
-                        currentUrl.searchParams.set(key, value);
-                    } else {
-                        currentUrl.searchParams.delete(key);
-                    }
-                });
-                
-                // Update browser URL without reload
-                window.history.pushState({}, '', currentUrl);
-                
-                const response = await fetch(currentUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    updateProductsTable(data.products);
-                    updatePagination(data.pagination);
-                    updateStatusButtonColors();
+            // Populate variant data if provided
+            if (variantData && Object.keys(variantData).length) {
+                document.getElementById(`variantQuantity${variantId}`).value = variantData.quantity || '';
+                document.getElementById(`variantRegularPrice${variantId}`).value = variantData.regularPrice || '';
+                document.getElementById(`variantSalesPrice${variantId}`).value = variantData.salesPrice || '';
+                document.getElementById(`variantManufacturingDate${variantId}`).value = variantData.manufacturingDate ? new Date(variantData.manufacturingDate).toISOString().split('T')[0] : '';
+                document.getElementById(`variantExpiryDate${variantId}`).value = variantData.expiryDate ? new Date(variantData.expiryDate).toISOString().split('T')[0] : '';
+                document.getElementById(`variantUom${variantId}`).value = variantData.uom || '';
+                if (variantData.prescriptionRequired) {
+                    document.getElementById(`variantPrescriptionRequired${variantId}`).checked = true;
+                    document.getElementById(`variantPrescriptionRequiredValue${variantId}`).value = 'true';
+                    document.getElementById(`variantPrescriptionRequired${variantId}`).nextElementSibling.nextElementSibling.textContent = 'Active';
                 }
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                showNotification('Failed to load products', 'error');
-            } finally {
-                hideLoadingState();
+                if (variantData.isListed) {
+                    document.getElementById(`variantProductStatus${variantId}`).checked = true;
+                    document.getElementById(`variantProductStatusValue${variantId}`).value = 'true';
+                    document.getElementById(`variantProductStatus${variantId}`).nextElementSibling.nextElementSibling.textContent = 'Listed';
+                }
+                if (variantData.discountStatus) {
+                    document.getElementById(`variantDiscountStatus${variantId}`).checked = true;
+                    document.getElementById(`variantDiscountStatusValue${variantId}`).value = 'true';
+                    document.getElementById(`variantDiscountStatus${variantId}`).nextElementSibling.nextElementSibling.textContent = 'Active';
+                }
+                if (variantData.offerStatus) {
+                    document.getElementById(`variantOfferStatus${variantId}`).checked = true;
+                    document.getElementById(`variantOfferStatusValue${variantId}`).value = 'true';
+                    document.getElementById(`variantOfferStatus${variantId}`).nextElementSibling.nextElementSibling.textContent = 'Active';
+                }
+                if (variantData.attributes) {
+                    const attributeContainer = document.getElementById(`variantAttributeContainer${variantId}`);
+                    attributeContainer.innerHTML = '';
+                    Object.entries(variantData.attributes).forEach(([key, value]) => {
+                        const attrDiv = document.createElement('div');
+                        attrDiv.className = 'col-md-6 mb-3';
+                        attrDiv.innerHTML = `
+                            <label for="variant_attr_${key}${variantId}" class="form-label">${key.charAt(0).toUpperCase() + key.slice(1)} <span class="text-danger">*</span></label>
+                            <input type="${key === 'kg' || key === 'ml' || key === 'mg' ? 'number' : 'text'}" class="form-control" id="variant_attr_${key}${variantId}" name="variants[${variantIndex}][attributes][${key}]" value="${value}" required>
+                            <div class="field-error" id="variant_attr_${key}${variantId}-error"></div>
+                        `;
+                        attributeContainer.appendChild(attrDiv);
+                    });
+                }
             }
         }
 
-        function showLoadingState() {
-            const tbody = document.querySelector('#productsTable tbody');
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Loading...</td></tr>';
+        function removeVariant(variantId) {
+            const variantContainer = document.getElementById(`variant${variantId}`);
+            if (variantContainer) {
+                variantContainer.remove();
+                delete variantImageCounts[variantId];
+                if (window.croppedImages && window.croppedImages[variantId]) {
+                    delete window.croppedImages[variantId];
+                }
+                variantCount--;
+            }
         }
 
-        function hideLoadingState() {
-            // Loading state will be replaced by updateProductsTable
-        }
+        function updateVariantAttributesForVariant(variantId) {
+            const variantIndex = variantId - 1;
+            const categorySelect = document.getElementById('category');
+            const variantAttributeContainer = document.getElementById(`variantAttributeContainer${variantId}`);
+            const attributes = getCategoryAttributes(categorySelect.value);
+            const product = <%- JSON.stringify(product || {}) %>;
+            const variant = product.variants && product.variants[variantIndex] ? product.variants[variantIndex] : {};
 
-    
-        function updateProductsTable(products) {
-            const tbody = document.querySelector('#productsTable tbody');
-            
-            if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No Products found, Please Add Products</td></tr>';
+            if (!variantAttributeContainer) {
+                console.error(`Variant attribute container not found for variant ${variantId}`);
                 return;
             }
-            
-            tbody.innerHTML = products.map(pro => {
-                // Validate product ID before rendering
-                if (!pro._id) {
-                    console.error('Product missing _id:', pro);
-                    return '';
-                }
-                
-                return `
-                    <tr data-product-id="${pro._id}">
-                        <td class="font-weight-bold">${pro.serialNo}</td>
-                        <td class="font-weight-semibold">${pro.name}</td>
-                        <td class="font-weight-semibold">${pro.category}</td>
-                        <td class="font-weight-semibold">${pro.brand}</td>
-                        <td class="text-light-red">₹${pro.regularPrice}</td>
-                        <td class="text-light-green">₹${pro.salesPrice}</td>
-                        <td class="${pro.stock < 10 ? 'text-danger' : 'text-success'}">${pro.stock}</td>
-                        
-                        <td>
-                            <div class="action-dropdown">
-                                <button class="dropdown-toggle-btn" onclick="toggleActionDropdown(event, '${pro._id}')">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="dropdown-menu-custom" id="dropdown-${pro._id}">
-                                    <button class="dropdown-item status-item" onclick="showVariantStatusModal('${pro._id}'); closeDropdown('${pro._id}')">
-                                        <i class="fas fa-toggle-on"></i>
-                                        <span>Variant Status</span>
-                                    </button>
-                                    <button class="dropdown-item view-item" onclick="viewProduct('${pro._id}'); closeDropdown('${pro._id}')">
-                                        <i class="fas fa-eye"></i>
-                                        <span>View More</span>
-                                    </button>
-                                    <button class="dropdown-item edit-item" onclick="editProduct('${pro._id}'); closeDropdown('${pro._id}')">
-                                        <i class="fas fa-edit"></i>
-                                        <span>Edit</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
 
-                    </tr>
-                `;
-            }).filter(row => row !== '').join(''); // Filter out empty rows from invalid products
-        }
+            variantAttributeContainer.innerHTML = '';
+            if (!categorySelect.value || attributes.length === 0) {
+                variantAttributeContainer.innerHTML = '<p class="text-muted">Please select a category to view attributes.</p>';
+            } else {
+                const attributeTemplates = {
+                    ingredients: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_ingredients${variantId}" class="form-label">Ingredients <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_ingredients${variantId}" name="variants[${variantIndex}][attributes][ingredients]" value="${variant.attributes?.ingredients || ''}" required>
+                            <div class="field-error" id="variant_attr_ingredients${variantId}-error"></div>
+                        </div>`,
+                    material: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_material${variantId}" class="form-label">Material <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_material${variantId}" name="variants[${variantIndex}][attributes][material]" value="${variant.attributes?.material || ''}" required>
+                            <div class="field-error" id="variant_attr_material${variantId}-error"></div>
+                        </div>`,
+                    color: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_color${variantId}" class="form-label">Color <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_color${variantId}" name="variants[${variantIndex}][attributes][color]" value="${variant.attributes?.color || ''}" required>
+                            <div class="field-error" id="variant_attr_color${variantId}-error"></div>
+                        </div>`,
+                    ml: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_ml${variantId}" class="form-label">Milliliters (ml) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="variant_attr_ml${variantId}" name="variants[${variantIndex}][attributes][ml]" value="${variant.attributes?.ml || ''}" step="0.01" min="0" required>
+                            <div class="field-error" id="variant_attr_ml${variantId}-error"></div>
+                        </div>`,
+                    mg: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_mg${variantId}" class="form-label">Milligrams (mg) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="variant_attr_mg${variantId}" name="variants[${variantIndex}][attributes][mg]" value="${variant.attributes?.mg || ''}" step="0.01" min="0" required>
+                            <div class="field-error" id="variant_attr_mg${variantId}-error"></div>
+                        </div>`,
+                    size: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_size${variantId}" class="form-label">Size <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_size${variantId}" name="variants[${variantIndex}][attributes][size]" required>
+                            <div class="field-error" id="variant_attr_size${variantId}-error"></div>
+                        </div>`,    
+                    gm: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_gm${variantId}" class="form-label">gm <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_gm${variantId}" name="variants[${variantIndex}][attributes][gm]" required>
+                            <div class="field-error" id="variant_attr_gm${variantId}-error"></div>
+                        </div>` ,  
+                     stage: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_stage${variantId}" class="form-label">Stage <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_stage${variantId}" name="variants[${variantIndex}][attributes][stage]" required>
+                            <div class="field-error" id="variant_attr_stage${variantId}-error"></div>
+                        </div>`,
+                      kg: `
+                        <div class="col-md-6 mb-3">
+                            <label for="variant_attr_kg${variantId}" class="form-label">kg <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="variant_attr_kg${variantId}" name="variants[${variantIndex}][attributes][kg]" required>
+                            <div class="field-error" id="variant_attr_kg${variantId}-error"></div>
+                        </div>`         
+                };
 
-
-        function updatePagination(pagination) {
-            const { currentPage, totalPages, totalProducts, currentLimit } = pagination;
-            
-            // Update pagination info
-            const paginationInfo = document.querySelector('.pagination-section div:first-child');
-            const startRecord = (currentPage - 1) * currentLimit + 1;
-            const endRecord = Math.min(currentPage * currentLimit, totalProducts);
-            paginationInfo.textContent = `Showing ${startRecord} to ${endRecord} of ${totalProducts} products | Page ${currentPage} of ${totalPages}`;
-            
-            // Update pagination buttons
-            const paginationControls = document.querySelector('.pagination-controls');
-            let buttonsHtml = `<button class="btn" ${currentPage === 1 ? 'disabled' : ''} onclick="navigateToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
-            
-            for (let i = 1; i <= totalPages; i++) {
-                buttonsHtml += `<button class="btn ${i === currentPage ? 'active' : ''}" onclick="navigateToPage(${i})">${i}</button>`;
-            }
-            
-            buttonsHtml += `<button class="btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="navigateToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
-            
-            paginationControls.innerHTML = buttonsHtml;
-        }
-
-        // Dropdown toggle functionality
-        function toggleActionDropdown(event, productId) {
-            event.stopPropagation();
-            const dropdown = document.getElementById(`dropdown-${productId}`);
-            const allDropdowns = document.querySelectorAll('.dropdown-menu-custom');
-            
-            // Close all other dropdowns
-            allDropdowns.forEach(dd => {
-                if (dd.id !== `dropdown-${productId}`) {
-                    dd.classList.remove('show');
-                }
-            });
-            
-            // Toggle current dropdown
-            dropdown.classList.toggle('show');
-        }
-
-        function closeDropdown(productId) {
-            const dropdown = document.getElementById(`dropdown-${productId}`);
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.action-dropdown')) {
-                document.querySelectorAll('.dropdown-menu-custom').forEach(dropdown => {
-                    dropdown.classList.remove('show');
+                attributes.forEach(attr => {
+                    if (attributeTemplates[attr]) {
+                        variantAttributeContainer.insertAdjacentHTML('beforeend', attributeTemplates[attr]);
+                    }
                 });
             }
-        });
+        }
+
+        function initializeCategoryChangeListener() {
+            const categorySelect = document.getElementById('category');
+            if (!categorySelect) {
+                console.error('Category select not found');
+                return;
+            }
+            categorySelect.addEventListener('change', () => {
+                for (let i = 1; i <= variantCount; i++) {
+                    updateVariantAttributesForVariant(i);
+                }
+            });
+            for (let i = 1; i <= variantCount; i++) {
+                updateVariantAttributesForVariant(i);
+            }
+        }
+
+        function getCategoryAttributes(categoryId) {
+            if (!categories || !Array.isArray(categories) || categories.length === 0) {
+                console.warn('Categories data is missing or empty');
+                return [];
+            }
+            const selectedCategory = categories.find(cat => String(cat._id) === String(categoryId));
+            if (!selectedCategory) {
+                console.warn('Category not found for ID:', categoryId);
+                return [];
+            }
+
+            const categoryName = selectedCategory.name.toUpperCase();
+            const categoryAttributes = {
+                'TABLET': ['ingredients', 'mg'],
+                'CAPSULE': ['ingredients', 'mg'],
+                'NRX TABLET': ['ingredients', 'mg'],
+                'OINTMENT': ['ingredients', 'gm'],
+                'DROP': [ 'ingredients','ml'],
+                'SYRUP': [ 'ingredients','ml'],
+                'FOOD': [ 'ingredients','kg','stage'],
+                'MEDICAL EQUIPMENT': [ 'ingredients','material', 'color' ],
+                'BODY SUPPORT': ['ingredients', 'size']
+            };
+            return categoryAttributes[categoryName] || [];
+        }
+
+        function initializeVariantImageUpload(variantId) {
+            const imageUploadArea = document.getElementById(`variantImageUploadArea${variantId}`);
+            const imageInput = document.getElementById(`variantImageInput${variantId}`);
+            const uploadedImagesContainer = document.getElementById(`variantUploadedImages${variantId}`);
+            const imageCounter = document.getElementById(`variantImageCounter${variantId}`);
+
+            if (!imageUploadArea || !imageInput || !uploadedImagesContainer || !imageCounter) {
+                console.error(`Variant image upload elements not found for variant ${variantId}`);
+                return;
+            }
+
+            if (!window.croppedImages) {
+                window.croppedImages = {};
+            }
+            if (!window.croppedImages[variantId]) {
+                window.croppedImages[variantId] = [];
+            }
+
+            imageUploadArea.addEventListener('click', () => {
+                imageInput.click();
+            });
+
+            imageUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = '#28a745';
+                imageUploadArea.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+            });
+
+            imageUploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = '#dee2e6';
+                imageUploadArea.style.backgroundColor = '';
+            });
+
+            imageUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                imageUploadArea.style.borderColor = '#dee2e6';
+                imageUploadArea.style.backgroundColor = '';
+                const files = Array.from(e.dataTransfer.files);
+                if (files.length > 0) {
+                    handleImageFile(files[0], variantId);
+                }
+            });
+
+            imageInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleImageFile(e.target.files[0], variantId);
+                }
+            });
+
+            function handleImageFile(file, variantId) {
+                if (variantImageCounts[variantId] >= 6) {
+                    showToast('Maximum 6 images allowed per variant');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    openCropModal(e.target.result, file, variantId);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function openCropModal(imageSrc, file, variantId) {
+                const cropImage = document.getElementById('cropImage');
+                const modal = new bootstrap.Modal(document.getElementById('imageCropModal'));
+                
+                cropImage.src = imageSrc;
+                modal.show();
+
+                window.currentCropSession = {
+                    variantId: variantId,
+                    file: file,
+                    cropper: null
+                };
+            }
+        }
+
+        function initializeStatusTogglesForVariant(variantId) {
+            const discountToggle = document.getElementById(`variantDiscountStatus${variantId}`);
+            const offerToggle = document.getElementById(`variantOfferStatus${variantId}`);
+            const productStatusToggle = document.getElementById(`variantProductStatus${variantId}`);
+            const prescriptionToggle = document.getElementById(`variantPrescriptionRequired${variantId}`);
+            const discountValue = document.getElementById(`variantDiscountStatusValue${variantId}`);
+            const offerValue = document.getElementById(`variantOfferStatusValue${variantId}`);
+            const productStatusValue = document.getElementById(`variantProductStatusValue${variantId}`);
+            const prescriptionValue = document.getElementById(`variantPrescriptionRequiredValue${variantId}`);
+
+            const statusToggles = document.querySelectorAll(`#variant${variantId} .status-toggle input[type="checkbox"]`);
+
+            statusToggles.forEach(toggle => {
+                toggle.addEventListener('change', () => {
+                    const statusLabel = toggle.nextElementSibling.nextElementSibling;
+                    if (toggle === productStatusToggle) {
+                        productStatusValue.value = toggle.checked ? 'true' : 'false';
+                        statusLabel.textContent = toggle.checked ? 'Listed' : 'Unlisted';
+                    } else if (toggle === discountToggle) {
+                        discountValue.value = toggle.checked ? 'true' : 'false';
+                        statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
+                    } else if (toggle === offerToggle) {
+                        offerValue.value = toggle.checked ? 'true' : 'false';
+                        statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
+                    } else if (toggle === prescriptionToggle) {
+                        prescriptionValue.value = toggle.checked ? 'true' : 'false';
+                        statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
+                    }
+
+                    if (toggle === discountToggle && toggle.checked && offerToggle.checked) {
+                        offerToggle.checked = false;
+                        offerValue.value = 'false';
+                        offerToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.');
+                    } else if (toggle === offerToggle && toggle.checked && discountToggle.checked) {
+                        discountToggle.checked = false;
+                        discountValue.value = 'false';
+                        discountToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.');
+                    }
+                });
+            });
+        }
+        function initializeFormSubmission() {
+            const form = document.getElementById('productForm');
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                console.log('Form submission triggered'); // Debug: Confirm event fires
+                clearErrors();
+
+                let isValid = true;
+                const requiredFields = form.querySelectorAll('[required]');
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        const errorDiv = document.getElementById(`${field.id}-error`);
+                        errorDiv.textContent = `Please fill in the ${field.labels[0]?.textContent || field.name} field.`;
+                    }
+                });
+
+                // Validate that each variant has at least 3 images (existing + new)
+                for (let i = 1; i <= variantCount; i++) {
+                    const existingImages = document.querySelectorAll(`#variantUploadedImages${i} .uploaded-image`).length;
+                    if (existingImages < 3) {
+                        isValid = false;
+                        const errorDiv = document.getElementById(`variant${i}Images-error`);
+                        errorDiv.textContent = `Please ensure Variant ${i} has at least 3 images.`;
+                    }
+                }
+
+                if (!isValid) {
+                    console.log('Validation failed:', document.querySelectorAll('.field-error')); // Debug: Log validation errors
+                    return;
+                }
+
+                const formData = new FormData(form);
+                console.log('FormData contents:'); // Debug: Inspect form data
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value instanceof File ? value.name : value);
+                }
+
+                toggleFormDisabled(true);
+                document.getElementById('spinnerOverlay').style.display = 'block';
+
+                try {
+                    const productId = document.getElementById('productId').value;
+                    const res = await fetch(`/admin/products/edit/${productId}`, {
+                        method: 'PUT',
+                        body: formData,
+                    });
+
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        showToast('Product updated successfully: ' + result.product.name);
+                        setTimeout(() => {
+                            window.location.href = '/admin/products';
+                        }, 2000);
+                    } else {
+                        handleBackendErrors(result);
+                        showToast('Failed to update product: ' + (result.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    showToast('Something went wrong!');
+                } finally {
+                    toggleFormDisabled(false);
+                    document.getElementById('spinnerOverlay').style.display = 'none';
+                }
+            });
+
+            // Ensure form is enabled on page load
+            toggleFormDisabled(false);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.field-error').forEach(error => {
+                error.textContent = '';
+            });
+        }
+
+        function handleBackendErrors(result) {
+            if (result.errors && Array.isArray(result.errors)) {
+                result.errors.forEach(error => {
+                    const fieldId = error.field;
+                    const errorDiv = document.getElementById(`${fieldId}-error`);
+                    if (errorDiv) {
+                        errorDiv.textContent = error.message;
+                    } else {
+                        showToast(error.message);
+                    }
+                });
+            } else if (result.message) {
+                showToast(result.message);
+            }
+        }
+
+        function toggleFormDisabled(disabled) {
+            const buttons = document.querySelectorAll('#productForm button, #addVariantBtn, #cancelBtn, #updateProductBtn');
+            const inputs = document.querySelectorAll('#productForm input, #productForm select, #productForm textarea');
+            buttons.forEach(button => {
+                button.disabled = disabled;
+            });
+            inputs.forEach(input => {
+                input.disabled = disabled;
+            });
+        }
     </script>
 </body>
 </html>

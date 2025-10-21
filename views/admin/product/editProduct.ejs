@@ -152,6 +152,7 @@
         const categories = JSON.parse('<%- JSON.stringify(categories || []) %>');
 
         document.addEventListener('DOMContentLoaded', () => {
+            window.removedImagePositions = {};
             initializeEditProductPage();
             initializeCropModalHandlers();
             initializeAddVariantButton();
@@ -321,12 +322,25 @@
                     <i class="fas fa-times"></i>
                 </button>
             `;
-            uploadedImagesContainer.appendChild(imageContainer);
+            
+            // Check if there's a removed position to fill
+            let insertPosition = null;
+            if (window.removedImagePositions && window.removedImagePositions[variantId] && window.removedImagePositions[variantId].length > 0) {
+                insertPosition = window.removedImagePositions[variantId].shift(); // Get first removed position
+            }
             
             if (!window.croppedImages[variantId]) {
                 window.croppedImages[variantId] = [];
             }
-            window.croppedImages[variantId].push(file);
+            
+            // Insert at removed position or append at end
+            if (insertPosition !== null && insertPosition < uploadedImagesContainer.children.length) {
+                uploadedImagesContainer.insertBefore(imageContainer, uploadedImagesContainer.children[insertPosition]);
+                window.croppedImages[variantId].splice(insertPosition, 0, file);
+            } else {
+                uploadedImagesContainer.appendChild(imageContainer);
+                window.croppedImages[variantId].push(file);
+            }
             
             variantImageCounts[variantId]++;
             updateVariantImageCounterGlobal(variantId);
@@ -357,6 +371,16 @@
         window.removeCroppedImage = function(button, variantId) {
             const imageContainer = button.closest('.uploaded-image');
             const index = Array.from(imageContainer.parentElement.children).indexOf(imageContainer);
+            
+            // Track removed position for replacement
+            if (!window.removedImagePositions) {
+                window.removedImagePositions = {};
+            }
+            if (!window.removedImagePositions[variantId]) {
+                window.removedImagePositions[variantId] = [];
+            }
+            window.removedImagePositions[variantId].push(index);
+            window.removedImagePositions[variantId].sort((a, b) => a - b); // Keep sorted
             
             if (window.croppedImages[variantId]) {
                 window.croppedImages[variantId].splice(index, 1);
@@ -414,6 +438,9 @@
             variantContainer.id = `variant${variantId}`;
             variantContainer.innerHTML = `
                 <div class="row">
+                    <!-- Add this hidden input to preserve variant ID -->
+                    <input type="hidden" name="variants[${variantIndex}][_id]" id="variantId${variantId}" value="${variantData._id || ''}">
+                    
                     <div class="col-12 mb-3">
                         <h5>Variant ${variantId}</h5>
                         <button type="button" class="btn btn-danger btn-sm float-end" onclick="removeVariant(${variantId})">

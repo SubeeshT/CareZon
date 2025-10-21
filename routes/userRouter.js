@@ -6,6 +6,7 @@ const productDetailsController = require('../controllers/user/productDetailsCont
 const profileController = require('../controllers/user/ProfileController');
 const addressController = require('../controllers/user/addressController');
 const cartController = require('../controllers/user/cartController');
+const checkoutController = require('../controllers/user/checkoutController');
 const orderController =  require('../controllers/user/orderController');
 const wishlistController = require('../controllers/user/wishlistController');
 const walletController = require('../controllers/user/walletController');
@@ -63,15 +64,24 @@ router.patch('/account/address/default/:addressId', auth.validateActiveUser, add
 router.delete('/account/address/delete/:addressId', auth.validateActiveUser, addressController.deleteAddress);
 
 
-//user cart and checkout section
+//user cart  section
 router.get('/cart', auth.validateActiveUser, cartController.loadCart);
 router.post('/cart/add',auth.validateActiveUser, cartController.addToCart);
 router.delete('/cart/remove', auth.validateActiveUser, cartController.removeFromCart);
 router.patch('/cart/updateQuantity', auth.validateActiveUser, cartController.updateCartQuantity);
 router.get('/cart/count', auth.validateActiveUser, cartController.getCartCount);
-router.get('/cart/checkout', auth.validateActiveUser, cartController.loadCheckout);
-router.post('/order/place', auth.validateActiveUser, cartController.placeOrder);
 
+
+//user checkout section
+router.get('/cart/checkout', auth.validateActiveUser, checkoutController.loadCheckout);
+router.post('/order/create-razorpay-order', auth.validateActiveUser, checkoutController.createRazorpayOrder);
+router.post('/order/verify-payment', auth.validateActiveUser, checkoutController.verifyPayment);
+router.post('/order/place', auth.validateActiveUser, checkoutController.placeOrder);
+router.get('/account/wallet/balance', auth.validateActiveUser, checkoutController.getWalletBalance);
+router.get('/cart/coupons', auth.validateActiveUser, checkoutController.getCoupons);
+router.post('/cart/apply-coupon', auth.validateActiveUser, checkoutController.applyCoupon);
+router.post('/order/place-failed', auth.validateActiveUser, checkoutController.placeFailedPaymentOrder);
+router.post('/order/retry-payment', auth.validateActiveUser, checkoutController.retryPayment);
 
 //order section
 router.get('/account/orders/details/:orderId', auth.validateActiveUser, orderController.loadOrderedProductsDetails);
@@ -88,7 +98,8 @@ router.get('/account/wishlist/check/:productId/:variantId', auth.validateActiveU
 
 //wallet section
 router.get('/account/wallet', auth.validateActiveUser, walletController.loadWallet);
-
-
+router.post('/wallet/create-order', auth.validateActiveUser, walletController.createRazorpayOrder);
+router.post('/wallet/verify-payment', auth.validateActiveUser, walletController.verifyPaymentAndAddMoney);
+router.post('/wallet/payment-failed', auth.validateActiveUser, walletController.handlePaymentFailure);
 
 module.exports = router

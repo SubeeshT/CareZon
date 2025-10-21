@@ -122,13 +122,18 @@ const orderSchema = new mongoose.Schema({
     //payment details
     paymentMethod: {
         type: String,
-        enum: ['cod', 'card', 'upi', 'net Banking'],
+        enum: ['cod', 'card', 'upi', 'netbanking', 'wallet'],
         required: true
     },
     paymentStatus: {
         type: String,
         enum: ['pending', 'completed', 'failed', 'refunded'],
         default: 'pending'
+    },
+    paymentDetails: {
+        razorpay_order_id: String,
+        razorpay_payment_id: String,
+        razorpay_signature: String
     },
     //order totals
     subtotal: {
@@ -159,8 +164,21 @@ const orderSchema = new mongoose.Schema({
         enum: ['none', 'pending', 'accepted', 'rejected'],
         default: 'none'
     },
+    couponApplied: {
+        couponId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Coupon'
+        },
+        code: String,
+        discountValue: Number
+    },
+    canCancelIndividualItems: { //cancel and return, both can handle by this single field
+        type: Boolean,
+        default: true
+    },
+    paymentFailureReason: String,
+    
     returnRequestedAt: Date,
-
 
     //delivery date
     estimatedDelivery: Date,

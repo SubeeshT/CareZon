@@ -267,6 +267,24 @@
             color: #dc3545;
         }
 
+        .transaction-icon-wrapper.failed {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .transaction-icon-wrapper.pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .transaction-amount.text-danger {
+            color: #dc3545;
+        }
+
+        .transaction-amount.text-warning {
+            color: #ffc107;
+        }
+
         .transaction-details {
             flex: 1;
         }
@@ -708,6 +726,69 @@
                 font-size: 0.9rem;
             }
         }
+
+        .payment-method-card {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .payment-method-card:hover {
+            border-color: #0087bd;
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .payment-method-card.selected {
+            border-color: #0087bd;
+            background: rgba(0, 135, 189, 0.05);
+        }
+
+        .payment-radio {
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method-card.selected .payment-radio {
+            color: #0087bd;
+        }
+
+        .payment-method-card.selected .payment-radio::before {
+            content: '\f058'; /* fa-check-circle */
+        }
+
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .payment-info {
+            flex: 1;
+        }
+
+        .payment-info h6 {
+            margin: 0 0 0.25rem 0;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .payment-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -835,16 +916,43 @@
                     </div>
 
                     <h6 class="mb-3 fw-semibold">Select Payment Method</h6>
-                    <div class="payment-method-card selected" data-method="razorpay">
-                        <div class="payment-icon" style="background: #528FF0; color: white;">
+
+                    <div class="payment-method-card" data-method="card">
+                        <div class="payment-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                             <i class="fas fa-credit-card"></i>
                         </div>
                         <div class="payment-info">
-                            <h6>Razorpay (Test Mode)</h6>
-                            <p>Credit/Debit Card, UPI, Net Banking</p>
+                            <h6>Credit/Debit Card</h6>
+                            <p>Pay securely using your card</p>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-check-circle text-success fs-4"></i>
+                            <i class="fas fa-circle payment-radio"></i>
+                        </div>
+                    </div>
+
+                    <div class="payment-method-card" data-method="upi">
+                        <div class="payment-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="payment-info">
+                            <h6>UPI</h6>
+                            <p>Pay using UPI apps like GPay, PhonePe</p>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-circle payment-radio"></i>
+                        </div>
+                    </div>
+
+                    <div class="payment-method-card" data-method="netbanking">
+                        <div class="payment-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="payment-info">
+                            <h6>Net Banking</h6>
+                            <p>Pay directly from your bank account</p>
+                        </div>
+                        <div class="ms-auto">
+                            <i class="fas fa-circle payment-radio"></i>
                         </div>
                     </div>
 
@@ -862,117 +970,30 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     
     <script>
-        // Sample transaction data (Replace with actual API call)
-        const sampleTransactions = [
-            {
-                id: 1,
-                type: 'credit',
-                title: 'Order Cancelled - Refund',
-                description: 'Order #12345',
-                amount: 1299.00,
-                date: '2025-10-11T14:30:00',
-                status: 'completed'
-            },
-            {
-                id: 2,
-                type: 'credit',
-                title: 'Money Added',
-                description: 'Via Razorpay',
-                amount: 5000.00,
-                date: '2025-10-10T10:15:00',
-                status: 'completed'
-            },
-            {
-                id: 3,
-                type: 'debit',
-                title: 'Order Placed',
-                description: 'Order #12350',
-                amount: 2499.00,
-                date: '2025-10-09T16:45:00',
-                status: 'completed'
-            },
-            {
-                id: 4,
-                type: 'credit',
-                title: 'Order Returned - Refund',
-                description: 'Order #12348',
-                amount: 899.00,
-                date: '2025-10-08T11:20:00',
-                status: 'completed'
-            },
-            {
-                id: 5,
-                type: 'debit',
-                title: 'Order Placed',
-                description: 'Order #12346',
-                amount: 1599.00,
-                date: '2025-10-07T09:30:00',
-                status: 'completed'
-            },
-            {
-                id: 6,
-                type: 'credit',
-                title: 'Money Added',
-                description: 'Via Razorpay',
-                amount: 3000.00,
-                date: '2025-10-06T15:10:00',
-                status: 'completed'
-            },
-            {
-                id: 1,
-                type: 'credit',
-                title: 'Order Cancelled - Refund',
-                description: 'Order #12345',
-                amount: 1299.00,
-                date: '2025-10-11T14:30:00',
-                status: 'completed'
-            },
-            {
-                id: 2,
-                type: 'credit',
-                title: 'Money Added',
-                description: 'Via Razorpay',
-                amount: 5000.00,
-                date: '2025-10-10T10:15:00',
-                status: 'completed'
-            },
-            {
-                id: 3,
-                type: 'debit',
-                title: 'Order Placed',
-                description: 'Order #12350',
-                amount: 2499.00,
-                date: '2025-10-09T16:45:00',
-                status: 'completed'
-            },
-            {
-                id: 4,
-                type: 'credit',
-                title: 'Order Returned - Refund',
-                description: 'Order #12348',
-                amount: 899.00,
-                date: '2025-10-08T11:20:00',
-                status: 'completed'
-            },
-            {
-                id: 5,
-                type: 'debit',
-                title: 'Order Placed',
-                description: 'Order #12346',
-                amount: 1599.00,
-                date: '2025-10-07T09:30:00',
-                status: 'completed'
-            },
-            {
-                id: 6,
-                type: 'credit',
-                title: 'Money Added',
-                description: 'Via Razorpay',
-                amount: 3000.00,
-                date: '2025-10-06T15:10:00',
-                status: 'completed'
-            }
-        ];
+        
+        // Get actual wallet data from server
+        const walletDataFromServer = {
+            balance: <%= wallet.balance %>,
+            totalCredits: <%= wallet.totalCredits %>,
+            totalMoneyAdded: <%= wallet.moneyAdded %>,
+            totalSpent: <%= wallet.totalSpent %>,
+            transactions: <%- JSON.stringify(transactions.map(t => ({
+                id: t._id,
+                type: t.direction,
+                title: t.moneyFrom === 'addedViaRazorpay' ? 'Money Added' : 
+                    t.moneyFrom === 'cancelRefund' ? 'Order Cancelled - Refund' : 
+                    t.moneyFrom === 'returnRefund' ? 'Order Returned - Refund' : 
+                    'Transaction',
+                description: t.orderId ? `Order #${t.orderId.orderId}` : 
+                    t.moneyFrom === 'addedViaRazorpay' ? `Via ${t.paymentMethod.toUpperCase()}` : 
+                    t.description || 'Wallet Transaction',
+                amount: t.amount,
+                date: t.date,
+                status: t.status,
+                paymentMethod: t.paymentMethod,
+                moneyFrom: t.moneyFrom
+            }))) %>
+        };
 
         // Initialize wallet data
         let walletData = {
@@ -988,53 +1009,49 @@
         const transactionsPerPage = 10;
         let currentFilter = 'all';
 
+         // Global variable for selected payment method
+        let selectedPaymentMethod = null;
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             loadWalletData();
             setupEventListeners();
+            
+            // Set active filter based on URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = urlParams.get('filter') || 'all';
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filterParam) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            currentFilter = filterParam;
         });
 
+        
         // Load wallet data
         async function loadWalletData() {
             try {
-                // Simulate API call - Replace with actual API endpoint
-                // const response = await fetch('/api/wallet/data');
-                // const data = await response.json();
+                // Use server-provided data
+                walletData.balance = walletDataFromServer.balance;
+                walletData.totalCredits = walletDataFromServer.totalCredits;
+                walletData.totalMoneyAdded = walletDataFromServer.totalMoneyAdded;
+                walletData.totalSpent = walletDataFromServer.totalSpent;
+                walletData.transactions = walletDataFromServer.transactions;
                 
-                // Using sample data for demonstration
-                setTimeout(() => {
-                    walletData.transactions = sampleTransactions;
-                    calculateTotals();
-                    updateUI();
-                    renderTransactions('all');
-                    hideLoading();
-                }, 1000);
+                updateUI();
+                renderTransactions('all');
+                hideLoading();
                 
             } catch (error) {
                 console.error('Error loading wallet data:', error);
                 showToast('Failed to load wallet data', 'error');
                 hideLoading();
             }
-        }
-
-        // Calculate wallet totals
-        function calculateTotals() {
-            walletData.totalCredits = 0;
-            walletData.totalMoneyAdded = 0;
-            walletData.totalSpent = 0;
-
-            walletData.transactions.forEach(transaction => {
-                if (transaction.type === 'credit') {
-                    walletData.totalCredits += transaction.amount;
-                    if (transaction.title.includes('Money Added')) {
-                        walletData.totalMoneyAdded += transaction.amount;
-                    }
-                } else if (transaction.type === 'debit') {
-                    walletData.totalSpent += transaction.amount;
-                }
-            });
-
-            walletData.balance = walletData.totalCredits - walletData.totalSpent;
         }
 
         // Update UI with wallet data
@@ -1123,18 +1140,58 @@
                 minute: '2-digit'
             });
 
-            const icon = transaction.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up';
-            const amountSign = transaction.type === 'credit' ? '+' : '-';
+            // Determine title based on status and moneyFrom
+            let title = transaction.title;
+            if (transaction.status === 'pending') {
+                title = 'Payment Processing';
+            } else if (transaction.status === 'failed') {
+                title = 'Payment Failed';
+            } else {
+                // For success status
+                if (transaction.moneyFrom === 'addedViaRazorpay') {
+                    title = `Money Added via ${transaction.paymentMethod.toUpperCase()}`;
+                } else if (transaction.moneyFrom === 'cancelRefund') {
+                    title = 'Order Cancelled - Refund';
+                } else if (transaction.moneyFrom === 'returnRefund') {
+                    title = 'Order Returned - Refund';
+                }
+            }
+
+            // Determine icon and styling based on transaction status and type
+            let icon, amountClass;
+            
+            if (transaction.status === 'failed') {
+                icon = 'fa-times-circle';
+                amountClass = 'text-danger';
+            } else if (transaction.status === 'pending') {
+                icon = 'fa-clock';
+                amountClass = 'text-warning';
+            } else {
+                icon = transaction.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up';
+                amountClass = transaction.type === 'credit' ? 'credit' : 'debit';
+            }
+
+            const amountSign = transaction.type === 'credit' && transaction.status === 'success' ? '+' : 
+                            transaction.status === 'failed' ? '' : 
+                            transaction.status === 'pending' ? '' : '-';
+
+            // Determine icon wrapper class
+            let iconWrapperClass = transaction.type;
+            if (transaction.status === 'failed') {
+                iconWrapperClass = 'failed';
+            } else if (transaction.status === 'pending') {
+                iconWrapperClass = 'pending';
+            }
 
             item.innerHTML = `
-                <div class="transaction-icon-wrapper ${transaction.type}">
+                <div class="transaction-icon-wrapper ${iconWrapperClass}">
                     <i class="fas ${icon}"></i>
                 </div>
                 <div class="transaction-details">
-                    <div class="transaction-title">${transaction.title}</div>
+                    <div class="transaction-title">${title}</div>
                     <div class="transaction-date">${formattedDate}</div>
                 </div>
-                <div class="transaction-amount ${transaction.type}">
+                <div class="transaction-amount ${amountClass}">
                     ${amountSign}₹${transaction.amount.toFixed(2)}
                 </div>
             `;
@@ -1151,7 +1208,18 @@
                     filterButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     displayedTransactions = transactionsPerPage;
-                    renderTransactions(this.dataset.filter, false);
+                    const filter = this.dataset.filter;
+                    
+                    // Update URL with filter query parameter
+                    const url = new URL(window.location);
+                    if (filter === 'all') {
+                        url.searchParams.delete('filter');
+                    } else {
+                        url.searchParams.set('filter', filter);
+                    }
+                    window.history.pushState({}, '', url);
+                    
+                    renderTransactions(filter, false);
                 });
             });
 
@@ -1174,6 +1242,17 @@
                     }, 100);
                 });
             }
+
+            // Payment method cards - MOVED UP BEFORE OTHER PAYMENT RELATED CODE
+            const paymentMethodCards = document.querySelectorAll('.payment-method-card');
+            paymentMethodCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    paymentMethodCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPaymentMethod = this.dataset.method;
+                    validateAmount();
+                });
+            });
 
             // Quick amount buttons
             const quickAmountButtons = document.querySelectorAll('.quick-amount-btn');
@@ -1201,17 +1280,18 @@
             addMoneyModal.addEventListener('hidden.bs.modal', function() {
                 document.getElementById('amountInput').value = '';
                 quickAmountButtons.forEach(b => b.classList.remove('selected'));
+                paymentMethodCards.forEach(c => c.classList.remove('selected'));
+                selectedPaymentMethod = null;
                 document.getElementById('proceedPaymentBtn').disabled = true;
             });
         }
-
         // Validate amount
         function validateAmount() {
             const amountInput = document.getElementById('amountInput');
             const proceedBtn = document.getElementById('proceedPaymentBtn');
             const amount = parseFloat(amountInput.value);
 
-            if (amount >= 1 && amount <= 50000) {
+            if (amount >= 1 && amount <= 50000 && selectedPaymentMethod) {
                 proceedBtn.disabled = false;
             } else {
                 proceedBtn.disabled = true;
@@ -1219,7 +1299,7 @@
         }
 
         // Initiate payment
-        function initiatePayment() {
+        async function initiatePayment() {
             const amount = parseFloat(document.getElementById('amountInput').value);
             
             if (!amount || amount < 1 || amount > 50000) {
@@ -1227,82 +1307,164 @@
                 return;
             }
 
-            // Initialize Razorpay payment
-            const options = {
-                key: 'rzp_test_YOUR_KEY_HERE', // Replace with your Razorpay test key
-                amount: amount * 100, // Amount in paise
-                currency: 'INR',
-                name: 'CareZon',
-                description: 'Add Money to Wallet',
-                image: '/user/images/logo.png',
-                handler: function(response) {
-                    handlePaymentSuccess(response, amount);
-                },
-                prefill: {
-                    name: '<%= user.fullName %>',
-                    email: '<%= user.email %>',
-                    contact: '<%= user.phone || "" %>'
-                },
-                theme: {
-                    color: '#0087bd'
-                },
-                modal: {
-                    ondismiss: function() {
-                        showToast('Payment cancelled', 'error');
-                    }
-                }
-            };
+            try {
+                // Create Razorpay order
+                const response = await fetch('/wallet/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount })
+                });
 
-            const razorpay = new Razorpay(options);
-            razorpay.open();
+                const data = await response.json();
+
+                if (!data.success) {
+                    showToast(data.message || 'Failed to create order', 'error');
+                    return;
+                }
+
+                const orderId = data.order.id;
+
+                // Initialize Razorpay payment
+                const options = {
+                    key: data.order.keyId,
+                    amount: data.order.amount,
+                    currency: data.order.currency,
+                    order_id: orderId,
+                    name: 'CareZon',
+                    description: 'Add Money to Wallet',
+                    image: '/user/images/logo.png',
+                    handler: function(response) {
+                        handlePaymentSuccess(response, amount);
+                    },
+                    prefill: {
+                        name: '<%= user.fullName %>',
+                        email: '<%= user.email %>',
+                        contact: '<%= user.phone || "" %>'
+                    },
+                    theme: {
+                        color: '#0087bd'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            handlePaymentFailure(orderId, null, amount, 'Payment cancelled by user');
+                        }
+                    }
+                };
+
+                const razorpay = new Razorpay(options);
+                
+                // Handle payment failure
+                razorpay.on('payment.failed', function(response) {
+                    handlePaymentFailure(
+                        orderId,
+                        response.error.metadata.payment_id,
+                        amount,
+                        response.error.description
+                    );
+                });
+                
+                razorpay.open();
+
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                showToast('Failed to initiate payment', 'error');
+            }
         }
 
         // Handle payment success
         async function handlePaymentSuccess(paymentResponse, amount) {
             try {
-                // Send payment details to server
-                const response = await fetch('/api/wallet/add-money', {
+                if (!selectedPaymentMethod) {
+                    showToast('Payment method not selected', 'error');
+                    return;
+                }
+
+                // Verify payment with server
+                const response = await fetch('/wallet/verify-payment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        paymentId: paymentResponse.razorpay_payment_id,
-                        amount: amount
+                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                        razorpay_signature: paymentResponse.razorpay_signature,
+                        amount: amount,
+                        paymentMethod: selectedPaymentMethod
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // Add new transaction to local data
-                    const newTransaction = {
-                        id: Date.now(),
-                        type: 'credit',
-                        title: 'Money Added',
-                        description: 'Via Razorpay',
-                        amount: amount,
-                        date: new Date().toISOString(),
-                        status: 'completed'
-                    };
-
-                    walletData.transactions.unshift(newTransaction);
-                    calculateTotals();
-                    updateUI();
-                    displayedTransactions = transactionsPerPage;
-                    renderTransactions(currentFilter, false);
-
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addMoneyModal'));
                     modal.hide();
 
-                    showToast(`₹${amount.toFixed(2)} added successfully!`, 'success');
+                    showToast(`₹${amount.toFixed(2)} added successfully via ${selectedPaymentMethod.toUpperCase()}!`, 'success');
+                    
+                    // Reload page to show updated data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
                 } else {
-                    showToast('Failed to add money. Please try again.', 'error');
+                    showToast(result.message || 'Failed to add money', 'error');
                 }
             } catch (error) {
                 console.error('Error processing payment:', error);
                 showToast('Payment verification failed', 'error');
+            }
+        }
+
+        // Handle payment failure
+        async function handlePaymentFailure(orderId, paymentId, amount, errorDescription) {
+            try {
+                // Show immediate error message
+                showToast('Payment failed: ' + errorDescription, 'error');
+                
+                // Wait 3 seconds before recording failure
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                const response = await fetch('/wallet/payment-failed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        razorpay_order_id: orderId,
+                        razorpay_payment_id: paymentId,
+                        amount: amount,
+                        error_description: errorDescription,
+                        paymentMethod: selectedPaymentMethod || 'card'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addMoneyModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    showToast('Transaction failure recorded.', 'error');
+                    
+                    // Reload page after additional 2 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Error recording payment failure:', error);
+                showToast('Payment failed', 'error');
+                
+                // Still reload after delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
             }
         }
 
@@ -1374,10 +1536,7 @@
 
         // Refresh wallet data
         async function refreshWalletData() {
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            loadingSpinner.style.display = 'flex';
-            
-            await loadWalletData();
+            window.location.reload();
         }
 
         // Handle window resize for responsive behavior
