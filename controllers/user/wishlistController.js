@@ -1,6 +1,7 @@
 const Wishlist = require('../../models/wishlistSchema');
 const Product = require('../../models/productSchema');
 const { getVariantLabel } = require('../../utils/variantAttribute');
+const { calculateEffectiveDiscount, calculateDiscountedPrice } = require('../../utils/discountValue');
 const mongoose = require('mongoose');
 
 
@@ -13,7 +14,7 @@ const loadWishlist = async (req,res) => {
         const search = req.query.search?.trim().toLowerCase() || '';
 
 
-        let wishlist = await Wishlist.findOne({userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed'}]});
+        let wishlist = await Wishlist.findOne({userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed Discounts DiscountStatus'}]});
         if(!wishlist){
             wishlist = new Wishlist({
                 userId,
@@ -44,8 +45,35 @@ const loadWishlist = async (req,res) => {
                     continue;
                 }
                 
-                const variantLabel = getVariantLabel(variant, product.category.name);
-                validItems.push({...item.toObject(), variant: variant, variantLabel: variantLabel});
+                const variantLabel = getVariantLabel(variant, product.category.name); //utils function for get variant attribute key and value
+
+                const discountInfo = calculateEffectiveDiscount(//utils function for get greater discount % value
+                    variant.discountValue || 0,
+                    variant.discountStatus || false,
+                    product.category.Discounts || 0,
+                    product.category.DiscountStatus || false
+                );
+
+                const correctSalesPrice = calculateDiscountedPrice(//utils function for get greater discount applied sales amount
+                    variant.regularPrice,
+                    variant.discountValue || 0,
+                    variant.discountStatus || false,
+                    product.category.Discounts || 0,
+                    product.category.DiscountStatus || false
+                );
+
+                //create a modified variant object with the correct sales price
+                const modifiedVariant = {
+                    ...variant.toObject(),
+                    salesPrice: correctSalesPrice,
+                    effectiveDiscountPercent: discountInfo.effectiveDiscount
+                };
+
+                validItems.push({
+                    ...item.toObject(), 
+                    variant: modifiedVariant, 
+                    variantLabel: variantLabel
+                });
             }
         }   
 

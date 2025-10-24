@@ -718,7 +718,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <div class="payment-option" data-payment="cod">
+                                    <div class="payment-option <%= !isCODAllowed ? 'disabled' : '' %>" data-payment="cod">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -727,10 +727,12 @@
                                                 </div>
                                                 <small class="text-muted">Pay when delivered</small>
                                                 <div class="mt-2">
-                                                    
+                                                    <% if (!isCODAllowed) { %>
+                                                        <small class="text-danger">Not available for orders above ₹<%= COD_MAX_AMOUNT %></small>
+                                                    <% } %>
                                                 </div>
                                             </div>
-                                            <input type="radio" name="payment" value="cod" class="form-check-input" checked>
+                                            <input type="radio" name="payment" value="cod" class="form-check-input" <%= isCODAllowed ? 'checked' : 'disabled' %>>
                                         </div>
                                     </div>
                                 </div>
@@ -761,7 +763,7 @@
                                                 <h6><%= item.productId.name %></h6>
                                                 <div class="text-muted small"><%= item.productId.brand.name %></div>
                                                 <div class="text-muted small">Qty: <%= item.quantity %> • <%= item.variantLabel || 'N/A' %></div>
-                                                <div class="text-success fw-bold">₹<%= item.subtotal %></div>
+                                                <div class="text-success fw-bold">₹<%= item.effectiveSalesPrice ? (item.effectiveSalesPrice * item.quantity) : item.subtotal %></div>
                                             </div>
                                         </div>
                                     </div>
@@ -790,7 +792,7 @@
                                     <i class="fas fa-check me-1"></i>Apply
                                 </button>
                             </div>
-                            <button class="btn btn-link text-white p-0 text-decoration-none" id="select-coupon-btn">
+                            <button type="button" class="btn btn-link text-white p-0 text-decoration-none" id="select-coupon-btn">
                                 <i class="fas fa-ticket-alt me-1"></i>View Available Coupons
                             </button>
                             
@@ -1162,6 +1164,8 @@
         let selectedPayment = 'cod';
         let addresses = <%- JSON.stringify(addresses || []) %>;
         let cart = <%- JSON.stringify(cart || {}) %>;
+        const isCODAllowed = <%= isCODAllowed || false %>;
+        const COD_MAX_AMOUNT = <%= COD_MAX_AMOUNT || 5000 %>;
 
         // DOM Elements
         const addressSelection = document.getElementById('address-selection');
@@ -1185,6 +1189,10 @@
             initializeEventListeners();
             updateStepIndicator(2);
             applyAnimations();
+
+            console.log('✅ Event listeners initialized');
+            console.log('Select coupon button exists:', document.getElementById('select-coupon-btn') !== null);
+            console.log('Apply coupon button exists:', document.getElementById('apply-coupon-code-btn') !== null);
         });
 
         function initializeEventListeners() {
@@ -1305,6 +1313,19 @@
         }
 
         function selectPayment(paymentType) {
+            // Dynamically check if COD is allowed based on current total (including coupon)
+            if (paymentType === 'cod') {
+                const subtotal = cart.totalAmount || 0;
+                const fee = subtotal < 300 ? 50 : 0;
+                const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+                const finalTotal = subtotal + fee - discount;
+                
+                if (finalTotal > COD_MAX_AMOUNT) {
+                    showToast(`Cash on Delivery is not available for orders above ₹${COD_MAX_AMOUNT}`, 'warning');
+                    return;
+                }
+            }
+            
             selectedPayment = paymentType;
             
             // Update UI
@@ -1387,6 +1408,22 @@
 
         async function placeOrder() {
             if (!selectedAddress || !selectedPayment || !cart.items || cart.items.length === 0) return;
+
+            // Validate COD eligibility with coupon discount before sending request
+            if (selectedPayment === 'cod') {
+                const subtotal = cart.totalAmount || 0;
+                const fee = subtotal < 300 ? 50 : 0;
+                const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+                const finalTotal = subtotal + fee - discount;
+                
+                if (finalTotal > COD_MAX_AMOUNT) {
+                    showToast(`Cash on Delivery is not available for orders above ₹${COD_MAX_AMOUNT}`, 'warning');
+                    loadingSpinner.style.display = 'none';
+                    btnText.textContent = 'PLACE ORDER';
+                    placeOrderBtn.disabled = false;
+                    return;
+                }
+            }
             
              // Check wallet balance if wallet payment is selected
             if (selectedPayment === 'wallet') {
@@ -1408,7 +1445,8 @@
             try {
                 const subtotal = cart.totalAmount || 0;
                 const fee = subtotal < 300 ? 50 : 0;
-                const totalAmount = subtotal + fee;
+                const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+                const totalAmount = Math.round(subtotal + fee - discount); // Ensure it's an integer
                 
                 const orderData = {
                     addressId: selectedAddress._id,
@@ -1787,11 +1825,21 @@
             });
         }
 
-        // Initialize payment method
-        selectPayment('cod');
+        let appliedCoupon = null;
+        // Initialize payment method - select COD only if allowed
+        if (isCODAllowed) {
+            selectPayment('cod');
+        } else {
+            // Don't pre-select any payment method if COD is not allowed
+            selectedPayment = null;
+            updatePlaceOrderButton();
+        }
 
         // Initialize delivery fee calculation
         updateDeliveryFee();
+
+        // Initial COD eligibility check
+        checkCODEligibility();
 
         function showPaymentFailurePage(message) {
             processingContent.style.display = 'none';
@@ -1810,13 +1858,46 @@
             };
         }
 
-        let appliedCoupon = null;
-        const couponModal = new bootstrap.Modal(document.getElementById('couponModal'));
+       const couponModal = new bootstrap.Modal(document.getElementById('couponModal'));
 
-        // Event listeners for coupon
-        document.getElementById('select-coupon-btn').addEventListener('click', loadCoupons);
-        document.getElementById('apply-coupon-code-btn').addEventListener('click', applyCouponCode);
-        document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
+        // Event listeners for coupon buttons
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('button');
+            if (!target) return;
+            
+            // Handle select-coupon-btn click
+            if (target.id === 'select-coupon-btn') {
+                e.preventDefault();
+                e.stopPropagation();
+                loadCoupons();
+                return;
+            }
+            
+            // Handle remove-coupon-btn-alt click
+            if (target.id === 'remove-coupon-btn-alt') {
+                e.preventDefault();
+                e.stopPropagation();
+                removeCoupon();
+                return;
+            }
+            
+            // Handle apply-coupon-code-btn click
+            if (target.id === 'apply-coupon-code-btn') {
+                e.preventDefault();
+                e.stopPropagation();
+                applyCouponCode();
+                return;
+            }
+            
+            // Handle remove-coupon-btn click
+            if (target.id === 'remove-coupon-btn') {
+                e.preventDefault();
+                e.stopPropagation();
+                removeCoupon();
+                return;
+            }
+        });
+
 
         // Coupon filter tabs
         document.querySelectorAll('#coupon-tabs .nav-link').forEach(tab => {
@@ -1831,6 +1912,7 @@
         let allCoupons = []; 
 
         async function loadCoupons() {
+            console.log('🎯 loadCoupons() function called!');
             try {
                 const subtotal = cart.totalAmount || 0;
                 const response = await fetch(`/cart/coupons?orderAmount=${subtotal}`);
@@ -1946,9 +2028,17 @@
 
         function showCouponConfirmation(coupon) {
             pendingCoupon = coupon;
+
+            // Wait for the first modal to finish hiding before showing the next
+            const modalElement = document.getElementById('couponModal');
+            modalElement.addEventListener('hidden.bs.modal', function handler() {
+                couponConfirmModal.show();
+                modalElement.removeEventListener('hidden.bs.modal', handler);
+            });
+
             couponModal.hide();
-            couponConfirmModal.show();
         }
+
 
         document.getElementById('confirm-coupon-btn').addEventListener('click', function() {
             if (pendingCoupon) {
@@ -1972,11 +2062,13 @@
             document.getElementById('discount-row').style.display = 'flex';
             document.getElementById('discount-amount').textContent = `-₹${coupon.discountValue}`;
             
-            // Update total
+            // Update total and check COD eligibility
             updateOrderTotal();
+            checkCODEligibility();
         }
 
         function removeCoupon() {
+            console.log('🗑️ removeCoupon() function called!');
             appliedCoupon = null;
             document.getElementById('coupon-code-input').value = '';
             document.getElementById('applied-coupon-display').style.display = 'none';
@@ -1986,9 +2078,10 @@
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-ticket-alt me-1"></i>View Available Coupons';
                 btn.id = 'select-coupon-btn';
+                // No need to re-attach listener, event delegation handles it
             }
-            
             updateOrderTotal();
+            checkCODEligibility();
         }
 
         function updateOrderTotal() {
@@ -1998,6 +2091,68 @@
             const total = subtotal + fee - discount;
             
             totalAmount.textContent = `₹${total}`;
+        }
+
+        function checkCODEligibility() {
+            const subtotal = cart.totalAmount || 0;
+            const fee = subtotal < 300 ? 50 : 0;
+            const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
+            const total = subtotal + fee - discount;
+            
+            // DEBUG LOGS
+            console.log('=== COD ELIGIBILITY CHECK ===');
+            console.log('Subtotal:', subtotal);
+            console.log('Delivery Fee:', fee);
+            console.log('Applied Coupon:', appliedCoupon);
+            console.log('Discount:', discount);
+            console.log('Final Total:', total);
+            console.log('COD_MAX_AMOUNT:', COD_MAX_AMOUNT);
+            console.log('Is COD Allowed?:', total <= COD_MAX_AMOUNT);
+            console.log('==============================');
+            
+            // Check if COD should be disabled/enabled based on final total (including coupon discount)
+            const codAllowed = total <= COD_MAX_AMOUNT;
+            const codOption = document.querySelector('[data-payment="cod"]');
+            const codRadio = document.querySelector('input[value="cod"]');
+            const codWarning = codOption.querySelector('.mt-2');
+            
+            // Store previous state to detect changes
+            const wasCODAllowed = !codOption.classList.contains('disabled');
+            
+            console.log('Was COD Allowed Before?:', wasCODAllowed);
+            console.log('COD Allowed Now?:', codAllowed);
+            
+            if (codAllowed) {
+                codOption.classList.remove('disabled');
+                codRadio.disabled = false;
+                if (codWarning) {
+                    codWarning.innerHTML = '';
+                }
+                
+                // Only show toast if COD wasn't available before and became available now
+                if (!wasCODAllowed && appliedCoupon) {
+                    console.log('✅ Showing success toast - COD now available');
+                    showToast('Cash on Delivery is now available!', 'success');
+                }
+            } else {
+                codOption.classList.add('disabled');
+                codRadio.disabled = true;
+                if (codWarning) {
+                    codWarning.innerHTML = `<small class="text-danger">Not available for orders above ₹${COD_MAX_AMOUNT}</small>`;
+                }
+                
+                // If COD was selected, deselect it
+                if (selectedPayment === 'cod') {
+                    console.log('⚠️ Showing warning toast - COD was selected but now not available');
+                    selectedPayment = null;
+                    codRadio.checked = false;
+                    document.querySelectorAll('.payment-option').forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    updatePlaceOrderButton();
+                    showToast(`Cash on Delivery is not available for orders above ₹${COD_MAX_AMOUNT}. Please select another payment method.`, 'warning');
+                }
+            }
         }
 
         const paymentRetryModal = new bootstrap.Modal(document.getElementById('paymentRetryModal'));
@@ -2028,7 +2183,7 @@
                 const subtotal = cart.totalAmount || 0;
                 const fee = subtotal < 300 ? 50 : 0;
                 const discount = appliedCoupon ? appliedCoupon.discountValue : 0;
-                const totalAmount = subtotal + fee - discount;
+                const totalAmount = Math.round(subtotal + fee - discount); // Ensure it's an integer
                 
                 // For COD or Wallet, directly retry
                 if (selectedPayment === 'cod' || selectedPayment === 'wallet') {

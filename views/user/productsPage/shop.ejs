@@ -617,12 +617,12 @@
                                 <div class="stars">${stars}</div>
                                 <span class="rating-text">(${(product.averageRating || 0).toFixed(1)})</span>
                             </div>
-                            ${product.activeVariant.regularPrice > product.activeVariant.salesPrice ?
-                                `<div class="discount-badge">${Math.round(((product.activeVariant.regularPrice - product.activeVariant.salesPrice) / product.activeVariant.regularPrice) * 100)}% off</div>` : ''}
+                            ${product.activeVariant.effectiveDiscount > 0 ?
+                                `<div class="discount-badge">${Math.round(product.activeVariant.effectiveDiscount)}% off</div>` : ''}
                             <div class="product-price">
                                 <div>
-                                    <span class="price-current">₹${(product.activeVariant.salesPrice || 0).toLocaleString()}</span>
-                                    ${product.activeVariant.regularPrice > product.activeVariant.salesPrice ?
+                                    <span class="price-current">₹${(product.activeVariant.effectivePrice || product.activeVariant.regularPrice || 0).toLocaleString()}</span>
+                                    ${(product.activeVariant.effectiveDiscount > 0) ?
                                         `<span class="price-original">₹${product.activeVariant.regularPrice.toLocaleString()}</span>` : ''}
                                 </div>
                             </div>

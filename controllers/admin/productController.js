@@ -2,6 +2,7 @@ const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
 const Brand = require('../../models/brandSchema');
 const {deleteImage} = require('../../utils/cloudinary');
+const {calculateEffectiveDiscount, calculateDiscountedPrice} = require('../../utils/discountValue');
 const mongoose = require('mongoose');
 
 const loadProductListPage = async (req, res) => {
@@ -52,7 +53,7 @@ const loadProductListPage = async (req, res) => {
             ]);
         } else {
             //all products
-            products = await Product.find(searchFilter).sort({createdAt: -1}).skip(skip).limit(limit).populate('brand', 'name').populate('category', 'name').lean();
+            products = await Product.find(searchFilter).sort({createdAt: -1}).skip(skip).limit(limit).populate('brand', 'name').populate('category').lean();
         }
 
         //count total for pagination
@@ -69,6 +70,24 @@ const loadProductListPage = async (req, res) => {
 
         const formattedProducts = products.map((product, index) => {
             const activeVariant = product.variants.find(v => v.isListed) || product.variants[0];
+            
+            //get discount info only from the discountValue.js utils function
+            const discountInfo = calculateEffectiveDiscount(
+                activeVariant.discountValue || 0,
+                activeVariant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
+            //calculate actual sales price based on effective discount from category/product discount%, this function also from the discountValue.js utils function
+            const calculatedSalesPrice = calculateDiscountedPrice(
+                activeVariant.regularPrice,
+                activeVariant.discountValue || 0,
+                activeVariant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
 
             return {
                 _id: product._id,
@@ -77,7 +96,7 @@ const loadProductListPage = async (req, res) => {
                 brand: product.brand.name,
                 category: product.category.name,
                 regularPrice: activeVariant.regularPrice,
-                salesPrice: activeVariant.salesPrice,
+                salesPrice: calculatedSalesPrice,
                 stock: activeVariant.stock,
                 offerStatus: activeVariant.offerStatus || false,
                 discountStatus: activeVariant.discountStatus || false,
@@ -89,7 +108,11 @@ const loadProductListPage = async (req, res) => {
                 images: activeVariant.images,
                 attributes: activeVariant.attributes,
                 variantCount: product.variants.length,
-                serialNo: skip + index + 1
+                serialNo: skip + index + 1,
+                productDiscount: discountInfo.productDiscount,//this four discountInfos get from, the discountValue utils function return value
+                categoryDiscount: discountInfo.categoryDiscount,
+                effectiveDiscount: discountInfo.effectiveDiscount,
+                appliedDiscountType: discountInfo.appliedDiscountType
             }
         });
 
@@ -209,7 +232,8 @@ const addProduct = async (req, res) => {
                 ingredients.push(...attributes.ingredients.split(/[,;+&]/).map(ingredient => ingredient.trim()).filter(ingredient => ingredient.length > 0));
             }
 
-            const discount = parseFloat(variant.regularPrice) * parseFloat(categoryExists.Discounts) / 100;
+            const discountValue = parseFloat(variant.discountValue) || 0;
+            const discount = parseFloat(variant.regularPrice) * discountValue / 100;
             const discountPrice = parseFloat(variant.regularPrice) - discount;
 
             //build processed variant
@@ -224,14 +248,14 @@ const addProduct = async (req, res) => {
                 prescriptionRequired: variant.prescriptionRequired === 'true',
                 isListed: variant.isListed === 'true',
                 discountStatus: variant.discountStatus === 'true',
-                offerStatus: variant.offerStatus === 'true',
+                discountValue: discountValue,
                 attributes: attributes,
                 ingredients: ingredients, 
                 images: variantImages
             };
 
-            if (processedVariant.discountStatus && processedVariant.offerStatus) {
-                return res.status(400).json({success: false, message: `Variant ${i + 1}: Cannot have both discount and offer status active`});
+            if (processedVariant.discountStatus && processedVariant.discountValue < 0 && processedVariant.discountValue > 80) {
+                return res.status(400).json({success: false, message: `Variant ${i + 1}: Discount value must be between 0 and 80`});
             }
             if (processedVariant.salesPrice && parseFloat(processedVariant.salesPrice) > parseFloat(processedVariant.regularPrice)) {
                 return res.status(400).json({success: false, message: `Variant ${i + 1}: Sales price must be less than or equal to regular price`});
@@ -354,37 +378,55 @@ const editProduct = async (req, res) => {
 
             //keeping existing images and adding new images if provided
             const existingImages = variant.existingImages || [];
+            const removedImageIndices = {}; //for track which indices had images removed per variant
             if (existingImages.length > 0) {
                 const existingVariant = existingProduct.variants[i] || {};
                 if (existingVariant.images && Array.isArray(existingVariant.images)) {
-                    //keep only images that are still in existingImages array
-                    existingVariant.images.forEach(image => {
-                        const imageUrl = image.url || image.secure_url;
-                        if (existingImages.includes(imageUrl)) {
-                            const imageIndex = existingImages.indexOf(imageUrl);
-                            const altText = variant.imageAltText && variant.imageAltText[imageIndex] ? variant.imageAltText[imageIndex] : `${name} - Variant ${i + 1}`;
-                            
-                            variantImages.push({
-                                public_id: image.public_id,
-                                url: imageUrl,
-                                altText: altText
-                            });
-                        } else {
-                            //excluded image was removed, mark for deletion
-                            if (image.public_id) {
-                                removedImages.push(image.public_id);
-                            }
+                //initialize tracking for this variant
+                if (!removedImageIndices[i]) {
+                    removedImageIndices[i] = [];
+                }
+
+                //keep only images that are still in existingImages array
+                existingVariant.images.forEach((image, imageIndex) => {
+                    const imageUrl = image.url || image.secure_url;
+                    if (existingImages.includes(imageUrl)) {
+                        const imageIndex = existingImages.indexOf(imageUrl);
+                        const altText = variant.imageAltText && variant.imageAltText[imageIndex] ? variant.imageAltText[imageIndex] : `${name} - Variant ${i + 1}`;
+                        
+                        variantImages.push({
+                            public_id: image.public_id,
+                            url: imageUrl,
+                            altText: altText
+                        });
+                    } else {
+                        //track the original index of removed image
+                        removedImageIndices[i].push(imageIndex);
+                        if (image.public_id) {
+                            removedImages.push(image.public_id);
                         }
-                    });
+                    }
+                });
+                //sort removed indices for proper replacement
+                removedImageIndices[i].sort((a, b) => a - b);
                 }
             }
-            //new images 
-            imageFiles.forEach(file => {
-                variantImages.push({
+            //new images, replace at removed indices first, then append
+            imageFiles.forEach((file, fileIndex) => {
+                const newImage = {
                     public_id: file.filename, 
                     url: file.path, 
                     altText: `${name} - Variant ${i + 1}`
-                });
+                };
+                
+                //if there are removed indices available, insert at that position
+                if (removedImageIndices[i] && removedImageIndices[i].length > 0 && fileIndex < removedImageIndices[i].length) {
+                    const insertIndex = removedImageIndices[i][fileIndex];
+                    variantImages.splice(insertIndex, 0, newImage);
+                } else {
+                    //otherwise append to end
+                    variantImages.push(newImage);
+                }
             });
             //process attributes
             const attributes = {};
@@ -401,7 +443,8 @@ const editProduct = async (req, res) => {
                 ingredients.push(...attributes.ingredients.split(/[,;+&]/).map(ingredient => ingredient.trim()).filter(ingredient => ingredient.length > 0));
             }
 
-            const discount = parseFloat(variant.regularPrice) * parseFloat(categoryExists.Discounts) / 100;
+            const discountValue = parseFloat(variant.discountValue) || 0;
+            const discount = parseFloat(variant.regularPrice) * discountValue / 100;
             const discountPrice = parseFloat(variant.regularPrice) - discount;
 
             //build processed variant
@@ -417,14 +460,14 @@ const editProduct = async (req, res) => {
                 prescriptionRequired: variant.prescriptionRequired === 'true',
                 isListed: variant.isListed === 'true',
                 discountStatus: variant.discountStatus === 'true',
-                offerStatus: variant.offerStatus === 'true',
+                discountValue: discountValue,
                 attributes: attributes,
                 ingredients: ingredients, 
                 images: variantImages 
             };
             
-            if (processedVariant.discountStatus && processedVariant.offerStatus) {
-                return res.status(400).json({success: false, message: `Variant ${i + 1}: Cannot have both discount and offer status active`});
+            if (processedVariant.discountStatus && processedVariant.discountValue < 0 && processedVariant.discountValue > 80) {
+                return res.status(400).json({success: false, message: `Variant ${i + 1}: Discount value must be between 0 and 80`});
             }
             if (processedVariant.salesPrice && parseFloat(processedVariant.salesPrice) > parseFloat(processedVariant.regularPrice)) {
                 return res.status(400).json({success: false, message: `Variant ${i + 1}: Sales price must be less than or equal to regular price`});

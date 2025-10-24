@@ -207,15 +207,11 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="discountPercentage" class="form-label">Discounts in %</label>
-                                    <select class="form-select" id="discountPercentage" name="discountPercentage" required>
-                                        <option value="0" selected>0%</option>
-                                        <option value="5">5%</option>
-                                        <option value="8">8%</option>
-                                        <option value="10">10%</option>
-                                        <option value="12">12%</option>
-                                        <option value="15">15%</option>
-                                        <option value="20">20%</option>
-                                    </select>
+                                    <input type="number" class="form-control" id="discountPercentage" name="discountPercentage" 
+                                        min="0" max="80" value="0" required>
+                                    <div class="invalid-feedback" id="discountError" style="display: none;">
+                                        Discount must be between 0 and 80
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -480,6 +476,27 @@
                 }
             });
 
+            // Discount validation
+            discountPercentage.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const errorDiv = document.getElementById('discountError');
+                
+                if (this.value === '' || value < 0 || value > 80) {
+                    this.classList.add('is-invalid');
+                    errorDiv.style.display = 'block';
+                    if (this.value === '') {
+                        errorDiv.textContent = 'Discount is required';
+                    } else if (value < 0) {
+                        errorDiv.textContent = 'Discount cannot be less than 0';
+                    } else if (value > 80) {
+                        errorDiv.textContent = 'Discount cannot be greater than 80';
+                    }
+                } else {
+                    this.classList.remove('is-invalid');
+                    errorDiv.style.display = 'none';
+                }
+            });
+
             // Modal event listeners
             document.getElementById('categoryModal').addEventListener('hidden.bs.modal', () => {
                 resetForm();
@@ -612,6 +629,8 @@
                 resetForm();
                 visibilityStatus.value = "active";
                 discountPercentage.value = "0";
+                document.getElementById("discountError").style.display = "none";
+                discountPercentage.classList.remove('is-invalid');
                 categoryModal.show();
             }
 
@@ -683,6 +702,7 @@
             function validateForm() {
                 let isValid = true;
                 const requiredFields = [categoryName, visibilityStatus, discountPercentage];
+                
                 requiredFields.forEach(field => {
                     if (!field.value.trim()) {
                         field.classList.add('is-invalid');
@@ -691,6 +711,15 @@
                         field.classList.remove('is-invalid');
                     }
                 });
+                
+                // Additional validation for discount
+                const discountValue = parseFloat(discountPercentage.value);
+                if (discountValue < 0 || discountValue > 80) {
+                    discountPercentage.classList.add('is-invalid');
+                    document.getElementById('discountError').style.display = 'block';
+                    isValid = false;
+                }
+                
                 return isValid;
             }
 

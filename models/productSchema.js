@@ -41,9 +41,11 @@ const variantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  offerStatus: {
-    type: Boolean,
-    default: false
+  discountValue: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 80
   },
   uom: {//ex: one strip of tablet have 10 units
     type: Number,

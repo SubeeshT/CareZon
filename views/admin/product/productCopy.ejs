@@ -104,7 +104,6 @@
                                 <th style="width: 150px;">Brand</th>
                                 <th style="width: 100px;">MRP</th>
                                 <th style="width: 100px;">S Price</th>
-                                <th style="width: 120px;">Discount%</th>
                                 <th style="width: 80px;">Stock</th>
                                 <th style="width: 100px;">Actions</th>
                             </tr>
@@ -112,7 +111,7 @@
                         <tbody>
                             <% if (products.length === 0) { %>
                                 <tr>
-                                    <td colspan="9" class="text-center">No Products found, Please Add Products</td>
+                                    <td colspan="8" class="text-center">No Products found, Please Add Products</td>
                                 </tr>
                             <% } else { %>
                                 <% products.forEach(pro => { %>
@@ -123,21 +122,6 @@
                                         <td class="font-weight-semibold"><%= pro.brand %></td>
                                         <td class="text-light-red">₹<%= pro.regularPrice %></td>
                                         <td class="text-light-green">₹<%= pro.salesPrice %></td>
-                                        <td>
-                                            <div class="discount-info">
-                                                <span class="discount-percentage <%= pro.effectiveDiscount > 0 ? 'text-success' : 'text-muted' %>">
-                                                    <%= pro.effectiveDiscount %>%
-                                                </span>
-                                                <% if (pro.productDiscount > 0 || pro.categoryDiscount > 0) { %>
-                                                    <small class="d-block text-muted" style="font-size: 0.75rem;">
-                                                        P: <%= pro.productDiscount %>% | C: <%= pro.categoryDiscount %>%
-                                                    </small>
-                                                <% } %>
-                                                <span class="badge <%= pro.effectiveDiscount > 0 ? 'bg-success' : 'bg-secondary' %>" style="font-size: 0.65rem;">
-                                                    <%= pro.effectiveDiscount > 0 ? 'Active' : 'Inactive' %>
-                                                </span>
-                                            </div>
-                                        </td>
                                         <td class="<%= pro.stock < 10 ? 'text-danger' : 'text-success' %>"><%= pro.stock %></td>
                                         <td>
                                             <div class="action-dropdown">
@@ -783,104 +767,80 @@
                             <span class="variants-count">${product.variants.length} Variants</span>
                         </div>
                         <div class="variants-container">
-                            ${product.variants.map((variant, index) => {
-                                // Calculate discount info for this variant
-                                const variantDiscountInfo = {
-                                    productDiscount: (variant.discountStatus ? (variant.discountValue || 0) : 0),
-                                    categoryDiscount: (product.category.DiscountStatus ? (product.category.Discounts || 0) : 0),
-                                    effectiveDiscount: Math.max(
-                                        (variant.discountStatus ? (variant.discountValue || 0) : 0),
-                                        (product.category.DiscountStatus ? (product.category.Discounts || 0) : 0)
-                                    )
-                                };
-                                variant.productDiscount = variantDiscountInfo.productDiscount;
-                                variant.categoryDiscount = variantDiscountInfo.categoryDiscount;
-                                variant.effectiveDiscount = variantDiscountInfo.effectiveDiscount;
-                                
-                                return `
-                                    <div class="variant-card">
-                                        <div class="variant-header">
-                                            <div class="variant-name">${product.name} - Variant ${index + 1}</div>
-                                            <div class="variant-status ${variant.isListed ? 'active' : 'inactive'}">${variant.isListed ? 'ACTIVE' : 'INACTIVE'}</div>
-                                        </div>
-                                        <div class="variant-details">
-                                            ${variant.images?.length ? `
-                                                <div class="variant-images mb-3">
-                                                    <div class="variant-images-label">Images:</div>
-                                                    <div class="variant-images-grid">
-                                                        ${variant.images.slice(0, 4).map((img, index) => {
-                                                            const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
-                                                            const globalIndex = lightboxImages.findIndex(i => (typeof i === 'string' ? i : (i.url || i.secure_url || i)) === imageUrl);
-                                                            return `<img src="${imageUrl}" alt="Variant Image" onclick="openLightbox(${globalIndex >= 0 ? globalIndex : lightboxImages.length})" class="variant-thumbnail" onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">`;
-                                                        }).join('')}
-                                                        ${variant.images.length > 4 ? `<div class="more-images">+${variant.images.length - 4} more</div>` : ''}
-                                                    </div>
-                                                </div>
-                                            ` : ''}
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">MRP:</span>
-                                                <span class="variant-detail-value price-highlight text-light-red">₹${variant.regularPrice}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Sales Price:</span>
-                                                <span class="variant-detail-value price-highlight text-light-green">₹${Math.round(variant.regularPrice - (variant.regularPrice * variant.effectiveDiscount / 100))}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Stock:</span>
-                                                <span class="variant-detail-value stock-highlight ${variant.stock < 10 ? 'text-danger' : 'text-success'}">${variant.stock} : ${variant.stock > 0 ? 'Available' : 'Out of Stock'}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">UOM:</span>
-                                                <span class="variant-detail-value">${variant.uom || 'N/A'}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Expiry Date:</span>
-                                                <span class="variant-detail-value">${variant.expiryDate ? new Date(variant.expiryDate).toLocaleDateString() : 'N/A'}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Manufacturing Date:</span>
-                                                <span class="variant-detail-value">${variant.manufacturingDate ? new Date(variant.manufacturingDate).toLocaleDateString() : 'N/A'}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Prescription Required:</span>
-                                                <span class="variant-detail-value ${variant.prescriptionRequired ? 'text-danger' : 'text-success'}">${variant.prescriptionRequired ? "Yes" : "No Need"}</span>
-                                            </div>
-                                            <div class="variant-detail-item">
-                                                <span class="variant-detail-label">Discount:</span>
-                                                <div class="variant-detail-value">
-                                                    <div class="discount-info">
-                                                        <span class="discount-percentage ${variant.effectiveDiscount > 0 ? 'text-success' : 'text-muted'}">
-                                                            ${variant.effectiveDiscount}%
-                                                        </span>
-                                                        ${(variant.productDiscount > 0 || variant.categoryDiscount > 0) ? `
-                                                            <small class="d-block text-muted" style="font-size: 0.75rem;">
-                                                                P: ${variant.productDiscount}% | C: ${variant.categoryDiscount}%
-                                                            </small>
-                                                        ` : ''}
-                                                        <span class="badge ${variant.effectiveDiscount > 0 ? 'bg-success' : 'bg-secondary'}" style="font-size: 0.65rem;">
-                                                            ${variant.effectiveDiscount > 0 ? 'Active' : 'Inactive'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            ${variant.attributes && Object.keys(variant.attributes).length ? `
-                                                <div class="variant-detail-item full-width">
-                                                    <span class="variant-detail-label">Attributes:</span>
-                                                    <div class="variant-detail-value">
-                                                        <div class="attributes-grid">
-                                                            ${Object.entries(variant.attributes).map(([key, value]) => `
-                                                                <div class="attribute-item">
-                                                                    <span class="attribute-key">${key}:</span>
-                                                                    <span class="attribute-value">${value}</span>
-                                                                </div>
-                                                            `).join('')}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ` : ''}
-                                        </div>
+                            ${product.variants.map((variant, index) => `
+                                <div class="variant-card">
+                                    <div class="variant-header">
+                                        <div class="variant-name">${product.name} - Variant ${index + 1}</div>
+                                        <div class="variant-status ${variant.isListed ? 'active' : 'inactive'}">${variant.isListed ? 'ACTIVE' : 'INACTIVE'}</div>
                                     </div>
-                            `}).join('')}
+                                    <div class="variant-details">
+                                        ${variant.images?.length ? `
+                                            <div class="variant-images mb-3">
+                                                <div class="variant-images-label">Images:</div>
+                                                <div class="variant-images-grid">
+                                                    ${variant.images.slice(0, 4).map((img, index) => {
+                                                        const imageUrl = typeof img === 'string' ? img : (img.url || img.secure_url || img);
+                                                        const globalIndex = lightboxImages.findIndex(i => (typeof i === 'string' ? i : (i.url || i.secure_url || i)) === imageUrl);
+                                                        return `<img src="${imageUrl}" alt="Variant Image" onclick="openLightbox(${globalIndex >= 0 ? globalIndex : lightboxImages.length})" class="variant-thumbnail" onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">`;
+                                                    }).join('')}
+                                                    ${variant.images.length > 4 ? `<div class="more-images">+${variant.images.length - 4} more</div>` : ''}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">MRP:</span>
+                                            <span class="variant-detail-value price-highlight text-light-red">₹${variant.regularPrice}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Sales Price:</span>
+                                            <span class="variant-detail-value price-highlight text-light-green">₹${variant.salesPrice}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Stock:</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.stock < 10 ? 'text-danger' : 'text-success'}">${variant.stock} : ${variant.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">UOM:</span>
+                                            <span class="variant-detail-value">${variant.uom || 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Expiry Date:</span>
+                                            <span class="variant-detail-value">${variant.expiryDate ? new Date(variant.expiryDate).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Manufacturing Date:</span>
+                                            <span class="variant-detail-value">${variant.manufacturingDate ? new Date(variant.manufacturingDate).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Prescription Required:</span>
+                                            <span class="variant-detail-value ${variant.prescriptionRequired ? 'text-danger' : 'text-success'}">${variant.prescriptionRequired ? "Yes" : "No Need"}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Discount:</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.discountStatus ? 'text-success' : 'text-danger'}">${variant.discountStatus ? 'Active' : 'Inactive'}</span>
+                                        </div>
+                                        <div class="variant-detail-item">
+                                            <span class="variant-detail-label">Offer:</span>
+                                            <span class="variant-detail-value stock-highlight ${variant.offerStatus ? 'text-success' : 'text-danger'}">${variant.offerStatus ? 'Active' : 'Inactive'}</span>
+                                        </div>
+                                        ${variant.attributes && Object.keys(variant.attributes).length ? `
+                                            <div class="variant-detail-item full-width">
+                                                <span class="variant-detail-label">Attributes:</span>
+                                                <div class="variant-detail-value">
+                                                    <div class="attributes-grid">
+                                                        ${Object.entries(variant.attributes).map(([key, value]) => `
+                                                            <div class="attribute-item">
+                                                                <span class="attribute-key">${key}:</span>
+                                                                <span class="attribute-value">${value}</span>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 ` : '';
@@ -1027,7 +987,7 @@
             const tbody = document.querySelector('#productsTable tbody');
             
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center">No Products found, Please Add Products</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No Products found, Please Add Products</td></tr>';
                 return;
             }
             
@@ -1046,21 +1006,6 @@
                         <td class="font-weight-semibold">${pro.brand}</td>
                         <td class="text-light-red">₹${pro.regularPrice}</td>
                         <td class="text-light-green">₹${pro.salesPrice}</td>
-                        <td>
-                            <div class="discount-info">
-                                <span class="discount-percentage ${pro.effectiveDiscount > 0 ? 'text-success' : 'text-muted'}">
-                                    ${pro.effectiveDiscount}%
-                                </span>
-                                ${(pro.productDiscount > 0 || pro.categoryDiscount > 0) ? `
-                                    <small class="d-block text-muted" style="font-size: 0.75rem;">
-                                        P: ${pro.productDiscount}% | C: ${pro.categoryDiscount}%
-                                    </small>
-                                ` : ''}
-                                <span class="badge ${pro.effectiveDiscount > 0 ? 'bg-success' : 'bg-secondary'}" style="font-size: 0.65rem;">
-                                    ${pro.effectiveDiscount > 0 ? 'Active' : 'Inactive'}
-                                </span>
-                            </div>
-                        </td>
                         <td class="${pro.stock < 10 ? 'text-danger' : 'text-success'}">${pro.stock}</td>
                         <td>
                             <div class="action-dropdown">

@@ -5,16 +5,20 @@ const Order = require('../../models/orderSchema');
 const Wallet = require('../../models/walletSchema');
 const Coupon = require('../../models/couponSchema');
 const { getVariantLabel } = require('../../utils/variantAttribute');
+const { calculateDiscountedPrice } = require('../../utils/discountValue');
 const razorpayInstance = require('../../config/razorpay');
 const crypto = require('crypto');
 const { default: mongoose } = require('mongoose');
 
 
+
+const COD_MAX_AMOUNT = 5000;
+
 const loadCheckout = async (req,res) => {
     try {
         const addresses = await Address.find({userId: req.session.userId}).sort({createdAt: -1});
         
-        const cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed'}]});
+        const cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed Discounts DiscountStatus'}]});
 
         if(!cart || cart.items.length === 0){
             return res.redirect('/cart');
@@ -65,18 +69,46 @@ const loadCheckout = async (req,res) => {
             return res.redirect('/cart?error=no-valid-items');
         }
 
-        //variant labels for display
+        //variant labels for display and recalculate prices with proper discounts , using the utils function
         if (cart && cart.items) {
+            
             cart.items.forEach(item => {
                 const product = item.productId;
                 const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
                 if (variant && product.category) {
                     item.variantLabel = getVariantLabel(variant, product.category.name);
+                    
+                    //recalculate the correct sales price based on greater discount from the utils function
+                    const correctSalesPrice = calculateDiscountedPrice(
+                        variant.regularPrice,
+                        variant.discountValue || 0,
+                        variant.discountStatus || false,
+                        product.category.Discounts || 0,
+                        product.category.DiscountStatus || false
+                    );
+                   
+                    item.subtotal = correctSalesPrice * item.quantity;
+                    
+                    item.effectiveSalesPrice = correctSalesPrice;
                 }
             });
+            
+            cart.totalAmount = cart.items.reduce((total, item) => total + item.subtotal, 0);
         }
 
-        return res.status(200).render('cart/checkout', {addresses: addresses || [], cart: cart, success: true});
+        //calculate if COD is allowed - initially without coupon and COD eligibility will be dynamically checked when coupon is applied/removed in frontend
+        const subtotal = cart.totalAmount || 0;
+        const deliveryFee = subtotal < 300 ? 50 : 0;
+        const totalWithDelivery = subtotal + deliveryFee;
+        const initialCODAllowed = totalWithDelivery <= COD_MAX_AMOUNT;
+
+        return res.status(200).render('cart/checkout', {
+            addresses: addresses || [], 
+            cart: cart, 
+            success: true,
+            isCODAllowed: initialCODAllowed,
+            COD_MAX_AMOUNT: COD_MAX_AMOUNT
+        });
 
     } catch (error) {
         console.error("error loading checkout page:", error);
@@ -181,9 +213,10 @@ const applyCoupon = async (req, res) => {
 const createRazorpayOrder = async (req, res) => {
     try {
         const {amount} = req.body;
-        
+        const amountInPaise = Math.round(parseFloat(amount) * 100); //round the amount and convert to paise
+
         const options = {
-            amount: amount * 100, //convert to paise
+            amount: amountInPaise,                    
             currency: "INR",
             receipt: `receipt_${Date.now()}`,
             payment_capture: 1
@@ -239,7 +272,7 @@ const placeOrder = async (req, res) => {
             return res.status(404).json({success: false,message: 'address not found'});
         }
         
-        const cart = await Cart.findOne({ userId }).populate({path: 'items.productId', populate: [{ path: 'brand', select: 'name' }, { path: 'category', select: 'name' }]}).session(session); 
+        const cart = await Cart.findOne({ userId }).populate({path: 'items.productId', populate: [{ path: 'brand', select: 'name' }, { path: 'category', select: '_id name isListed Discounts DiscountStatus' }]}).session(session); 
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({success: false, message: 'cart is empty'});
         }
@@ -259,22 +292,31 @@ const placeOrder = async (req, res) => {
             
             const product = cartItem.productId;
             const variant = product.variants.find(v => v._id.toString() === orderedItem.variantId.toString());
-            
+
             if (!variant) {
                 return res.status(404).json({success: false, message: `variant not found: ${orderedItem.variantId}`});
             }
-            
+
             if (variant.stock < orderedItem.quantity) {
                 return res.status(400).json({success: false, message: `insufficient stock for ${product.name}. Available: ${variant.stock}, Requested: ${orderedItem.quantity}`});
             }
-            
+
+            //calculate correct discount price with utils function
+            const correctPrice = calculateDiscountedPrice(
+                variant.regularPrice,
+                variant.discountValue || 0,
+                variant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
             //prepare order item
             const orderItem = {
                 productId: product._id,
                 variantId: variant._id,
                 quantity: orderedItem.quantity,
-                unitPrice: variant.salesPrice,
-                totalPrice: variant.salesPrice * orderedItem.quantity,
+                unitPrice: correctPrice,
+                totalPrice: correctPrice * orderedItem.quantity,
                 productSnapshot: {
                     name: product.name,
                     brand: product.brand.name,
@@ -328,8 +370,9 @@ const placeOrder = async (req, res) => {
         const deliveryFee = subtotal < 300 ? 50 : 0;
         const totalAmount = subtotal + deliveryFee - discountAmount; 
 
-        if(paymentMethod === 'cod' && totalAmount > 10000){
-            return res.status(400).json({success: false, message: "order total amount should be less than 10000"});
+        //validate COD eligibility - check if total after all discounts and delivery fee exceeds limit
+        if(paymentMethod === 'cod' && totalAmount > COD_MAX_AMOUNT){
+            return res.status(400).json({success: false, message: `Cash on Delivery is not available for orders above ₹${COD_MAX_AMOUNT}. Please choose another payment method.`});
         }
 
         //for online payments, verify payment status
@@ -502,7 +545,7 @@ const placeFailedPaymentOrder = async (req, res) => {
             return res.status(404).json({success: false, message: 'address not found'});
         }
 
-        const cart = await Cart.findOne({ userId }).populate({path: 'items.productId',  populate: [{ path: 'brand', select: 'name' }, { path: 'category', select: 'name' }]}); 
+        const cart = await Cart.findOne({ userId }).populate({path: 'items.productId',  populate: [{ path: 'brand', select: 'name' }, { path: 'category', select: '_id name isListed Discounts DiscountStatus' }]}); 
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({success: false, message: 'Cart is empty'});
         }
@@ -520,15 +563,23 @@ const placeFailedPaymentOrder = async (req, res) => {
             
             const product = cartItem.productId;
             const variant = product.variants.find(v => v._id.toString() === orderedItem.variantId.toString());
-            
+
             if (!variant) continue;
-            
+
+            const correctPrice = calculateDiscountedPrice(//calculate discount price with utils function
+                variant.regularPrice,
+                variant.discountValue || 0,
+                variant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
             const orderItem = {
                 productId: product._id,
                 variantId: variant._id,
                 quantity: orderedItem.quantity,
-                unitPrice: variant.salesPrice,
-                totalPrice: variant.salesPrice * orderedItem.quantity,
+                unitPrice: correctPrice,
+                totalPrice: correctPrice * orderedItem.quantity,
                 productSnapshot: {
                     name: product.name,
                     brand: product.brand.name,

@@ -2,7 +2,8 @@ const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema')
 const Prescription = require('../../models/prescriptionSchema');
-const { getVariantLabel } = require('../../utils/variantAttribute');
+const {getVariantLabel} = require('../../utils/variantAttribute');
+const {calculateEffectiveDiscount, calculateDiscountedPrice} = require('../../utils/discountValue');
 const { default: mongoose } = require('mongoose');
 
 
@@ -10,7 +11,7 @@ const maxQuantityPerProduct = 10;
 
 const loadCart = async (req,res) => {
     try {  
-        let cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed'}]});
+        let cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed Discounts DiscountStatus'}]});
         if(!cart){ //If no cart exists, create an empty one
             cart = new Cart({
                 userId: req.session.userId,
@@ -43,7 +44,22 @@ const loadCart = async (req,res) => {
                 stockIssue = true;
             }
 
-            const subtotal = variant.salesPrice * item.quantity;
+            const correctSalesPrice = calculateDiscountedPrice(//utils function for get actual sales price comparing with greater discount % value
+                variant.regularPrice,
+                variant.discountValue || 0,
+                variant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
+            const discountInfo = calculateEffectiveDiscount(//utils function for get greater discount % value
+                variant.discountValue || 0,
+                variant.discountStatus || false,
+                product.category.Discounts || 0,
+                product.category.DiscountStatus || false
+            );
+
+            const subtotal = Math.round(correctSalesPrice * item.quantity);
 
             validItems.push({
                 productId: item.productId,
@@ -51,7 +67,9 @@ const loadCart = async (req,res) => {
                 quantity: item.quantity,
                 subtotal: item.quantity > 0 ? subtotal : 0,
                 stockIssue: stockIssue,
-                availableStock: variant.stock
+                availableStock: variant.stock,
+                correctSalesPrice: correctSalesPrice,
+                effectiveDiscountPercent: discountInfo.effectiveDiscount
             });
 
             if(item.quantity > 0) {
@@ -61,12 +79,14 @@ const loadCart = async (req,res) => {
         //update cart if there were any changes
         if(cartUpdated){
             cart.items = validItems;
-            cart.totalAmount = totalAmount;
+            const deliveryFee = totalAmount > 0 && totalAmount < 300 ? 50 : 0;
+            cart.totalAmount = totalAmount + deliveryFee;
+            cart.deliveryFee = deliveryFee;
             await cart.save();
         }
 
         //re populate for display
-        cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed'}]});
+        cart = await Cart.findOne({userId: req.session.userId}).populate({path: 'items.productId', populate: [{path: 'brand', select: '_id name isListed'}, {path: 'category', select: '_id name isListed Discounts DiscountStatus'}]});
 
         //variant labels to cart items for display (find from utils folder) = attributes
         if (cart && cart.items) {
@@ -75,8 +95,48 @@ const loadCart = async (req,res) => {
                 const variant = product.variants.find(v => v._id.toString() === item.variantId.toString());
                 if (variant && product.category) {
                     item.variantLabel = getVariantLabel(variant, product.category.name);
+                    
+                    //correct pricing with effective discount
+                    const correctSalesPrice = calculateDiscountedPrice(
+                        variant.regularPrice,
+                        variant.discountValue || 0,
+                        variant.discountStatus || false,
+                        product.category.Discounts || 0,
+                        product.category.DiscountStatus || false
+                    );
+
+                    const discountInfo = calculateEffectiveDiscount(
+                        variant.discountValue || 0,
+                        variant.discountStatus || false,
+                        product.category.Discounts || 0,
+                        product.category.DiscountStatus || false
+                    );
+
+                    item.correctSalesPrice = correctSalesPrice;
+                    item.effectiveDiscountPercent = discountInfo.effectiveDiscount;
+                    item.subtotal = Math.round(correctSalesPrice * item.quantity);
                 }
             });
+        }
+
+        //calculate final totals for display
+        let finalTotalAmount = 0;
+        let finalDeliveryFee = 0;
+
+        if (cart && cart.items && cart.items.length > 0) {
+            let subtotalBeforeDelivery = 0;
+            
+            cart.items.forEach(item => {
+                if (item.quantity > 0) {
+                    subtotalBeforeDelivery += item.subtotal;
+                }
+            });
+            
+            finalDeliveryFee = subtotalBeforeDelivery > 0 && subtotalBeforeDelivery < 300 ? 50 : 0;
+            finalTotalAmount = subtotalBeforeDelivery + finalDeliveryFee;
+            
+            cart.deliveryFee = finalDeliveryFee;
+            cart.totalAmount = finalTotalAmount;
         }
 
         return res.status(200).render('cart/cartManagement', {success: true, cart, maxQuantity: maxQuantityPerProduct});
@@ -289,21 +349,110 @@ const updateCartQuantity = async (req,res) => {
                 cart.totalAmount = cart.items.reduce((total, item) => total + item.subtotal, 0);
                 await cart.save();
 
+                const cartItemsCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+
+                let totalRegularPrice = 0;
+                let totalSalesPrice = 0;
+
+                for (const cartItem of cart.items) {
+                    if (cartItem.quantity > 0) {
+                        const prod = await Product.findById(cartItem.productId).populate('category', 'Discounts DiscountStatus');
+                        if (prod) {
+                            const variant = prod.variants.find(v => v._id.toString() === cartItem.variantId.toString());
+                            if (variant) {
+                                const correctSalesPrice = calculateDiscountedPrice(
+                                    variant.regularPrice,
+                                    variant.discountValue || 0,
+                                    variant.discountStatus || false,
+                                    prod.category.Discounts || 0,
+                                    prod.category.DiscountStatus || false
+                                );
+                                
+                                totalRegularPrice += Math.round(variant.regularPrice * cartItem.quantity);
+                                totalSalesPrice += Math.round(correctSalesPrice * cartItem.quantity);
+                            }
+                        }
+                    }
+                }
+
+                const totalDiscount = Math.round(totalRegularPrice - totalSalesPrice);
+                const deliveryFee = totalSalesPrice > 0 && totalSalesPrice < 300 ? 50 : 0;
+                const finalTotal = Math.round(totalSalesPrice + deliveryFee);
+
                 return res.status(200).json({ 
-                    success: true, message: 'Item quantity set to 0', quantity: 0, subtotal: 0, totalAmount: cart.totalAmount, cartItemsCount: cart.items.filter(item => item.quantity > 0).length
+                    success: true, 
+                    message: 'Item quantity set to 0', 
+                    quantity: 0, 
+                    subtotal: 0, 
+                    totalAmount: finalTotal, 
+                    cartItemsCount: cartItemsCount,
+                    totalRegularPrice: Math.round(totalRegularPrice),
+                    totalDiscount: Math.round(totalDiscount),
+                    deliveryFee: deliveryFee,
+                    subtotalBeforeDelivery: Math.round(totalSalesPrice)
                 });
             }
         }    
 
+        //calculate correct sales price using effective discount
+        const productWithCategory = await Product.findById(productId).populate('category', 'Discounts DiscountStatus');
+        const correctSalesPrice = calculateDiscountedPrice(
+            variant.regularPrice,
+            variant.discountValue || 0,
+            variant.discountStatus || false,
+            productWithCategory.category.Discounts || 0,
+            productWithCategory.category.DiscountStatus || false
+        );
+
         item.quantity = newQuantity;
-        item.subtotal = variant.salesPrice * newQuantity;
+        item.subtotal = Math.round(correctSalesPrice * newQuantity);
 
         cart.totalAmount = cart.items.reduce((total, item) => total + item.subtotal, 0);
+        cart.deliveryFee = cart.totalAmount < 300 ? 50 : 0;
 
         await cart.save();
 
+        const cartItemsCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+
+        let totalRegularPrice = 0;
+        let totalSalesPrice = 0;
+
+        for (const cartItem of cart.items) {
+            if (cartItem.quantity > 0) {
+                const prod = await Product.findById(cartItem.productId).populate('category', 'Discounts DiscountStatus');
+                if (prod) {
+                    const cartVariant = prod.variants.find(v => v._id.toString() === cartItem.variantId.toString());
+                    if (cartVariant) {
+                        const itemCorrectSalesPrice = calculateDiscountedPrice(
+                            cartVariant.regularPrice,
+                            cartVariant.discountValue || 0,
+                            cartVariant.discountStatus || false,
+                            prod.category.Discounts || 0,
+                            prod.category.DiscountStatus || false
+                        );
+                        
+                        totalRegularPrice += Math.round(cartVariant.regularPrice * cartItem.quantity);
+                        totalSalesPrice += Math.round(itemCorrectSalesPrice * cartItem.quantity);
+                    }
+                }
+            }
+        }
+
+        const totalDiscount = Math.round(totalRegularPrice - totalSalesPrice);
+        const deliveryFee = totalSalesPrice > 0 && totalSalesPrice < 300 ? 50 : 0;
+        const finalTotal = Math.round(totalSalesPrice + deliveryFee);
+
         return res.status(200).json({ 
-            success: true, message: 'Cart updated successfully', quantity: newQuantity, subtotal: item.subtotal, totalAmount: cart.totalAmount, cartItemsCount: cart.items.length
+            success: true, 
+            message: 'Cart quantity updated successfully', 
+            quantity: newQuantity, 
+            subtotal: Math.round(item.subtotal), 
+            totalAmount: finalTotal,
+            cartItemsCount: cartItemsCount,
+            totalRegularPrice: Math.round(totalRegularPrice),
+            totalDiscount: Math.round(totalDiscount),
+            deliveryFee: deliveryFee,
+            subtotalBeforeDelivery: Math.round(totalSalesPrice)
         });
 
     } catch (error) {

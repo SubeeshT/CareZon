@@ -714,7 +714,7 @@
                                                 <% if(item.variant.regularPrice > item.variant.salesPrice) { %>
                                                     <span class="original-price">₹<%= item.variant.regularPrice %></span>
                                                     <span class="discount-badge">
-                                                        <%= Math.round(((item.variant.regularPrice - item.variant.salesPrice) / item.variant.regularPrice) * 100) %>% off
+                                                        <%= item.variant.effectiveDiscountPercent %>% off
                                                     </span>
                                                 <% } %>
                                             </div>
@@ -1048,9 +1048,7 @@
             
             if (wishlists && wishlists.length > 0) {
                 container.innerHTML = wishlists.map(item => {
-                    const discount = item.variant.regularPrice > item.variant.salesPrice 
-                        ? Math.round(((item.variant.regularPrice - item.variant.salesPrice) / item.variant.regularPrice) * 100) 
-                        : 0;
+                    const discount = item.variant.effectiveDiscountPercent || 0;
                     
                     return `
                         <div class="wishlist-item" data-variant-id="${item.variantId}">

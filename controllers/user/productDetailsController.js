@@ -5,6 +5,7 @@ const Review = require('../../models/reviewSchema');
 const Prescription = require('../../models/prescriptionSchema');
 const { uploadImage } = require('../../utils/cloudinary');
 const { getCategoryDistinguishingAttributes, getVariantLabel } = require('../../utils/variantAttribute');
+const { calculateDiscountedPrice, calculateEffectiveDiscount } = require('../../utils/discountValue');
 const fs = require('fs');
 const mongoose = require('mongoose');
 
@@ -16,7 +17,7 @@ const getProductDetails = async (req, res) => {
 
         if (!id || !mongoose.Types.ObjectId.isValid(id)) return res.redirect('/products/shop');
 
-        const product = await Product.findById(id).populate('brand', '_id name isListed').populate('category', '_id name isListed');
+        const product = await Product.findById(id).populate('brand', '_id name isListed').populate('category', '_id name isListed Discounts DiscountStatus');
         if (!product || !product.brand || !product.category || !product.brand.isListed || !product.category.isListed) {
             return res.redirect('/products/shop');
         }
@@ -53,7 +54,7 @@ const getProductDetails = async (req, res) => {
                     'variants.isListed': true
                 }
             ]
-        }).populate('brand', '_id name isListed').populate('category', '_id name isListed').limit(18);
+        }).populate('brand', '_id name isListed').populate('category', '_id name isListed Discounts DiscountStatus').limit(18);
 
         const relatedData = relatedProducts.map(product => {
             if (!product.brand || !product.category || !product.brand.isListed || !product.category.isListed) return null;
@@ -69,7 +70,19 @@ const getProductDetails = async (req, res) => {
                 description: product.description,
                 stock: activeVariant.stock,
                 regularPrice: activeVariant.regularPrice,
-                salesPrice: activeVariant.salesPrice,
+                salesPrice: calculateDiscountedPrice(
+                    activeVariant.regularPrice,
+                    activeVariant.discountValue,
+                    activeVariant.discountStatus,
+                    product.category.Discounts,
+                    product.category.DiscountStatus
+                ),
+                effectiveDiscountPercent: calculateEffectiveDiscount(
+                    activeVariant.discountValue,
+                    activeVariant.discountStatus,
+                    product.category.Discounts,
+                    product.category.DiscountStatus
+                ).effectiveDiscount,
                 manufacturingDate: activeVariant.manufacturingDate,
                 expiryDate: activeVariant.expiryDate,
                 prescriptionRequired: activeVariant.prescriptionRequired,
@@ -87,6 +100,24 @@ const getProductDetails = async (req, res) => {
         //get category Attributes
         const distinguishingAttrs = getCategoryDistinguishingAttributes(product.category.name);
 
+        const discountInfo = calculateEffectiveDiscount(//find sales price discount % value
+            selectedVariant.discountValue,
+            selectedVariant.discountStatus,
+            product.category.Discounts,
+            product.category.DiscountStatus
+        );
+
+        selectedVariant.salesPrice = calculateDiscountedPrice(//find sales price discount amount
+            selectedVariant.regularPrice,
+            selectedVariant.discountValue,
+            selectedVariant.discountStatus,
+            product.category.Discounts,
+            product.category.DiscountStatus
+        );
+
+        selectedVariant.effectiveDiscountPercent = discountInfo.effectiveDiscount;
+        selectedVariant.appliedDiscountType = discountInfo.appliedDiscountType;
+
         let prescriptionStatus = null;
         if (req.user && selectedVariant.prescriptionRequired) {
             prescriptionStatus = await Prescription.findOne({userId: req.user._id, productId: product._id, variantId: selectedVariant._id, }).sort({ createdAt: -1 });
@@ -99,6 +130,11 @@ const getProductDetails = async (req, res) => {
                 }
             }
         }
+        // Convert selectedVariant to plain object and add discount info
+        const selectedVariantObj = selectedVariant.toObject();
+        selectedVariantObj.salesPrice = selectedVariant.salesPrice;
+        selectedVariantObj.effectiveDiscountPercent = selectedVariant.effectiveDiscountPercent;
+        selectedVariantObj.appliedDiscountType = selectedVariant.appliedDiscountType;
 
         const responseData = {
             product: {
@@ -107,7 +143,7 @@ const getProductDetails = async (req, res) => {
                 description: product.description,
                 brand: product.brand,
                 category: product.category,
-                variant: selectedVariant,
+                variant: selectedVariantObj,
                 currentVariantIndex: actualVariantIndex,
                 distinguishingAttributes: distinguishingAttrs,
                 allVariants: product.variants.map((variant, originalIndex) => {
@@ -121,10 +157,29 @@ const getProductDetails = async (req, res) => {
                             variantObj.attributes = JSON.parse(JSON.stringify(variantObj.attributes));
                         }
                         
+                        //calculate correct sales price for this variant
+                        const variantSalesPrice = calculateDiscountedPrice(
+                            variant.regularPrice,
+                            variant.discountValue,
+                            variant.discountStatus,
+                            product.category.Discounts,
+                            product.category.DiscountStatus
+                        );
+                        
+                        const variantDiscountInfo = calculateEffectiveDiscount(
+                            variant.discountValue,
+                            variant.discountStatus,
+                            product.category.Discounts,
+                            product.category.DiscountStatus
+                        );
+                        
                         return {
                             ...variantObj,
+                            salesPrice: variantSalesPrice,
+                            effectiveDiscountPercent: variantDiscountInfo.effectiveDiscount,
+                            appliedDiscountType: variantDiscountInfo.appliedDiscountType,
                             variantIndex: originalIndex,
-                            variantLabel: getVariantLabel(variant, product.category.name) //variant label for selection
+                            variantLabel: getVariantLabel(variant, product.category.name)
                         };
                     }
                     return null;

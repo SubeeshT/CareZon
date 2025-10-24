@@ -13,7 +13,7 @@ const getCategories = async (req, res) => {
     const totalCategories = await Category.countDocuments(query);
     const categories = await Category.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit));
 
-    //If its an AJAX request, return JSON data
+    //if its an AJAX request, return JSON data
     if (req.xhr || req.headers.accept.indexOf('json') > -1) {
       return res.json({
         success: true,

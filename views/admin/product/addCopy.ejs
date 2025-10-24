@@ -148,12 +148,13 @@
                                             <div class="field-error" id="variantDiscountStatus1-error"></div>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="variantDiscountValue1" class="form-label">Discount Value (%)</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" id="variantDiscountValue1" name="variants[0][discountValue]" min="0" max="80" step="0.01" value="0">
-                                                <span class="input-group-text">%</span>
+                                            <label for="variantOfferStatus1" class="form-label">Offer Status</label>
+                                            <div class="status-toggle">
+                                                <input type="checkbox" id="variantOfferStatus1">
+                                                <input type="hidden" name="variants[0][offerStatus]" id="variantOfferStatusValue1" value="false">
+                                                <span>Inactive</span>                        
                                             </div>
-                                            <div class="field-error" id="variantDiscountValue1-error"></div>
+                                            <div class="field-error" id="variantOfferStatus1-error"></div>
                                         </div>
                                         <div class="col-12 mb-4">
                                             <div class="attribute-group">
@@ -246,7 +247,6 @@
             initializeCategoryChangeListener();
             initializeStatusToggles();
             setDateConstraints(); 
-            initializeDiscountValueValidation(1);
         }
 
         function setDateConstraints() {
@@ -348,8 +348,7 @@
                     { id: `variantQuantity${i}`, name: `Variant ${i} Quantity`, required: true, type: 'number', min: 0 },
                     { id: `variantRegularPrice${i}`, name: `Variant ${i} Price`, required: true, type: 'number', min: 0.01 },
                     { id: `variantManufacturingDate${i}`, name: `Variant ${i} Manufacturing Date`, required: true, type: 'date' },
-                    { id: `variantUom${i}`, name: `Variant ${i} UOM`, required: true },
-                    { id: `variantDiscountValue${i}`, name: `Variant ${i} Discount Value`, required: false, type: 'number', min: 0, max: 80 }
+                    { id: `variantUom${i}`, name: `Variant ${i} UOM`, required: true }
                 ];
                 
                 variantFields.forEach(field => {
@@ -585,6 +584,7 @@
                 const toggles = [
                     { id: `variantProductStatus${i}`, valueId: `variantProductStatusValue${i}`, default: true, active: 'Listed', inactive: 'Unlisted' },
                     { id: `variantDiscountStatus${i}`, valueId: `variantDiscountStatusValue${i}`, default: false, active: 'Active', inactive: 'Inactive' },
+                    { id: `variantOfferStatus${i}`, valueId: `variantOfferStatusValue${i}`, default: false, active: 'Active', inactive: 'Inactive' },
                     { id: `variantPrescriptionRequired${i}`, valueId: `variantPrescriptionRequiredValue${i}`, default: false, active: 'Active', inactive: 'Inactive' }
                 ];
                 
@@ -862,12 +862,13 @@
                         <div class="field-error" id="variantDiscountStatus${variantId}-error"></div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="variantDiscountValue${variantId}" class="form-label">Discount Value (%)</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" id="variantDiscountValue${variantId}" name="variants[${variantIndex}][discountValue]" min="0" max="80" step="0.01" value="0">
-                            <span class="input-group-text">%</span>
+                        <label for="variantOfferStatus${variantId}" class="form-label">Offer Status</label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="variantOfferStatus${variantId}">
+                            <input type="hidden" name="variants[${variantIndex}][offerStatus]" id="variantOfferStatusValue${variantId}" value="false">
+                            <span>Inactive</span>
                         </div>
-                        <div class="field-error" id="variantDiscountValue${variantId}-error"></div>
+                        <div class="field-error" id="variantOfferStatus${variantId}-error"></div>
                     </div>
                     <div class="col-12 mb-4">
                         <div class="attribute-group">
@@ -895,7 +896,6 @@
             `;
             document.querySelector('.variant-container').parentElement.appendChild(variantContainer);
             variantImageCounts[variantId] = 0;
-            initializeDiscountValueValidation(variantId);
         }
 
         function removeVariant(variantId) {
@@ -1126,9 +1126,11 @@
 
         function initializeStatusTogglesForVariant(variantId) {
             const discountToggle = document.getElementById(`variantDiscountStatus${variantId}`);
+            const offerToggle = document.getElementById(`variantOfferStatus${variantId}`);
             const productStatusToggle = document.getElementById(`variantProductStatus${variantId}`);
             const prescriptionToggle = document.getElementById(`variantPrescriptionRequired${variantId}`);
             const discountValue = document.getElementById(`variantDiscountStatusValue${variantId}`);
+            const offerValue = document.getElementById(`variantOfferStatusValue${variantId}`);
             const productStatusValue = document.getElementById(`variantProductStatusValue${variantId}`);
             const prescriptionValue = document.getElementById(`variantPrescriptionRequiredValue${variantId}`);
 
@@ -1136,16 +1138,31 @@
 
             statusToggles.forEach(toggle => {
                 toggle.addEventListener('change', () => {
-                    const statusLabel = toggle.nextElementSibling.nextElementSibling;
+                    const statusLabel = toggle.nextElementSibling.nextElementSibling; // Skip hidden input
                     if (toggle === productStatusToggle) {
                         productStatusValue.value = toggle.checked ? 'true' : 'false';
                         statusLabel.textContent = toggle.checked ? 'Listed' : 'Unlisted';
                     } else if (toggle === discountToggle) {
                         discountValue.value = toggle.checked ? 'true' : 'false';
                         statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
+                    } else if (toggle === offerToggle) {
+                        offerValue.value = toggle.checked ? 'true' : 'false';
+                        statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
                     } else if (toggle === prescriptionToggle) {
                         prescriptionValue.value = toggle.checked ? 'true' : 'false';
                         statusLabel.textContent = toggle.checked ? 'Active' : 'Inactive';
+                    }
+
+                    if (toggle === discountToggle && toggle.checked && offerToggle.checked) {
+                        offerToggle.checked = false;
+                        offerValue.value = 'false';
+                        offerToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.', 'warning');
+                    } else if (toggle === offerToggle && toggle.checked && discountToggle.checked) {
+                        discountToggle.checked = false;
+                        discountValue.value = 'false';
+                        discountToggle.nextElementSibling.nextElementSibling.textContent = 'Inactive';
+                        showToast('Discount Status and Offer Status cannot be selected at the same time.', 'warning');
                     }
                 });
             });
@@ -1154,60 +1171,6 @@
         function updateVariantImageCounter(variantId) {
             const imageCounter = document.getElementById(`variantImageCounter${variantId}`);
             imageCounter.textContent = `Images: ${variantImageCounts[variantId]}/6 (Minimum 3 required)`;
-        }
-        function initializeDiscountValueValidation(variantId) {
-            const discountInput = document.getElementById(`variantDiscountValue${variantId}`);
-            const errorDiv = document.getElementById(`variantDiscountValue${variantId}-error`);
-            
-            if (!discountInput || !errorDiv) return;
-            
-            discountInput.addEventListener('input', function() {
-                const value = parseFloat(this.value);
-                
-                // Clear previous error styling
-                discountInput.classList.remove('is-invalid', 'is-valid');
-                errorDiv.textContent = '';
-                errorDiv.classList.remove('show-error');
-                
-                // Validate the value
-                if (this.value === '') {
-                    // Empty is okay, will default to 0
-                    discountInput.classList.add('is-valid');
-                    return;
-                }
-                
-                if (isNaN(value)) {
-                    discountInput.classList.add('is-invalid');
-                    errorDiv.textContent = 'Please enter a valid number';
-                    errorDiv.classList.add('show-error');
-                    return;
-                }
-                
-                if (value < 0) {
-                    discountInput.classList.add('is-invalid');
-                    errorDiv.textContent = 'Discount value cannot be negative';
-                    errorDiv.classList.add('show-error');
-                    return;
-                }
-                
-                if (value > 80) {
-                    discountInput.classList.add('is-invalid');
-                    errorDiv.textContent = 'Discount value cannot exceed 80%';
-                    errorDiv.classList.add('show-error');
-                    return;
-                }
-                
-                // Valid value
-                discountInput.classList.add('is-valid');
-            });
-            
-            // Also validate on blur (when user leaves the field)
-            discountInput.addEventListener('blur', function() {
-                if (this.value === '') {
-                    this.value = '0'; // Set default value
-                    discountInput.classList.add('is-valid');
-                }
-            });
         }
     </script>
 </body>

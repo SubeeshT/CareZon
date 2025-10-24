@@ -226,7 +226,7 @@
         }
 
         .checkout-btn {
-            background-color: #87CEEB !important;
+            background-color: #1e9cce !important;
             border: none;
             color: white;
             font-weight: 600;
@@ -238,7 +238,7 @@
         }
 
         .checkout-btn:hover {
-            background-color: #5DADE2 !important;
+            background-color: #0068ad !important;
             transform: translateY(-1px);
         }
 
@@ -399,7 +399,7 @@
                             <div class="product-item d-flex <%= isDisabled ? 'disabled-item' : '' %>" 
                                  data-product-id="<%= product._id %>" 
                                  data-variant-id="<%= variant._id %>"
-                                 data-price="<%= variant.salesPrice %>"
+                                 data-price="<%= item.correctSalesPrice %>"
                                  data-regular-price="<%= variant.regularPrice %>"
                                  data-stock="<%= variant.stock %>">
                                 
@@ -454,7 +454,7 @@
                                         <div class="text-muted small text-decoration-line-through">₹<%= new Intl.NumberFormat('en-IN').format(regularPriceTotal) %></div>
                                     <% } %>
                                     <div class="product-price">₹<span class="item-total"><%= new Intl.NumberFormat('en-IN').format(item.subtotal) %></span></div>
-                                    <div class="text-muted small">per item: ₹<%= new Intl.NumberFormat('en-IN').format(variant.salesPrice) %></div>
+                                    <div class="text-muted small">per item: ₹<%= new Intl.NumberFormat('en-IN').format(item.correctSalesPrice) %></div>
                                     <% if (hasDiscount) { %>
                                         <div class="text-success small">You save ₹<%= new Intl.NumberFormat('en-IN').format(regularPriceTotal - item.subtotal) %></div>
                                     <% } %>
@@ -505,7 +505,7 @@
                                 // Only calculate totals for items with quantity > 0 (in stock)
                                 if (item.quantity > 0) {
                                     const regularPriceTotal = variant.regularPrice * item.quantity;
-                                    const salesPriceTotal = variant.salesPrice * item.quantity;
+                                    const salesPriceTotal = item.correctSalesPrice * item.quantity;
                                     
                                     totalRegularPrice += regularPriceTotal;
                                     subtotal += salesPriceTotal;
@@ -515,7 +515,8 @@
                             totalDiscount = totalRegularPrice - subtotal;
                         }
                         
-                        const total = subtotal;
+                        const deliveryFee = subtotal > 0 && subtotal < 300 ? 50 : 0;
+                        const total = subtotal + deliveryFee;
                     %>
                     
                     <div class="summary-row">
@@ -533,8 +534,14 @@
                     
                     
                     <div class="summary-row">
-                        <span>Shipping <i class="fas fa-info-circle text-muted"></i></span>
-                        <span class="text-success"><i class="fas fa-check"></i> Free</span>
+                        <span>Shipping <i class="fas fa-info-circle text-muted" title="Free shipping on orders above ₹300"></i></span>
+                        <span id="shipping-fee" class="<%= subtotal >= 300 || subtotal === 0 ? 'text-success' : '' %>">
+                            <% if (subtotal >= 300 || subtotal === 0) { %>
+                                <i class="fas fa-check"></i> Free
+                            <% } else { %>
+                                ₹50
+                            <% } %>
+                        </span>
                     </div>
                     
                     <div class="summary-row total">
@@ -669,7 +676,7 @@
                     const buttons = itemElement.querySelectorAll('.quantity-btn');
                     buttons.forEach(btn => btn.disabled = true);
                     
-                    updateCartSummary(result.totalAmount, result.cartItemsCount);
+                    updateCartSummary(result.totalAmount, result.cartItemsCount, result);
                     showToast('Item quantity set to 0 due to stock unavailability', 'warning');
                 } else {                                       
                         const itemElement = document.querySelector(`[data-product-id="${productId}"][data-variant-id="${variantId}"]`);
@@ -688,8 +695,8 @@
                         incrementBtn.disabled = result.quantity >= maxQuantity || result.quantity >= stock;
 
                         // Update cart summary
-                        updateCartSummary(result.totalAmount, result.cartItemsCount);
-                        showToast('Cart updated successfully', 'success');
+                        updateCartSummary(result.totalAmount, result.cartItemsCount, result);
+                        showToast('Cart quantity updated successfully', 'success');
                     }
                 } else {
                     showToast(result.message || 'Failed to update quantity', 'danger');
@@ -736,7 +743,41 @@
             }
         }
 
-        function updateCartSummary(totalAmount, itemCount) {
+        function updateCartSummary(totalAmount, itemCount, result) {
+            if (result) {
+            // Use backend calculated values
+            const totalDiscount = result.totalDiscount || 0;
+            const totalRegularPrice = result.totalRegularPrice || 0;
+            const deliveryFee = result.deliveryFee || 0;
+            const subtotalBeforeDelivery = result.subtotalBeforeDelivery || 0;
+            
+            if (document.getElementById('regular-price')) {
+                document.getElementById('regular-price').textContent = formatCurrency(totalRegularPrice);
+            }
+            if (document.getElementById('discount')) {
+                document.getElementById('discount').textContent = formatCurrency(totalDiscount);
+            }
+            if (document.getElementById('total-savings')) {
+                document.getElementById('total-savings').textContent = formatCurrency(totalDiscount);
+            }
+            
+            // Update shipping fee display
+            const shippingFeeElement = document.getElementById('shipping-fee');
+            if (subtotalBeforeDelivery >= 300 || subtotalBeforeDelivery === 0) {
+                shippingFeeElement.innerHTML = '<i class="fas fa-check"></i> Free';
+                shippingFeeElement.className = 'text-success';
+            } else {
+                shippingFeeElement.innerHTML = '₹50';
+                shippingFeeElement.className = '';
+            }
+            
+            document.getElementById('total').textContent = formatCurrency(result.totalAmount);
+            document.getElementById('item-count').textContent = result.cartItemsCount;
+            document.getElementById('item-count-breadcrumb').textContent = `${result.cartItemsCount} Items`;
+            
+            document.getElementById('checkout-btn').disabled = result.cartItemsCount === 0;
+            return;
+        }
             // Calculate new totals
             let subtotal = 0;
             let totalRegularPrice = 0;
@@ -758,7 +799,18 @@
             });
 
             const totalDiscount = totalRegularPrice - subtotal;
-            const total = subtotal;
+            const deliveryFee = subtotal > 0 && subtotal < 300 ? 50 : 0;
+            const total = subtotal + deliveryFee;
+
+            // Update shipping fee display
+            const shippingFeeElement = document.getElementById('shipping-fee');
+            if (deliveryFee > 0) {
+                shippingFeeElement.innerHTML = '₹50';
+                shippingFeeElement.className = '';
+            } else {
+                shippingFeeElement.innerHTML = '<i class="fas fa-check"></i> Free';
+                shippingFeeElement.className = 'text-success';
+            }
 
             document.getElementById('item-count').textContent = itemCount;
             document.getElementById('item-count-breadcrumb').textContent = `${itemCount} Items`;
