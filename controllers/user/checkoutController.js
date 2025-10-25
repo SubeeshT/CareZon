@@ -534,7 +534,7 @@ const placeOrder = async (req, res) => {
     }
 }
 
-//similar to placeOrder but, don't update stock, don't clear cart, set orderStatus as 'pending', set paymentStatus as 'failed'
+//similar to placeOrder but, don't update stock, don't clear cart, set orderStatus as 'pending', set paymentStatus as 'failed', coupon discount only apply, usage count is not change
 const placeFailedPaymentOrder = async (req, res) => {
     try {
         const {addressId, paymentMethod, orderedItems, couponId, paymentFailureReason} = req.body;
@@ -665,28 +665,33 @@ const retryPayment = async (req, res) => {
     try {
         await session.startTransaction();
         
-        const {orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature} = req.body;
+        const {orderId, paymentMethod, razorpay_order_id, razorpay_payment_id, razorpay_signature} = req.body;
         const userId = req.session.userId;
         
         //find the pending order
-        const order = await Order.findOne({ 
-            orderId, 
-            userId, 
-            orderStatus: 'pending',
-            paymentStatus: 'failed'
-        }).session(session);
+        const order = await Order.findOne({orderId, userId, orderStatus: 'pending', paymentStatus: 'failed'}).session(session);
         
         if (!order) {
             return res.status(404).json({success: false, message: 'order not found or already processed'});
         }
         
-        //verify payment for online payments
+        //update payment method if changed
+        if (paymentMethod) {
+            order.paymentMethod = paymentMethod;
+        }
+        
+        //validate COD eligibility
+        if (order.paymentMethod === 'cod' && order.totalAmount > COD_MAX_AMOUNT) {
+            return res.status(400).json({success: false, message: `Cash on Delivery is not available for orders above ₹${COD_MAX_AMOUNT}. Please choose another payment method.`});
+        }
+        
+        //verify payment for online payments (upi, card, netbanking)
         if (order.paymentMethod !== 'cod' && order.paymentMethod !== 'wallet') {
             if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
                 return res.status(400).json({success: false, message: 'payment verification details missing'});
             }
             
-            //verifying signature
+            //verify signature
             const sign = razorpay_order_id + "|" + razorpay_payment_id;
             const expectedSign = crypto
                 .createHmac("sha256", process.env.RAZORPAYX_KEY_SECRET)
@@ -697,7 +702,7 @@ const retryPayment = async (req, res) => {
                 return res.status(400).json({success: false, message: 'payment verification failed'});
             }
             
-            //updating payment details
+            //update payment details
             order.paymentDetails = {
                 razorpay_order_id,
                 razorpay_payment_id,
@@ -726,7 +731,7 @@ const retryPayment = async (req, res) => {
                             paymentMethod: 'wallet',
                             amount: order.totalAmount,
                             orderId: order._id,
-                            description: `Payment for order ${order.orderId}`,
+                            description: `Retry payment for order ${order.orderId}`,
                             date: new Date()
                         }
                     }
@@ -735,7 +740,7 @@ const retryPayment = async (req, res) => {
             );
         }
         
-        //check stock availability
+        //check stock availability for all items
         const stockUpdates = [];
         for (const item of order.items) {
             const product = await Product.findById(item.productId).session(session);
@@ -749,7 +754,7 @@ const retryPayment = async (req, res) => {
             }
             
             if (variant.stock < item.quantity) {
-                return res.status(400).json({ success: false, message: `Insufficient stock for ${product.name}. Available: ${variant.stock}, Required: ${item.quantity}`});
+                return res.status(400).json({success: false, message: `Insufficient stock for ${product.name}. Available: ${variant.stock}, Required: ${item.quantity}`});
             }
             
             stockUpdates.push({
@@ -768,11 +773,11 @@ const retryPayment = async (req, res) => {
             );
         }
         
-        //update coupon usage if coupon was applied iin the failed order
+        //update coupon usage if coupon was applied
         if (order.couponApplied && order.couponApplied.couponId) {
             const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
             
-            if (coupon) {
+            if (coupon && coupon.status === 'active') {
                 const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
                 
                 if (userUsageIndex >= 0) {
@@ -785,12 +790,13 @@ const retryPayment = async (req, res) => {
             }
         }
         
-        //clear cart items
+        //clear cart items that were in this order
         const cart = await Cart.findOne({userId}).session(session);
         if (cart) {
             cart.items = cart.items.filter(cartItem => {
                 const isOrdered = order.items.some(orderItem => 
-                    cartItem.productId.toString() === orderItem.productId.toString() && cartItem.variantId.toString() === orderItem.variantId.toString()
+                    cartItem.productId.toString() === orderItem.productId.toString() && 
+                    cartItem.variantId.toString() === orderItem.variantId.toString()
                 );
                 return !isOrdered;
             });
@@ -801,10 +807,10 @@ const retryPayment = async (req, res) => {
         
         //update order status
         order.orderStatus = 'confirmed';
-        order.paymentStatus = 'completed';
+        order.paymentStatus = order.paymentMethod === 'cod' ? 'pending' : 'completed';
         order.confirmedAt = new Date();
         order.estimatedDelivery = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
-        order.paymentFailureReason = undefined; 
+        order.paymentFailureReason = undefined;
         
         await order.save({session});
         

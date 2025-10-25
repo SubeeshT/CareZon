@@ -100,8 +100,385 @@
             color: white;
         }
 
-       
+       .btn-retry {
+            background: #28a745;
+            color: white;
+        }
 
+        .btn-retry:hover {
+            background: #218838;
+            color: white;
+        }
+        /* Retry Payment Modal Styles */
+        .retry-payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .retry-payment-card {
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .retry-payment-card:hover {
+            border-color: #6c63ff;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.1);
+        }
+
+        .retry-radio-input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .retry-radio-input:checked + .retry-payment-label {
+            border-color: #6c63ff;
+            background-color: #f8f7ff;
+        }
+
+        .retry-radio-input:checked + .retry-payment-label .retry-radio-circle {
+            border-color: #6c63ff;
+        }
+
+        .retry-radio-input:checked + .retry-payment-label .retry-radio-circle::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .retry-payment-label {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .retry-payment-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .retry-payment-icon i {
+            font-size: 18px;
+            color: white;
+        }
+
+        .retry-payment-info {
+            flex: 1;
+        }
+
+        .retry-payment-info h6 {
+            margin: 0 0 3px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .retry-payment-info p {
+            margin: 0 0 6px 0;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .retry-payment-logos {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .retry-payment-logos .badge {
+            font-size: 10px;
+            padding: 3px 6px;
+            font-weight: 500;
+        }
+
+        .retry-payment-text span {
+            font-size: 12px;
+        }
+
+        .bg-purple {
+            background-color: #9b59b6 !important;
+        }
+
+        .retry-radio-circle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .retry-radio-circle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 12px;
+            height: 12px;
+            background: #6c63ff;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        #retryPaymentModal .alert {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        #retryPaymentModal .modal-header h5 {
+            font-size: 16px;
+        }
+
+        #retryPaymentModal .modal-body {
+            padding: 20px;
+        }
+
+        #retryPaymentModal .modal-footer {
+            padding: 12px 20px;
+        }
+
+        #retryPaymentModal .modal-footer .btn {
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        /* Order Success Full Screen Styles */
+        .order-success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            z-index: 1020;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .order-success-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .success-content-wrapper {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .success-animation {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: successPulse 0.6s ease-out;
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.3);
+        }
+
+        .success-animation i {
+            font-size: 60px;
+            color: white;
+            animation: successCheck 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes successPulse {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes successCheck {
+            0% {
+                transform: scale(0) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+
+        .order-success-overlay h2 {
+            font-weight: 700;
+            font-size: 32px;
+            color: #28a745;
+        }
+
+        .order-success-overlay p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #6c757d;
+        }
+
+        .order-success-info {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .order-success-info p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .order-success-info strong {
+            color: #2c3e50;
+        }
+
+        .order-success-info span {
+            color: #6c63ff;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .order-success-overlay .btn {
+            font-size: 16px;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .order-success-overlay .btn-primary {
+            background: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        .order-success-overlay .btn-primary:hover {
+            background: #5a52d4;
+            border-color: #5a52d4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .order-success-overlay .btn-outline-primary {
+            color: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        .order-success-overlay .btn-outline-primary:hover {
+            background: #6c63ff;
+            border-color: #6c63ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .order-success-container {
+                padding: 30px 15px;
+            }
+            
+            .success-animation {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .success-animation i {
+                font-size: 50px;
+            }
+            
+            .order-success-overlay h2 {
+                font-size: 26px;
+            }
+            
+            .order-success-overlay p {
+                font-size: 14px;
+            }
+            
+            .order-success-info {
+                padding: 15px 20px;
+            }
+            
+            .order-success-info span {
+                font-size: 16px;
+            }
+            
+            .order-success-overlay .btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .success-animation {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .success-animation i {
+                font-size: 40px;
+            }
+            
+            .order-success-overlay h2 {
+                font-size: 22px;
+            }
+            
+            .d-flex.gap-3 {
+                flex-direction: column;
+                gap: 12px !important;
+            }
+            
+            .order-success-overlay .btn {
+                width: 100%;
+            }
+        }
       
 
         .order-content {
@@ -605,6 +982,13 @@
                                 <i class="fas fa-download"></i>
                                 Download Complete Invoice
                             </button>
+
+                            <% if (order.orderStatus === 'pending' && order.paymentStatus === 'failed') { %>
+                                <button class="btn btn-invoice btn-retry" onclick="showRetryPaymentModal('<%= order.orderId %>', <%= order.totalAmount %>)" style="background: #28a745;">
+                                    <i class="fas fa-redo"></i>
+                                    Retry Payment
+                                </button>
+                            <% } %>
                            
                         </div>
                         <small class="text-muted d-block mt-2">
@@ -1051,12 +1435,159 @@
         </div>
     </div>
 
+    <!-- Retry Payment Modal -->
+    <div class="modal fade" id="retryPaymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-credit-card"></i> PAYMENT METHOD</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Order Amount:</strong> ₹<span id="retryOrderAmount"></span>
+                    </div>
+                    <form id="retryPaymentForm">
+                        <input type="hidden" id="retryOrderId" value="">
+                        <div class="retry-payment-methods">
+                            <!-- Card Payment -->
+                            <div class="retry-payment-card">
+                                <input type="radio" name="retryPaymentMethod" id="retryCard" value="card" class="retry-radio-input">
+                                <label for="retryCard" class="retry-payment-label">
+                                    <div class="retry-payment-icon">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="retry-payment-info">
+                                        <h6>Card Payment</h6>
+                                        <p>Credit/Debit Card</p>
+                                        <div class="retry-payment-logos">
+                                            <span class="badge bg-primary">VISA</span>
+                                            <span class="badge bg-danger">MC</span>
+                                            <span class="badge bg-info">AMEX</span>
+                                        </div>
+                                    </div>
+                                    <div class="retry-radio-circle"></div>
+                                </label>
+                            </div>
+
+                            <!-- UPI Payment -->
+                            <div class="retry-payment-card">
+                                <input type="radio" name="retryPaymentMethod" id="retryUPI" value="upi" class="retry-radio-input">
+                                <label for="retryUPI" class="retry-payment-label">
+                                    <div class="retry-payment-icon">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                    <div class="retry-payment-info">
+                                        <h6>UPI Payment</h6>
+                                        <p>Pay using UPI</p>
+                                        <div class="retry-payment-logos">
+                                            <span class="badge bg-success">GPay</span>
+                                            <span class="badge bg-purple">PhonePe</span>
+                                            <span class="badge bg-warning text-dark">Paytm</span>
+                                        </div>
+                                    </div>
+                                    <div class="retry-radio-circle"></div>
+                                </label>
+                            </div>
+
+                            <!-- Net Banking -->
+                            <div class="retry-payment-card">
+                                <input type="radio" name="retryPaymentMethod" id="retryNetbanking" value="netbanking" class="retry-radio-input">
+                                <label for="retryNetbanking" class="retry-payment-label">
+                                    <div class="retry-payment-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <div class="retry-payment-info">
+                                        <h6>Net Banking</h6>
+                                        <p>Online Banking</p>
+                                        <div class="retry-payment-text">
+                                            <span class="text-success">All major banks supported</span>
+                                        </div>
+                                    </div>
+                                    <div class="retry-radio-circle"></div>
+                                </label>
+                            </div>
+
+                            <!-- Wallet -->
+                            <div class="retry-payment-card">
+                                <input type="radio" name="retryPaymentMethod" id="retryWallet" value="wallet" class="retry-radio-input">
+                                <label for="retryWallet" class="retry-payment-label">
+                                    <div class="retry-payment-icon">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                    <div class="retry-payment-info">
+                                        <h6>Wallet</h6>
+                                        <p>Pay from wallet balance</p>
+                                        <div class="retry-payment-text">
+                                            <span class="text-primary fw-bold">Balance: ₹<span id="retryWalletBalance">0</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="retry-radio-circle"></div>
+                                </label>
+                            </div>
+
+                            <!-- Cash on Delivery -->
+                            <div class="retry-payment-card" id="retryCODOption">
+                                <input type="radio" name="retryPaymentMethod" id="retryCOD" value="cod" class="retry-radio-input">
+                                <label for="retryCOD" class="retry-payment-label">
+                                    <div class="retry-payment-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="retry-payment-info">
+                                        <h6>Cash on Delivery</h6>
+                                        <p>Pay when delivered</p>
+                                        <div class="retry-payment-text">
+                                            <span class="text-danger">Not available for orders above ₹5000</span>
+                                        </div>
+                                    </div>
+                                    <div class="retry-radio-circle"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="processRetryPayment()">
+                        <i class="fas fa-check"></i> Proceed to Pay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Full Screen -->
+    <div id="orderSuccessOverlay" class="order-success-overlay" style="display: none;">
+        <div class="order-success-container">
+            <div class="success-content-wrapper">
+                <div class="success-animation mb-4">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="text-success mb-3">Order Placed Successfully!</h2>
+                <p class="text-muted mb-4">Thank you for your purchase. Your order has been confirmed and will be delivered to your address soon.</p>
+                <div class="order-success-info mb-4">
+                    <p class="mb-2"><strong>Order ID:</strong> <span id="successOrderId"></span></p>
+                </div>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <button class="btn btn-primary btn-lg px-4" id="viewOrderDetailsBtn">
+                        <i class="fas fa-eye me-2"></i>View Order Details
+                    </button>
+                    <a href="/products/shop" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <%- include('../../views/partials/user/footer.ejs') %>
     
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         let currentItemId = '';
         let selectedRating = 0;
@@ -1804,6 +2335,214 @@
                     }
                 }
             }
+        }
+
+        // Retry Payment Functions
+        let retryOrderId = '';
+        let retryOrderAmount = 0;
+
+        async function showRetryPaymentModal(orderId, totalAmount) {
+            retryOrderId = orderId;
+            retryOrderAmount = totalAmount;
+            
+            document.getElementById('retryOrderId').value = orderId;
+            document.getElementById('retryOrderAmount').textContent = totalAmount.toLocaleString();
+            
+            // Fetch wallet balance
+            try {
+                const response = await fetch('/account/wallet/balance');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('retryWalletBalance').textContent = data.balance.toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error fetching wallet balance:', error);
+            }
+            
+            // Check if COD is allowed
+            const codOption = document.getElementById('retryCODOption');
+            if (totalAmount > 5000) {
+                codOption.style.display = 'none';
+            } else {
+                codOption.style.display = 'block';
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('retryPaymentModal'));
+            modal.show();
+        }
+
+        async function processRetryPayment() {
+            const selectedMethod = document.querySelector('input[name="retryPaymentMethod"]:checked');
+            
+            if (!selectedMethod) {
+                showToast('Please select a payment method', 'warning');
+                return;
+            }
+            
+            const paymentMethod = selectedMethod.value;
+            
+            // Check wallet balance if wallet is selected
+            if (paymentMethod === 'wallet') {
+                const walletBalance = parseFloat(document.getElementById('retryWalletBalance').textContent.replace(/,/g, ''));
+                if (walletBalance < retryOrderAmount) {
+                    showToast('Insufficient wallet balance. Please choose another payment method.', 'error');
+                    return;
+                }
+            }
+            
+            // Check COD limit
+            if (paymentMethod === 'cod' && retryOrderAmount > 5000) {
+                showToast('Cash on Delivery is not available for orders above ₹5000', 'error');
+                return;
+            }
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('retryPaymentModal')).hide();
+            
+            // Process payment based on method
+            if (paymentMethod === 'wallet' || paymentMethod === 'cod') {
+                // Direct retry for wallet and COD
+                await retryPaymentDirect(retryOrderId, paymentMethod);
+            } else {
+                // Create Razorpay order for online payments (card, upi, netbanking)
+                await initiateRazorpayRetry(retryOrderId, retryOrderAmount, paymentMethod);
+            }
+        }
+
+        async function retryPaymentDirect(orderId, paymentMethod) {
+            try {
+                const response = await fetch('/order/retry-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        paymentMethod: paymentMethod
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Payment successful! Order confirmed.', 'success');
+                    // Show success modal instead of reload
+                    showOrderSuccessModal(data.orderId);
+                } else {
+                    showToast(data.message || 'Payment failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error processing retry payment:', error);
+                showToast('Error processing payment. Please try again.', 'error');
+            }
+        }
+
+        async function initiateRazorpayRetry(orderId, amount, paymentMethod) {
+            try {
+                // Create Razorpay order
+                const orderResponse = await fetch('/order/create-razorpay-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount: amount })
+                });
+                
+                const orderData = await orderResponse.json();
+                
+                if (!orderData.success) {
+                    showToast('Error creating payment order', 'error');
+                    return;
+                }
+                
+                // Initialize Razorpay with preferred method
+                const options = {
+                    key: orderData.key_id,
+                    amount: orderData.order.amount,
+                    currency: orderData.order.currency,
+                    name: 'CareZon',
+                    description: `Retry Payment for Order #${orderId}`,
+                    order_id: orderData.order.id,
+                    handler: async function (response) {
+                        // Payment successful, verify and update order
+                        await verifyRetryPayment(orderId, response, paymentMethod);
+                    },
+                    prefill: {
+                        name: '<%= order.shippingAddress.fullName %>',
+                        contact: '<%= order.shippingAddress.phoneOne %>'
+                    },
+                    theme: {
+                        color: '#6c63ff'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            showToast('Payment cancelled', 'warning');
+                        }
+                    }
+                };
+                
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+                
+            } catch (error) {
+                console.error('Error initiating Razorpay:', error);
+                showToast('Error initiating payment. Please try again.', 'error');
+            }
+        }
+
+        async function verifyRetryPayment(orderId, razorpayResponse, paymentMethod) {
+            try {
+                const response = await fetch('/order/retry-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        paymentMethod: paymentMethod,
+                        razorpay_order_id: razorpayResponse.razorpay_order_id,
+                        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                        razorpay_signature: razorpayResponse.razorpay_signature
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Payment successful! Order confirmed.', 'success');
+                    // Show success modal instead of reload
+                    showOrderSuccessModal(data.orderId);
+                } else {
+                    showToast(data.message || 'Payment verification failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying payment:', error);
+                showToast('Error verifying payment. Please contact support.', 'error');
+            }
+        }
+
+        // Order Success Full Screen Functions
+        function showOrderSuccessModal(orderId) {
+            document.getElementById('successOrderId').textContent = '#' + orderId;
+            document.getElementById('orderSuccessOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        // View Order Details Button Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewOrderBtn = document.getElementById('viewOrderDetailsBtn');
+            if (viewOrderBtn) {
+                viewOrderBtn.addEventListener('click', function() {
+                    const orderId = document.getElementById('successOrderId').textContent.replace('#', '');
+                    window.location.href = `/account/orders/details/${orderId}`;
+                });
+            }
+        });
+
+        // Helper function to hide success overlay if needed
+        function hideOrderSuccessOverlay() {
+            document.getElementById('orderSuccessOverlay').style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
         }
     </script>
 </body>
