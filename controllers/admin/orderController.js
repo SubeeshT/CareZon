@@ -1,6 +1,8 @@
 const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
+const Coupon = require('../../models/couponSchema');
+const Wallet = require('../../models/walletSchema')
 const { default: mongoose } = require('mongoose');
 
 const loadOrder = async (req,res) => {
@@ -126,7 +128,7 @@ const updateOrderStatus = async (req,res) => {
             }
 
             for(let item of order.items){
-                 if (item.status !== 'cancelled' && item.status !== 'returned') {
+                if (item.status !== 'cancelled' && item.status !== 'returned') {
                     await Product.updateOne(
                         {_id: item.productId, 'variants._id': item.variantId},
                         {$inc: {'variants.$.stock': item.quantity}},
@@ -140,7 +142,71 @@ const updateOrderStatus = async (req,res) => {
                 }
             }
             order.cancellationReason = reason || 'Cancelled by admin';
-        }    
+            order.paymentStatus = 'refunded';
+            
+            //process refund for admin cancellation
+            if (order.paymentMethod !== 'cod' || order.paymentStatus === 'completed') {
+                const userId = order.userId;
+                
+                let refundAmount = order.totalAmount;
+                
+                //get wallet to check previous refunds for this order
+                const wallet = await Wallet.findOne({ userId }).session(session);
+                let previousRefunds = 0;
+                
+                if (wallet) {
+                    //calculate total already refunded for this order (both cancel and return refunds)
+                    previousRefunds = wallet.transactions.filter(t => 
+                            t.orderId && 
+                            t.orderId.toString() === order._id.toString() && 
+                            (t.moneyFrom === 'cancelRefund' || t.moneyFrom === 'returnRefund') && 
+                            t.status === 'success'
+                        )
+                        .reduce((sum, t) => sum + t.amount, 0);
+                }
+                
+                refundAmount = refundAmount - previousRefunds;
+                
+                if (refundAmount <= 0) refundAmount = 0;
+                
+                
+                //restore coupon usage if coupon was applied 
+                if (order.couponApplied && order.couponApplied.couponId && previousRefunds === 0) {
+                    const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
+                    if (coupon) {
+                        const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
+                        if (userUsageIndex >= 0 && coupon.usedBy[userUsageIndex].usageCount > 0) {
+                            coupon.usedBy[userUsageIndex].usageCount -= 1;
+                            await coupon.save({ session });
+                        }
+                    }
+                }
+                
+                //refund to wallet only if amount > 0
+                if (refundAmount > 0) {
+                    await Wallet.findOneAndUpdate(
+                        { userId },
+                        {
+                            $inc: { balance: refundAmount, totalCredits: refundAmount },
+                            $push: {
+                                transactions: {
+                                    direction: 'credit',
+                                    status: 'success',
+                                    moneyFrom: 'cancelRefund',
+                                    paymentMethod: order.paymentMethod,
+                                    amount: refundAmount,
+                                    orderId: order._id,
+                                    description: `refund for order ${order.orderId} cancelled by admin`,
+                                    date: new Date()
+                                }
+                            }
+                        },
+                        { session, upsert: true }
+                    );
+                }
+            }
+        } 
+
         order.orderStatus = orderStatus.trim();
         
         await order.save({session});
@@ -297,6 +363,170 @@ const updateReturnOrder = async (req,res) => {
         }
 
         await order.save({ session });
+
+        //process refunds for accepted return items
+        if (acceptedItems.length > 0) {
+            const userId = order.userId;
+            
+            const allItemsReturned = order.items.every(item => item.status === 'returned' || item.status === 'cancelled');
+            
+            if (allItemsReturned) {
+                //calculate refund amount minus already refunded items
+                let refundAmount = order.totalAmount;
+                
+                //check if any items were already returned and refunded
+                const alreadyRefundedAmount = acceptedItems.reduce((sum, item) => {//check if this item was already processed in previous return
+                    const wasAlreadyReturned = item.status === 'returned' && item.returnRequestStatus === 'accepted';
+                    
+                    return sum; 
+                }, 0);
+                
+                //get wallet to check previous refunds for this order
+                const wallet = await Wallet.findOne({ userId }).session(session);
+                let previousRefunds = 0;
+                
+                if (wallet) {
+                    //calculate total already refunded for this order
+                    previousRefunds = wallet.transactions.filter(t => 
+                            t.orderId && 
+                            t.orderId.toString() === order._id.toString() && 
+                            (t.moneyFrom === 'cancelRefund' || t.moneyFrom === 'returnRefund') && 
+                            t.status === 'success'
+                        )
+                        .reduce((sum, t) => sum + t.amount, 0);
+                }
+                refundAmount = refundAmount - previousRefunds;
+                
+                if (refundAmount < 0) refundAmount = 0;
+                    
+                    //restore coupon usage
+                    if (order.couponApplied && order.couponApplied.couponId) {
+                        const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
+                        if (coupon) {
+                            const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
+                            if (userUsageIndex >= 0 && coupon.usedBy[userUsageIndex].usageCount > 0) {
+                                coupon.usedBy[userUsageIndex].usageCount -= 1;
+                                await coupon.save({ session });
+                                order.couponRestored = true;
+                                order.couponApplied.discountValue = 0;
+                                order.discount = 0;
+                                for(let item of order.items){
+                                    item.discountShare = 0;
+                                    item.finalPriceAfterDiscount = 0;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (refundAmount > 0) {
+                        await Wallet.findOneAndUpdate(//refund add to wallet
+                            { userId },
+                            {
+                                $inc: {balance: refundAmount, totalCredits: refundAmount},
+                                $push: {
+                                    transactions: {
+                                        direction: 'credit',
+                                        status: 'success',
+                                        moneyFrom: 'returnRefund',
+                                        paymentMethod: order.paymentMethod,
+                                        amount: refundAmount,
+                                        orderId: order._id,
+                                        description: `refund for returned order ${order.orderId}`,
+                                        date: new Date()
+                                    }
+                                }
+                            },
+                            { session, upsert: true }
+                        );
+                    }
+                } else {
+                    //partial return, calculate refund per item
+                    for (const returnedItem of acceptedItems) {
+                        let refundAmount = 0;
+                        let shouldRestoreCoupon = false;
+                        
+                        //calculate remaining active items
+                        const remainingActiveItems = order.items.filter(item => item.status !== 'cancelled' && item.status !== 'returned');
+                        const remainingSubtotal = remainingActiveItems.reduce((sum, item) => sum + item.totalPrice, 0);
+                        
+                        //check coupon eligibility
+                        if (order.couponApplied && order.couponApplied.couponId) {
+                            const minPurchaseValue = order.couponApplied.minPurchaseValue;
+                            
+                            if (remainingSubtotal < minPurchaseValue) {//coupon eligibility broken
+                                shouldRestoreCoupon = true;
+                                
+                                if (remainingSubtotal === 0) {//check if this is the last remaining item 
+                                    if (order.couponRestored) {
+                                        refundAmount = returnedItem.totalPrice;
+                                    } else {
+                                        refundAmount = returnedItem.finalPriceAfterDiscount || returnedItem.totalPrice;
+                                    }
+                                } else {//not the last item - deduct remaining active items' discount
+                                    const stillActiveItems = order.items.filter(item => 
+                                        item.status !== 'cancelled' && item.status !== 'returned' && item._id.toString() !== returnedItem._id.toString());
+
+                                    const activeItemsDiscount = stillActiveItems.reduce((sum, item) => sum + (item.discountShare || 0), 0);
+
+                                    refundAmount = (returnedItem.finalPriceAfterDiscount || returnedItem.totalPrice) - activeItemsDiscount;
+                                
+                                    if (refundAmount < 0) refundAmount = 0;
+                                }
+                            } else {
+                                refundAmount = returnedItem.finalPriceAfterDiscount || returnedItem.totalPrice;
+                            }
+                        } else { //no coupon                    
+                            refundAmount = returnedItem.finalPriceAfterDiscount || returnedItem.totalPrice;
+                            
+                            if (order.deliveryFee > 0 && remainingSubtotal < 300) {
+                                refundAmount -= order.deliveryFee;
+                            }
+                        }
+                        
+                        //restore coupon (only once for first item that breaks eligibility)
+                        if (shouldRestoreCoupon && !order.couponRestored) {
+                            const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
+                            if (coupon) {
+                                const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
+                                if (userUsageIndex >= 0 && coupon.usedBy[userUsageIndex].usageCount > 0) {
+                                    coupon.usedBy[userUsageIndex].usageCount -= 1;
+                                    await coupon.save({ session });
+                                    order.couponRestored = true;
+                                    order.couponApplied.discountValue = 0;
+                                    order.discount = 0;
+                                    for(let item of order.items){
+                                        item.discountShare = 0;
+                                        item.finalPriceAfterDiscount = 0;
+                                    }
+                                    await order.save({ session }); 
+                                }
+                            }
+                        }
+                          
+                        if (refundAmount > 0) { //refund credit to wallet
+                            await Wallet.findOneAndUpdate(
+                                { userId },
+                                {
+                                    $inc: { balance: refundAmount, totalCredits: refundAmount },
+                                    $push: {
+                                        transactions: {
+                                            direction: 'credit',
+                                            status: 'success',
+                                            moneyFrom: 'returnRefund',
+                                            paymentMethod: order.paymentMethod,
+                                            amount: refundAmount,
+                                            orderId: order._id,
+                                            description: `refund for returned item in order ${order.orderId}${shouldRestoreCoupon ? ' (Coupon eligibility broken)' : ''}`,
+                                            date: new Date()
+                                        }
+                                    }
+                                },
+                                { session, upsert: true }
+                            );
+                        }
+                    }
+                }
+        }
         await session.commitTransaction();
 
         let message = '';

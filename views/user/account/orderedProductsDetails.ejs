@@ -976,11 +976,11 @@
                         <div class="invoice-actions">
                             <button class="btn btn-invoice btn-view" onclick="viewInvoice('<%= order.orderId %>')">
                                 <i class="fas fa-eye"></i>
-                                View Complete Invoice
+                                View Invoice
                             </button>
                             <button class="btn btn-invoice btn-download" onclick="downloadInvoice('<%= order.orderId %>')">
                                 <i class="fas fa-download"></i>
-                                Download Complete Invoice
+                                Download Invoice
                             </button>
 
                             <% if (order.orderStatus === 'pending' && order.paymentStatus === 'failed') { %>

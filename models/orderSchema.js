@@ -23,14 +23,22 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    discountShare: Number,//when user apply the coupon split the coupon discount amount to items depending on the total price
+    finalPriceAfterDiscount: Number,//for refund if partial items cancel/return (finalPriceAfterDiscount = totalPrice - discountShare)
     //store product details at time of order to preserve data
     productSnapshot: {
         name: String,
         brand: String,
-        category: String,
+        category: {
+            name: String,
+            Discounts: Number,
+            DiscountStatus: Boolean
+        },
         variantDetails: {
             uom: Number,
             attributes: Map,
+            discountValue: Number,
+            discountStatus: Boolean,
             images: [{
                 url: String,
                 altText: String
@@ -170,12 +178,11 @@ const orderSchema = new mongoose.Schema({
             ref: 'Coupon'
         },
         code: String,
-        discountValue: Number
+        discountValue: Number,
+        minPurchaseValue: Number,//for check cancel/return time, if after the cancel/return the total amount will less than coupon eligibility breaks check
+        distributed: Boolean,//if have multiple items then it will true
     },
-    canCancelIndividualItems: { //cancel and return, both can handle by this single field
-        type: Boolean,
-        default: true
-    },
+    couponRestored: Boolean,
     paymentFailureReason: String,
     
     returnRequestedAt: Date,

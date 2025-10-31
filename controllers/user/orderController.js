@@ -3,6 +3,8 @@ const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
 const User = require('../../models/userSchema');
+const Wallet = require('../../models/walletSchema');
+const Coupon = require('../../models/couponSchema');
 const { getVariantLabel } = require('../../utils/variantAttribute');
 const { default: mongoose } = require('mongoose');
 
@@ -35,7 +37,7 @@ const loadOrdersList = async (req, res) => {
             orders.forEach(order => {
                 if (order.items) {
                     order.items.forEach(item => {
-                        const categoryName = item.productSnapshot.category;
+                        const categoryName = item.productSnapshot.category.name;
                         const variant = {attributes: item.productSnapshot.variantDetails.attributes};
 
                         if (variant && categoryName) {
@@ -103,19 +105,17 @@ const loadOrderedProductsDetails = async (req, res) => {
         }
 
         //variant labels to order items
-        if (order && order.items) {
-            order.items.forEach(item => {
-                const categoryName = item.productSnapshot.category;
-                const variant = {
-                    attributes: item.productSnapshot.variantDetails.attributes
-                };
-                if (variant && categoryName) {
-                    item.variantLabel = getVariantLabel(variant, categoryName);
-                }
+        order.items.forEach(item => {
+            const categoryName = item.productSnapshot.category.name;  
+            const variant = {
+                attributes: item.productSnapshot.variantDetails.attributes
+            };
+            if (variant && categoryName) {
+                item.variantLabel = getVariantLabel(variant, categoryName);
+            }
 
-                item.displayStatus = item.status || 'active';
-            });
-        }
+            item.displayStatus = item.status || 'active';
+        });
         
         return res.status(200).render('account/orderedProductsDetails', {activePage: 'orders', success: true, order: order});
 
@@ -169,11 +169,68 @@ const cancelOrder = async (req, res) => {
             order.cancelledAt = new Date();
             order.cancellationReason = reason;
             order.cancelledBy = 'user';
+            order.paymentStatus = 'refunded';
             
             await order.save({ session });
             
-        } else if (cancelType === 'single_item') { //cancel single item
+            //process refund for entire order cancellation
+            if (order.paymentMethod !== 'cod' || order.paymentStatus === 'completed') {
+                let refundAmount = order.totalAmount;
+                
+                const wallet = await Wallet.findOne({ userId }).session(session);
+                let previousRefunds = 0;
+                
+                if (wallet) {//calculate total already refunded for this order (both cancel and return refunds)
+                    previousRefunds = wallet.transactions.filter(t => 
+                            t.orderId && 
+                            t.orderId.toString() === order._id.toString() && 
+                            (t.moneyFrom === 'cancelRefund' || t.moneyFrom === 'returnRefund') && 
+                            t.status === 'success'
+                        )
+                        .reduce((sum, t) => sum + t.amount, 0);
+                }
+                refundAmount = refundAmount - previousRefunds;
+                
+                if (refundAmount <= 0) refundAmount = 0;
+                  
+                //restore coupon usage if coupon was applied
+                if (order.couponApplied && order.couponApplied.couponId) {
+                    const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
+                    if (coupon) {
+                        const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
+                        if (userUsageIndex >= 0 && coupon.usedBy[userUsageIndex].usageCount > 0) {
+                            coupon.usedBy[userUsageIndex].usageCount -= 1;
+                            await coupon.save({ session });
+                        }
+                    }
+                }
+                
+                //refund to wallet only if amount > 0
+                if (refundAmount > 0) {
+                    await Wallet.findOneAndUpdate(
+                        { userId },
+                        {
+                            $inc: { balance: refundAmount, totalCredits: refundAmount },
+                            $push: {
+                                transactions: {
+                                    direction: 'credit',
+                                    status: 'success',
+                                    moneyFrom: 'cancelRefund',
+                                    paymentMethod: order.paymentMethod,
+                                    amount: refundAmount,
+                                    orderId: order._id,
+                                    description: `refund for cancelled order ${order.orderId}`,
+                                    date: new Date()
+                                }
+                            }
+                        },
+                        { session, upsert: true }
+                    );
+                }
+            };
             
+        } else if (cancelType === 'single_item') { //cancel single item
+    
             const itemToCancel = order.items.find(item => item._id.toString() === itemId);
             
             if (!itemToCancel) {
@@ -202,9 +259,97 @@ const cancelOrder = async (req, res) => {
                 order.cancelledAt = new Date();
                 order.cancellationReason = 'All items were cancelled';
                 order.cancelledBy = 'user';
+                order.paymentStatus = 'refunded';
             }
             
             await order.save({ session });
+            
+            //process refund for single item cancellation
+            if (order.paymentMethod !== 'cod' || order.paymentStatus === 'completed') {
+                let refundAmount = 0;
+                let shouldRestoreCoupon = false;
+                
+                //calculate remaining active items total
+                const remainingActiveItems = order.items.filter(item => item.status !== 'cancelled' && item.status !== 'returned');
+                const remainingSubtotal = remainingActiveItems.reduce((sum, item) => sum + item.totalPrice, 0);
+                
+                //check coupon eligibility after cancellation
+                if (order.couponApplied && order.couponApplied.couponId) {
+                    const minPurchaseValue = order.couponApplied.minPurchaseValue;
+                    
+                    if (remainingSubtotal < minPurchaseValue) {//coupon eligibility broken
+                        shouldRestoreCoupon = true;
+                        
+                        if (remainingSubtotal === 0) {//check if this is the last remaining item 
+                            if (order.couponRestored) {
+                                refundAmount = itemToCancel.totalPrice;
+                            } else {
+                                refundAmount = itemToCancel.finalPriceAfterDiscount || itemToCancel.totalPrice;
+                            }
+                        } else {//not the last item - deduct remaining active items' discount
+                            const stillActiveItems = order.items.filter(item => 
+                                item.status !== 'cancelled' && item.status !== 'returned' && item._id.toString() !== itemToCancel._id.toString());
+
+                            const activeItemsDiscount = stillActiveItems.reduce((sum, item) => sum + (item.discountShare || 0), 0);
+
+                            refundAmount = (itemToCancel.finalPriceAfterDiscount || itemToCancel.totalPrice) - activeItemsDiscount;
+                        
+                            if (refundAmount < 0) refundAmount = 0;
+                        }
+                    } else {
+                        refundAmount = itemToCancel.finalPriceAfterDiscount || itemToCancel.totalPrice;
+                    }
+                } else {
+                    refundAmount = itemToCancel.finalPriceAfterDiscount || itemToCancel.totalPrice;
+                    
+                    if (order.deliveryFee > 0 && remainingSubtotal < 300) {
+                        refundAmount -= order.deliveryFee;
+                    }
+                }
+                
+                //restore coupon usage if eligibility broken
+                if (shouldRestoreCoupon) {
+                    const coupon = await Coupon.findById(order.couponApplied.couponId).session(session);
+                    if (coupon) {
+                        const userUsageIndex = coupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
+                        if (userUsageIndex >= 0 && coupon.usedBy[userUsageIndex].usageCount > 0) {
+                            coupon.usedBy[userUsageIndex].usageCount -= 1;
+                            await coupon.save({ session });
+                            order.couponRestored = true;  
+                            order.discount = 0;
+                            order.couponApplied.discountValue = 0;
+                            for(let item of order.items){
+                                item.discountShare = 0;
+                                item.finalPriceAfterDiscount = 0;
+                            }
+                            await order.save({ session });  
+                        }
+                    }
+                }
+                                
+                //add refund to wallet
+                if (refundAmount > 0) {
+                    await Wallet.findOneAndUpdate(
+                        {userId},
+                        {
+                            $inc: { balance: refundAmount, totalCredits: refundAmount },
+                            $push: {
+                                transactions: {
+                                    direction: 'credit',
+                                    status: 'success',
+                                    moneyFrom: 'cancelRefund',
+                                    paymentMethod: order.paymentMethod,
+                                    amount: refundAmount,
+                                    orderId: order._id,
+                                    description: `refund for cancelled item in order ${order.orderId}${shouldRestoreCoupon ? ' (Coupon eligibility broken)' : ''}`,
+                                    date: new Date()
+                                }
+                            }
+                        },
+                        { session, upsert: true }
+                    );
+                }
+            }
         }
         
         await session.commitTransaction();

@@ -320,10 +320,16 @@ const placeOrder = async (req, res) => {
                 productSnapshot: {
                     name: product.name,
                     brand: product.brand.name,
-                    category: product.category.name,
+                    category: {
+                        name: product.category.name,
+                        Discounts: product.category.Discounts,
+                        DiscountStatus: product.category.DiscountStatus
+                    },
                     variantDetails: {
                         uom: variant.uom,
                         attributes: variant.attributes,
+                        discountValue: variant.discountValue,
+                        discountStatus: variant.discountStatus,
                         images: variant.images.slice(0, 1)
                     }
                 }
@@ -342,7 +348,6 @@ const placeOrder = async (req, res) => {
 
         let discountAmount = 0;
         let appliedCoupon = null;
-        let canCancelIndividual = true;
 
         if (couponId) {
             appliedCoupon = await Coupon.findById(couponId).session(session);
@@ -350,7 +355,31 @@ const placeOrder = async (req, res) => {
             if (appliedCoupon && appliedCoupon.status === 'active') {
                 if (subtotal >= appliedCoupon.minPurchaseValue) {
                     discountAmount = appliedCoupon.discountValue;
-                    canCancelIndividual = false; //disable individual cancellation/return when coupon applied
+                    
+                    //distribute discount proportionally across items
+                    const isMultipleItems = orderItems.length > 1;
+                    
+                    if (isMultipleItems) {
+                        //proportional distribution for multiple items
+                        let remainingDiscount = discountAmount;
+                        
+                        orderItems.forEach((item, index) => {
+                            if (index === orderItems.length - 1) {
+                                //last item gets remaining discount to handle rounding
+                                item.discountShare = remainingDiscount;
+                            } else {
+                                //calculate proportional share
+                                const proportion = item.totalPrice / subtotal;
+                                item.discountShare = Math.round(proportion * discountAmount * 100) / 100;
+                                remainingDiscount -= item.discountShare;
+                            }
+                            item.finalPriceAfterDiscount = item.totalPrice - item.discountShare;
+                        });
+                    } else {
+                        //single item gets full discount
+                        orderItems[0].discountShare = discountAmount;
+                        orderItems[0].finalPriceAfterDiscount = orderItems[0].totalPrice - discountAmount;
+                    }
                     
                     //update coupon usage
                     const userUsageIndex = appliedCoupon.usedBy.findIndex(u => u.userId.toString() === userId.toString());
@@ -442,9 +471,10 @@ const placeOrder = async (req, res) => {
             couponApplied: appliedCoupon ? {
                 couponId: appliedCoupon._id,
                 code: appliedCoupon.code,
-                discountValue: discountAmount
+                discountValue: discountAmount,
+                minPurchaseValue: appliedCoupon.minPurchaseValue,
+                distributed: orderItems.length > 1
             } : null,
-            canCancelIndividualItems: canCancelIndividual,
             totalAmount,
             orderStatus: 'confirmed',
             confirmedAt: new Date(),
@@ -583,10 +613,16 @@ const placeFailedPaymentOrder = async (req, res) => {
                 productSnapshot: {
                     name: product.name,
                     brand: product.brand.name,
-                    category: product.category.name,
+                    category: {
+                        name: product.category.name,
+                        Discounts: product.category.Discounts,
+                        DiscountStatus: product.category.DiscountStatus
+                    },
                     variantDetails: {
                         uom: variant.uom,
                         attributes: variant.attributes,
+                        discountValue: variant.discountValue,
+                        discountStatus: variant.discountStatus,
                         images: variant.images.slice(0, 1)
                     }
                 }
@@ -605,6 +641,31 @@ const placeFailedPaymentOrder = async (req, res) => {
             
             if (appliedCoupon && appliedCoupon.status === 'active' && subtotal >= appliedCoupon.minPurchaseValue) {
                 discountAmount = appliedCoupon.discountValue;
+                
+                //distribute discount proportionally across items
+                const isMultipleItems = orderItems.length > 1;
+                
+                if (isMultipleItems) {
+                    //proportional distribution for multiple items
+                    let remainingDiscount = discountAmount;
+                    
+                    orderItems.forEach((item, index) => {
+                        if (index === orderItems.length - 1) {
+                            //last item gets remaining discount to handle rounding
+                            item.discountShare = remainingDiscount;
+                        } else {
+                            //calculate proportional share
+                            const proportion = item.totalPrice / subtotal;
+                            item.discountShare = Math.round(proportion * discountAmount * 100) / 100;
+                            remainingDiscount -= item.discountShare;
+                        }
+                        item.finalPriceAfterDiscount = item.totalPrice - item.discountShare;
+                    });
+                } else {
+                    //single item gets full discount
+                    orderItems[0].discountShare = discountAmount;
+                    orderItems[0].finalPriceAfterDiscount = orderItems[0].totalPrice - discountAmount;
+                }
             }
         }
         
@@ -642,9 +703,10 @@ const placeFailedPaymentOrder = async (req, res) => {
             couponApplied: appliedCoupon ? {
                 couponId: appliedCoupon._id,
                 code: appliedCoupon.code,
-                discountValue: discountAmount
+                discountValue: discountAmount,
+                minPurchaseValue: appliedCoupon.minPurchaseValue,
+                distributed: orderItems.length > 1
             } : null,
-            canCancelIndividualItems: appliedCoupon ? false : true,
             totalAmount,
             orderStatus: 'pending'
         });
@@ -754,7 +816,7 @@ const retryPayment = async (req, res) => {
             }
             
             if (variant.stock < item.quantity) {
-                return res.status(400).json({success: false, message: `Insufficient stock for ${product.name}. Available: ${variant.stock}, Required: ${item.quantity}`});
+                return res.status(400).json({success: false, message: `insufficient stock for ${product.name}. Available: ${variant.stock}, Required: ${item.quantity}`});
             }
             
             stockUpdates.push({
