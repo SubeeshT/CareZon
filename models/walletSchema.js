@@ -24,7 +24,7 @@ const walletSchema = mongoose.Schema({
         },
         moneyFrom: { 
             type: String,
-            enum: ['cancelRefund', 'returnRefund', 'addedViaRazorpay', 'orderPayment'],//included order cancel/return refund also
+            enum: ['cancelRefund', 'returnRefund', 'addedViaRazorpay', 'orderPayment','referral'],//included order cancel/return refund also
             required: true,
         },
         paymentMethod: { 

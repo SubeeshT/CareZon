@@ -144,6 +144,34 @@
                                 </button>
                             </div>
                             <% } %>
+                            <!-- Referral Code Section -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <span><i class="fas fa-gift me-2"></i>Referral Code</span>
+                                </div>
+                                
+                                <div class="field-display">
+                                    <small class="text-muted">Your Referral Code</small>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="referral-code-display">
+                                            <code id="referralCode"><%= user.referralCode || 'Not Available' %></code>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm" id="copyReferralBtn" onclick="copyReferralCode()">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Share & Earn!</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Share your referral code with friends and family</li>
+                                        <li>When someone signs up using your code, you get <strong>₹300</strong> credited to your wallet</li>
+                                        <li>The new user also receives <strong>₹200</strong> as a welcome bonus</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -974,6 +1002,36 @@
             
             strengthDiv.innerHTML = `<span class="${strengthClass}">${strengthText}</span>`;
         });
+
+        // Referral Code Copy Function
+        function copyReferralCode() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const copyBtn = document.getElementById('copyReferralBtn');
+            
+            if (referralCode === 'Not Available') {
+                showAlert('Referral code not available', 'warning');
+                return;
+            }
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(referralCode).then(() => {
+                // Change button appearance
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyBtn.classList.add('copied');
+                
+                showAlert('Referral code copied to clipboard!', 'success');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showAlert('Failed to copy referral code', 'danger');
+            });
+        }
     </script>
 </body>
 </html>

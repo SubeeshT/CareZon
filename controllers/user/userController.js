@@ -1,7 +1,9 @@
-const session = require('express-session')
-const User = require('../../models/userSchema')
-const bcrypt = require('bcryptjs')
-const sendOTPEmail = (require('../../utils/sendEmail'))
+const session = require('express-session');
+const User = require('../../models/userSchema');
+const Wallet = require('../../models/walletSchema');
+const bcrypt = require('bcryptjs');
+const { default: mongoose } = require('mongoose');
+const sendOTPEmail = (require('../../utils/sendEmail'));
 
 
 const loadSignUp = async (req,res) => {
@@ -20,20 +22,29 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 const signUp = async (req,res) => {
     try {
-        const {fullName, email, phone, password, confirmPassword} = req.body 
+        const {fullName, email, phone, password, confirmPassword, referralCode} = req.body 
         
         if(!fullName || !email || !phone || !password || !confirmPassword){
-            return res.status(400).json({message : "All fields are required"})
+            return res.status(400).json({success: false, message : "All fields are required"})
         }
 
         if(password !== confirmPassword){
-            return res.status(400).json({message : "Passwords do not match"});
+            return res.status(400).json({success: false, message : "Passwords do not match"});
         }
 
         const existingUser = await User.findOne({ $or: [{email}, {phone}] })
         if (existingUser){
-            return res.status(400).json({message: "Email or phone already exists"})
+            return res.status(400).json({success: false, message: "email or phone already exists"});
         }
+
+        let referredByUserId = null;
+        if(referralCode && referralCode.trim()){
+            const referringUser = await User.findOne({referralCode: referralCode.trim()});
+            if(!referringUser){
+                return res.status(400).json({success: false, message: "invalid referral code. Please check and try again."});
+            }
+            referredByUserId = referringUser._id;
+        }   
 
         const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -46,6 +57,8 @@ const signUp = async (req,res) => {
             email,
             phone,
             password : hashedPassword,
+            referralCode: referralCode ? referralCode.trim() : null,
+            referredByUserId: referredByUserId,
             otp: {
                 code: otp,
                 expiresAt: otpExpires,
@@ -54,59 +67,135 @@ const signUp = async (req,res) => {
 
         await sendOTPEmail(email, otp)
 
-        return res.render('auth/userOTP', {userId: null, otpExpiresAt: otpExpires.toISOString(), error: null});    
+        return res.status(200).json({success: true, message: 'OTP sent to your email successfully!', redirect: '/verifyOtp'});
         
     } catch (error) {
         console.error("Registration failed : ", error)
-        return res.status(500).json({message: "Server error during signup"})
+        return res.status(500).json({success: false, message: "Server error during signup"})
     }
 };
 
 const loadOtp = async (req,res) => {
     try {
-        return res.render('auth/userOTP')
+        const tempUser = req.session.tempUser;
+        
+        if (!tempUser || !tempUser.otp) {
+            return res.redirect('/signUp');
+        }
+        return res.render('auth/userOTP', {userId: null, otpExpiresAt: tempUser.otp.expiresAt, error: null});
     } catch (error) {
         console.log("failed to find userOTP page", error)
         return res.status(500).send("failed find OTP page")
     }
 }
 
-const verifyOTP = async (req,res) => {
+const verifyOTP = async (req, res) => {
     try {
-        const {otp} = req.body
-        const tempUser = req.session.tempUser
+        const { otp } = req.body;
+        const tempUser = req.session.tempUser;
 
-        if(!tempUser){
-            return res.status(400).json({message: "NO OTP session found"})
+        if (!tempUser) {
+            return res.status(400).json({ success: false, message: "NO OTP session found" });
         }
 
         const expiresAt = new Date(tempUser.otp.expiresAt);
 
         //check if OTP has expired first
-        if(expiresAt < new Date()){
-           return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "OTP has expired. Please request a new one."})
+        if (expiresAt < new Date()) {
+            return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "OTP has expired. Please request a new one."});
         }
 
-        if(!otp || tempUser.otp.code !== otp){
-            return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "Invalid OTP. Please try again."})
+        if (!otp || tempUser.otp.code !== otp) {
+            return res.render('auth/userOTP', {otpExpiresAt: expiresAt.toISOString(), error: "Invalid OTP. Please try again."});
         }
 
-        const newUser = new User({
-            fullName: tempUser.fullName.trim(),
-            email: tempUser.email.trim(),
-            phone: tempUser.phone.trim(),
-            password: tempUser.password.trim(),
-            isVerified: true,
-        });
-        await newUser.save();
+        const session = await mongoose.startSession();
 
-        req.session.tempUser = null
+        try {
+            await session.startTransaction();
 
-        return res.redirect('/signIn')
+            const newUser = new User({
+                fullName: tempUser.fullName.trim(),
+                email: tempUser.email.trim(),
+                phone: tempUser.phone.trim(),
+                password: tempUser.password.trim(),
+                isVerified: true,
+                referredBy: tempUser.referredByUserId || null
+            });
+            await newUser.save({ session });
+
+            //generate referral code using user ID
+            const namePrefix = tempUser.fullName.replace(/\s/g, '').substring(0, 3).toUpperCase() || 'USR';
+            const idSuffix = newUser._id.toString().substring(newUser._id.toString().length - 6).toUpperCase();
+            newUser.referralCode = `${namePrefix}${idSuffix}`;
+            await newUser.save({ session });
+
+            //handle referral rewards
+            if (tempUser.referredByUserId) {
+                let referringUserWallet = await Wallet.findOne({ userId: tempUser.referredByUserId }).session(session);
+
+                if (!referringUserWallet) {
+                    referringUserWallet = new Wallet({
+                        userId: tempUser.referredByUserId,
+                        balance: 300,
+                        totalCredits: 300,
+                        moneyAdded: 0,
+                        totalSpent: 0,
+                        transactions: []
+                    });
+                } else {
+                    referringUserWallet.balance += 300;
+                    referringUserWallet.totalCredits += 300;
+                }
+
+                referringUserWallet.transactions.push({
+                    direction: 'credit',
+                    status: 'success',
+                    moneyFrom: 'referral',
+                    paymentMethod: 'wallet',
+                    amount: 300,
+                    description: `referral bonus - ${tempUser.fullName} signed up using your referral code`,
+                    date: new Date()
+                });
+
+                await referringUserWallet.save({ session });
+
+                const newUserWallet = new Wallet({
+                    userId: newUser._id,
+                    balance: 200,
+                    totalCredits: 200,
+                    moneyAdded: 0,
+                    totalSpent: 0,
+                    transactions: [{
+                        direction: 'credit',
+                        status: 'success',
+                        moneyFrom: 'referral',
+                        paymentMethod: 'wallet',
+                        amount: 200,
+                        description: `welcome bonus - Signed up using referral code ${tempUser.referralCode}`,
+                        date: new Date()
+                    }]
+                });
+
+                await newUserWallet.save({ session });
+            }
+
+            await session.commitTransaction();
+            session.endSession();
+
+            req.session.tempUser = null;
+            return res.redirect('/signIn');
+
+        } catch (transactionError) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error("transaction failed:", transactionError);
+            return res.status(500).json({success: false, message: "server error during account creation"});
+        }
 
     } catch (error) {
-        console.error("OTP verification failed : ",error)
-        return res.status(500).json({message: "Server error during OTP verification"})
+        console.error("OTP verification failed : ", error);
+        return res.status(500).json({ success: false, message: "Server error during OTP verification" });
     }
 }
 
@@ -153,37 +242,39 @@ const signIn = async (req,res) => {
     try {
         const {emailOrPhone, password} = req.body;
 
-        const user = await User.findOne({$or: [{email: emailOrPhone}, {phone: emailOrPhone}]});
+        const user = await User.findOne({$or: [{email: emailOrPhone.trim()}, {phone: emailOrPhone.trim()}]});
 
         if(!user){
-            return res.status(401).json({message: "Not have an account, Please signUP first"});
+            return res.status(401).json({success: false, message: "Not have an account, Please signUP first"});
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password)
         if(!isPasswordMatch){
-            return res.status(401).json({message: "Email & Password is not matching"});
+            return res.status(401).json({success: false, message: "Email & Password is not matching"});
         }
 
         if(user.isBlocked){
-            return res.status(403).json({message: "This account is blocked, please contact us."});
+            return res.status(403).json({success: false, message: "This account is blocked, please contact us."});
         }
 
         req.session.userId = user._id //Changes data in session memory (RAM)
 
         req.session.save((err) => { //Forces add to MongoDB collection immediately
             if(err){
-                console.error("session save user get error : ", error);
-                return res.status(500).json({message: "Session save get error, please try again"})
+                console.error("session save user get error : ", err);
+                return res.status(500).json({success: false, message: "Session save get error, please try again"})
             }
 
             console.log(`Logged user is : ${user.fullName}`);
-            return res.redirect('/home');
+            //return res.redirect('/home');
+            return res.status(200).json({success: true, message: "Sign in successful"});
+
         })
         
 
     } catch (error) {
         console.error("failed to signIn : ", error);
-        return res.status(500).json({message: "failed to signIn, Please try again"});
+        return res.status(500).json({success: false, message: "failed to signIn, Please try again"});
     }
 }
 

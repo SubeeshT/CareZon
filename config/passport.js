@@ -12,13 +12,22 @@ async (accessToken, refreshToken, profile, done) => {
     try {
         let user = await User.findOne({googleId: profile.id})
         if(!user){
-            user = await User.create({
+            user = new User({
                 fullName: profile.displayName,
                 email: profile.emails[0].value,
                 googleId: profile.id,
                 isGoogleUser: true,
                 isBlocked: false
-            })
+            });
+            
+            await user.save();
+            
+            //generate and update referral code 
+            const namePrefix = profile.displayName.replace(/\s/g, '').substring(0, 3).toUpperCase() || 'USR';
+            const idSuffix = user._id.toString().substring(user._id.toString().length - 6).toUpperCase();
+            const referralCode = `${namePrefix}${idSuffix}`;
+            
+            user =  await User.findByIdAndUpdate(user._id, { referralCode: referralCode }, { new: true });
         }
         return done(null, user)
     } catch (error) {

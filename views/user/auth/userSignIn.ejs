@@ -17,7 +17,6 @@
       <div class="card p-4 fade-in">
         <h3 class="text-center mb-4">Welcome Back</h3>
 
-        <div id="messageContainer"></div>
 
         <form id="signInForm">
           <div class="mb-3">
@@ -71,7 +70,6 @@
       e.preventDefault();
 
       const signInBtn = document.getElementById('signInBtn');
-      const messageContainer = document.getElementById('messageContainer');
 
       const formData = new FormData(e.target);
       const emailOrPhone = formData.get('emailOrPhone')
@@ -79,8 +77,6 @@
 
       signInBtn.disabled = true;
       signInBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing In...';
-
-      messageContainer.innerHTML = '';
 
       try {
         const response = await fetch('/signIn', {
@@ -95,12 +91,12 @@
           window.location.href = '/home';
         }else{
           const errorData = await response.json();
-          showMessage(errorData.message, 'danger');
+          showToast(errorData.message, 'error');
         }
 
       } catch (error) {
         console.error('sign in error : ', error);
-        showMessage('someething went wrong. please try again.', 'danger');
+        showToast('something went wrong. please try again.', 'error');
         
       }finally{
         signInBtn.disabled = false;
@@ -115,18 +111,73 @@
           const error = urlParams.get('error');
           
           if (error === 'blocked') {
-              showMessage('This user is blocked. Please contact us.', 'danger');
+              showToast('This user is blocked. Please contact us.', 'error');
               window.history.replaceState({}, document.title, window.location.pathname);
           }
       });
 
-    function showMessage(message, type){
-      const messageContainer = document.getElementById('messageContainer');
-      messageContainer.innerHTML = `
-      <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
-        </div>`;
+    function showToast(message, type = 'error') {
+      const toastContainer = document.createElement('div');
+      toastContainer.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10001;
+      `;
+      document.body.appendChild(toastContainer);
+      
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        background: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid ${type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#dc3545'};
+      `;
+      
+      const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : '✕';
+      const iconColor = type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#dc3545';
+      
+      toast.innerHTML = `
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: ${iconColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">${icon}</div>
+        <div style="flex: 1;">
+          <strong style="display: block; margin-bottom: 4px; font-size: 14px; color: #212121;">${type === 'success' ? 'Success!' : type === 'warning' ? 'Warning!' : 'Error!'}</strong>
+          <span style="font-size: 13px; color: #666;">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #9e9e9e; padding: 0; width: 24px; height: 24px; flex-shrink: 0;">&times;</button>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          toast.remove();
+          if (toastContainer.children.length === 0) toastContainer.remove();
+        }, 300);
+      }, 5000);
+    }
+
+    // Add animation styles
+    if (!document.getElementById('toastStyles')) {
+      const style = document.createElement('style');
+      style.id = 'toastStyles';
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(400px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
     }
 
 

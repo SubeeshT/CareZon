@@ -4,93 +4,575 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Account</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/user/css/signUp.css">
-  
-  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a6afd6 0%, #b5f3d6 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .signup-container {
+      display: flex;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 1100px;
+      width: 100%;
+      overflow: hidden;
+      min-height: 600px;
+    }
+
+    .left-section {
+      flex: 1;
+      padding: 40px 35px;
+      background: white;
+    }
+
+    .right-section {
+      flex: 1;
+      background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .right-section::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(180deg, transparent 0%, rgba(129, 212, 250, 0.3) 100%);
+    }
+
+    .illustration {
+      width: 100%;
+      max-width: 350px;
+      height: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a237e;
+      margin-bottom: 20px;
+    }
+
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 11px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      color: #424242;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin-bottom: 18px;
+    }
+
+    .google-btn:hover {
+      border-color: #667eea;
+      background: #f5f5ff;
+      color: #424242;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .google-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 18px 0;
+      color: #9e9e9e;
+      font-size: 13px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .divider span {
+      padding: 0 15px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    .form-group.full-width {
+      width: 100%;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #424242;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: #fafafa;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-control.is-valid {
+      border-color: #4caf50;
+      background: #f1f8f4;
+    }
+
+    .form-control.is-invalid {
+      border-color: #f44336;
+      background: #ffebee;
+    }
+
+    .password-input-container {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #9e9e9e;
+      cursor: pointer;
+      padding: 5px;
+      transition: color 0.3s ease;
+    }
+
+    .password-toggle:hover {
+      color: #667eea;
+    }
+
+    .field-feedback {
+      font-size: 11px;
+      margin-top: 4px;
+      display: block;
+    }
+
+    .field-feedback.valid {
+      color: #4caf50;
+    }
+
+    .field-feedback.invalid {
+      color: #f44336;
+    }
+
+    .password-requirements {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 6px;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #757575;
+      margin-bottom: 5px;
+    }
+
+    .requirement:last-child {
+      margin-bottom: 0;
+    }
+
+    .requirement.valid {
+      color: #4caf50;
+    }
+
+    .requirement.invalid {
+      color: #f44336;
+    }
+
+    .requirement i {
+      font-size: 10px;
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-signup:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #757575;
+    }
+
+    .login-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 5px;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .custom-alert {
+      position: fixed;
+      top: -100px;
+      right: 20px;
+      background: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      z-index: 10000;
+      max-width: 400px;
+      transition: top 0.3s ease;
+      border-left: 4px solid #f44336;
+    }
+
+    .custom-alert.warning {
+      border-left-color: #ff9800;
+    }
+
+    .custom-alert.show {
+      top: 20px;
+    }
+
+    .custom-alert .close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #9e9e9e;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .custom-alert strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 968px) {
+      .signup-container {
+        flex-direction: column;
+      }
+
+      .right-section {
+        min-height: 200px;
+      }
+
+      .left-section {
+        padding: 30px 20px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+
+    @media (min-width: 969px) and (max-width: 1100px) {
+      .form-row {
+        gap: 10px;
+      }
+      
+      .left-section {
+        padding: 35px 25px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <div class="form-container">
-    <h2>Create Account</h2>
+  <div class="signup-container">
+    <div class="left-section">
+      <h2>Create Account</h2>
 
-    <!-- Google Sign-Up Button -->
-    <a href="/auth/google" class="google-btn">
-      <img src="/user/images/google logo.svg" alt="Google" />
-      Sign Up with Google
-    </a>
+      <!-- Google Sign-Up Button -->
+      <a href="/auth/google" class="google-btn">
+        <img src="/user/images/google logo.svg" alt="Google" />
+        Signup with Google
+      </a>
 
-    <form method="post" action="/signUp" id="signupForm" novalidate>
-      <div class="mb-3">
-        <label for="fullName" class="form-label">Full Name</label>
-        <input type="text" class="form-control" id="fullName" name="fullName" />
-        <div class="field-feedback" id="fullNameFeedback"></div>
+      <div class="divider">
+        <span>or</span>
       </div>
-      
-      <div class="mb-3">
-        <label for="email" class="form-label">Email Id</label>
-        <input type="email" class="form-control" id="email" name="email" />
-        <div class="field-feedback" id="emailFeedback"></div>
-      </div>
-      
-      <div class="mb-3">
-        <label for="phone" class="form-label">Phone No</label>
-        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10" />
-        <div class="field-feedback" id="phoneFeedback"></div>
-      </div>
-      
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <div class="password-input-container">
-          <input type="password" class="form-control" id="password" name="password" />
-          <button type="button" class="password-toggle" onclick="togglePassword('password')">
-            <i class="fas fa-eye" id="passwordIcon"></i>
-          </button>
+
+      <form method="post" action="/signUp" id="signupForm" novalidate>
+        <!-- Row 1: Full Name -->
+        <div class="form-group full-width">
+          <label for="fullName" class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Enter your full name" />
+          <div class="field-feedback" id="fullNameFeedback"></div>
         </div>
-        <div class="field-feedback" id="passwordFeedback"></div>
-        <div class="password-requirements" id="passwordRequirements" style="display: none;">
-          <div class="requirement" id="lengthReq">
-            <i class="fas fa-times"></i>
-            <span>At least 8 characters</span>
+
+        <!-- Row 2: Email -->
+        <div class="form-group full-width">
+          <label for="email" class="form-label">Email id</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" />
+          <div class="field-feedback" id="emailFeedback"></div>
+        </div>
+        
+        <!-- Row 3: Phone Number and Referral Code -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone no</label>
+            <input type="tel" class="form-control" id="phone" name="phone" maxlength="10" placeholder="Enter phone number" />
+            <div class="field-feedback" id="phoneFeedback"></div>
           </div>
-          <div class="requirement" id="uppercaseReq">
-            <i class="fas fa-times"></i>
-            <span>One uppercase letter</span>
-          </div>
-          <div class="requirement" id="lowercaseReq">
-            <i class="fas fa-times"></i>
-            <span>One lowercase letter</span>
-          </div>
-          <div class="requirement" id="numberReq">
-            <i class="fas fa-times"></i>
-            <span>One number</span>
+          
+          <div class="form-group">
+            <label for="referralCode" class="form-label">Referral Code (Optional)</label>
+            <input type="text" class="form-control" id="referralCode" name="referralCode" placeholder="Enter referral code" />
+            <div class="field-feedback" id="referralCodeFeedback"></div>
           </div>
         </div>
-      </div>
-      
-      <div class="mb-3">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
-        <div class="password-input-container">
-          <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" />
-          <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
-            <i class="fas fa-eye" id="confirmPasswordIcon"></i>
-          </button>
+        
+        <!-- Row 4: Password and Confirm Password -->
+        <div class="form-row">
+          <div class="form-group" style="position: relative;">
+            <label for="password" class="form-label">Password</label>
+            <div class="password-input-container">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Create a password" />
+              <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                <i class="fas fa-eye" id="passwordIcon"></i>
+              </button>
+            </div>
+            <div class="field-feedback" id="passwordFeedback"></div>
+            <div class="password-requirements" id="passwordRequirements" style="display: none;">
+              <div class="requirement" id="lengthReq">
+                <i class="fas fa-times"></i>
+                <span>At least 8 characters</span>
+              </div>
+              <div class="requirement" id="uppercaseReq">
+                <i class="fas fa-times"></i>
+                <span>One uppercase letter</span>
+              </div>
+              <div class="requirement" id="lowercaseReq">
+                <i class="fas fa-times"></i>
+                <span>One lowercase letter</span>
+              </div>
+              <div class="requirement" id="numberReq">
+                <i class="fas fa-times"></i>
+                <span>One number</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <div class="password-input-container">
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" />
+              <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+              </button>
+            </div>
+            <div class="field-feedback" id="confirmPasswordFeedback"></div>
+          </div>
         </div>
-        <div class="field-feedback" id="confirmPasswordFeedback"></div>
-      </div>
-      
-      <button type="submit" class="btn btn-custom" id="submitBtn">
-        <span class="loading-spinner" id="loadingSpinner"></span>
-        <span id="submitText">Sign Up</span>
-      </button>
-    </form>
+        
+        <button type="submit" class="btn-signup" id="submitBtn">
+          <span class="loading-spinner" id="loadingSpinner"></span>
+          <span id="submitText">SignUp</span>
+        </button>
+      </form>
 
-    <div class="login-link">
-      Already have an account? <a href="/signIn">Login</a>
+      <div class="login-link">
+        Already have account? <a href="/signIn">Login now..!</a>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <svg class="illustration" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Pharmacy Background Elements -->
+        <circle cx="80" cy="80" r="30" fill="#81d4fa" opacity="0.3"/>
+        <circle cx="320" cy="100" r="40" fill="#4fc3f7" opacity="0.2"/>
+        <circle cx="350" cy="300" r="35" fill="#81d4fa" opacity="0.25"/>
+        
+        <!-- Pharmacist Character -->
+        <g transform="translate(150, 120)">
+          <!-- Head -->
+          <circle cx="50" cy="30" r="28" fill="#ffccbc"/>
+          
+          <!-- Hair -->
+          <path d="M 30 25 Q 50 5 70 25" fill="#5d4037"/>
+          
+          <!-- Eyes -->
+          <circle cx="42" cy="28" r="2" fill="#000"/>
+          <circle cx="58" cy="28" r="2" fill="#000"/>
+          
+          <!-- Smile -->
+          <path d="M 42 36 Q 50 40 58 36" stroke="#000" stroke-width="1.5" fill="none"/>
+          
+          <!-- Body (White Coat) -->
+          <rect x="28" y="55" width="44" height="70" rx="8" fill="#fff"/>
+          <rect x="30" y="57" width="40" height="66" rx="6" fill="#e3f2fd"/>
+          
+          <!-- Coat Buttons -->
+          <circle cx="50" cy="70" r="2" fill="#1976d2"/>
+          <circle cx="50" cy="85" r="2" fill="#1976d2"/>
+          <circle cx="50" cy="100" r="2" fill="#1976d2"/>
+          
+          <!-- Stethoscope -->
+          <path d="M 35 65 Q 30 75 35 85" stroke="#1976d2" stroke-width="2" fill="none"/>
+          <circle cx="35" cy="88" r="4" fill="#1976d2"/>
+          
+          <!-- Arms -->
+          <rect x="10" y="65" width="18" height="50" rx="9" fill="#ffccbc"/>
+          <rect x="72" y="65" width="18" height="50" rx="9" fill="#ffccbc"/>
+          
+          <!-- Holding Medicine Bottle -->
+          <g transform="translate(75, 100)">
+            <rect x="0" y="0" width="15" height="25" rx="3" fill="#4caf50"/>
+            <rect x="2" y="2" width="11" height="8" rx="2" fill="#fff" opacity="0.7"/>
+            <rect x="3" y="-5" width="9" height="6" rx="2" fill="#2e7d32"/>
+          </g>
+          
+          <!-- Medical Cross on Coat -->
+          <rect x="44" y="115" width="12" height="4" fill="#f44336"/>
+          <rect x="48" y="111" width="4" height="12" fill="#f44336"/>
+          
+          <!-- Legs -->
+          <rect x="35" y="125" width="12" height="35" rx="6" fill="#1976d2"/>
+          <rect x="53" y="125" width="12" height="35" rx="6" fill="#1976d2"/>
+          
+          <!-- Shoes -->
+          <ellipse cx="41" cy="162" rx="8" ry="4" fill="#424242"/>
+          <ellipse cx="59" cy="162" rx="8" ry="4" fill="#424242"/>
+        </g>
+        
+        <!-- Floating Medical Icons -->
+        <g opacity="0.6">
+          <!-- Pills -->
+          <ellipse cx="80" cy="200" rx="8" ry="12" fill="#ff5252" transform="rotate(45 80 200)"/>
+          <ellipse cx="320" cy="220" rx="8" ry="12" fill="#448aff" transform="rotate(-30 320 220)"/>
+          
+          <!-- Medical Cross -->
+          <g transform="translate(70, 300)">
+            <rect x="5" y="0" width="4" height="14" fill="#4caf50"/>
+            <rect x="0" y="5" width="14" height="4" fill="#4caf50"/>
+          </g>
+          
+          <!-- Capsule -->
+          <g transform="translate(300, 160)">
+            <rect x="0" y="0" width="10" height="20" rx="5" fill="#ffc107"/>
+            <rect x="0" y="0" width="10" height="10" rx="5" fill="#ff5722"/>
+          </g>
+          
+          <!-- Heart Rate -->
+          <path d="M 320 270 L 325 265 L 330 275 L 335 260 L 340 270" stroke="#f44336" stroke-width="2" fill="none"/>
+        </g>
+      </svg>
     </div>
   </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10001; display: flex; flex-direction: column; gap: 10px;"></div>
 
   <script>
     // Password visibility toggle function
@@ -153,35 +635,58 @@
       }
     }
 
-    // Custom Alert Function
-    function showAlert(message, type = 'error') {
-      // Remove existing alerts
-      const existingAlert = document.querySelector('.custom-alert');
-      if (existingAlert) {
-        existingAlert.remove();
-      }
-
-      // Create new alert
-      const alert = document.createElement('div');
-      alert.className = `custom-alert ${type}`;
-      alert.innerHTML = `
-        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
-        <strong>${type === 'error' ? 'Error!' : 'Warning!'}</strong> ${message}
+    // Toast notification function
+    function showToast(message, type = 'error') {
+      const toastContainer = document.getElementById('toastContainer');
+      
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        background: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid ${type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#f44336'};
       `;
-
-      document.body.appendChild(alert);
-
-      // Show alert with animation
-      setTimeout(() => alert.classList.add('show'), 100);
-
+      
+      const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : '✕';
+      const iconColor = type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#f44336';
+      
+      toast.innerHTML = `
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: ${iconColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">${icon}</div>
+        <div style="flex: 1;">
+          <strong style="display: block; margin-bottom: 4px; font-size: 14px; color: #212121;">${type === 'success' ? 'Success!' : type === 'warning' ? 'Warning!' : 'Error!'}</strong>
+          <span style="font-size: 13px; color: #666;">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #9e9e9e; padding: 0; width: 24px; height: 24px; flex-shrink: 0;">&times;</button>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
       // Auto remove after 5 seconds
       setTimeout(() => {
-        if (alert.parentElement) {
-          alert.classList.remove('show');
-          setTimeout(() => alert.remove(), 300);
-        }
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
       }, 5000);
     }
+
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
 
     // Validation Functions
     function validateField(field, feedbackElement, validationFn, successMessage) {
@@ -270,7 +775,9 @@
       email: document.getElementById('email'),
       phone: document.getElementById('phone'),
       password: document.getElementById('password'),
-      confirmPassword: document.getElementById('confirmPassword')
+      confirmPassword: document.getElementById('confirmPassword'),
+      referralCode: document.getElementById('referralCode')
+
     };
 
     const feedbacks = {
@@ -316,7 +823,8 @@
           email: 'Valid email address',
           phone: 'Valid phone number',
           password: 'Strong password!',
-          confirmPassword: 'Passwords match'
+          confirmPassword: 'Passwords match',
+          referralCode: 'Valid referral code'
         };
         
         validateField(this, feedback, validators[fieldName], successMessage[fieldName]);
@@ -339,8 +847,10 @@
       let isFormValid = true;
       const missingFields = [];
 
-      // Validate all fields
-      Object.keys(fields).forEach(fieldName => {
+      // Validate all required fields (exclude referralCode as it's optional)
+      const requiredFields = ['fullName', 'email', 'phone', 'password', 'confirmPassword'];
+
+      requiredFields.forEach(fieldName => {
         const field = fields[fieldName];
         const feedback = feedbacks[fieldName];
         const value = field.value.trim();
@@ -354,7 +864,7 @@
           email: 'Valid email address',
           phone: 'Valid phone number',
           password: 'Strong password!',
-          confirmPassword: 'Passwords match'
+          confirmPassword: 'Passwords match',
         };
         
         const fieldIsValid = validateField(field, feedback, validators[fieldName], successMessages[fieldName]);
@@ -367,13 +877,13 @@
       if (missingFields.length > 0) {
         const fieldText = missingFields.length === 1 ? 'field' : 'fields';
         const fieldsList = missingFields.join(', ');
-        showAlert(`Please fill in the following ${fieldText}: ${fieldsList}`, 'warning');
+        showToast(`Please fill in the following ${fieldText}: ${fieldsList}`, 'warning');
         return;
       }
 
       // Show alert for invalid fields
       if (!isFormValid) {
-        showAlert('Please correct the highlighted fields before submitting', 'error');
+        showToast('Please correct the highlighted fields before submitting', 'error');
         return;
       }
 
@@ -386,11 +896,44 @@
       loadingSpinner.style.display = 'inline-block';
       submitText.textContent = 'Creating Account...';
 
-      // Simulate form submission delay (remove this in production)
-      setTimeout(() => {
-        // If all validations pass, submit the form
-        this.submit();
-      }, 1000);
+      // Submit form via AJAX
+      fetch('/signUp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: fields.fullName.value.trim(),
+          email: fields.email.value.trim(),
+          phone: fields.phone.value.trim(),
+          password: fields.password.value,
+          confirmPassword: fields.confirmPassword.value,
+          referralCode: fields.referralCode.value.trim()
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        loadingSpinner.style.display = 'none';
+        submitText.textContent = 'SignUp';
+        
+        if (data.message) {
+          showToast(data.message, data.success ? 'success' : 'error');
+        }
+        
+        // Redirect if successful
+        if (data.success && data.redirect) {
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1500);
+        }
+      })
+      .catch(error => {
+        submitBtn.disabled = false;
+        loadingSpinner.style.display = 'none';
+        submitText.textContent = 'SignUp';
+        showToast('Network error. Please try again.', 'error');
+      });
     });
 
     // Clear validation styles when user starts typing

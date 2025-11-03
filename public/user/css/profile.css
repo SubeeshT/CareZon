@@ -314,3 +314,26 @@
 .password-strength .strength-strong {
   color: #28a745;
 }
+.referral-code-display {
+    background: #f8f9fa;
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    padding: 12px 20px;
+}
+
+.referral-code-display code {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #007bff;
+    letter-spacing: 2px;
+}
+
+#copyReferralBtn {
+    min-width: 90px;
+}
+
+#copyReferralBtn.copied {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}

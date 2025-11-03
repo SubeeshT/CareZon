@@ -122,11 +122,8 @@ const userSchema = new mongoose.Schema(
       sparse: true,
     },
     referredBy: {
-      type: String, 
-    },
-    redeemed: {
-      type: Boolean,
-      default: false,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User' 
     },
     redeemedUsers: [
       {
