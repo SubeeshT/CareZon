@@ -39,9 +39,10 @@ router.get('/home', auth.getUserData, shopController.loadHomePage);
 //Product shop page
 router.get('/products/shop', auth.getUserData, shopController.loadShopPage);
 router.get('/products/search-suggestions', auth.getUserData, shopController.getSearchSuggestions);
+
 //product details page
 router.get('/products/details/:id', auth.getUserData, productDetailsController.getProductDetails);
-router.post('/cart/prescription', auth.validateActiveUser, uploadConfigs.generalImage.single('prescriptionFile'), productDetailsController.uploadPrescription);
+router.post('/cart/prescription', auth.validateActiveUser, uploadConfigs.prescriptionImage.single('prescriptionFile'), productDetailsController.uploadPrescription);
 router.get('/prescription/status/:productId/:variantId', auth.validateActiveUser, productDetailsController.getPrescriptionStatus);
 
 

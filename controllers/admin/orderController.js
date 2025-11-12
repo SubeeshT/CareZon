@@ -371,22 +371,13 @@ const updateReturnOrder = async (req,res) => {
             const allItemsReturned = order.items.every(item => item.status === 'returned' || item.status === 'cancelled');
             
             if (allItemsReturned) {
-                //calculate refund amount minus already refunded items
-                let refundAmount = order.totalAmount;
-                
-                //check if any items were already returned and refunded
-                const alreadyRefundedAmount = acceptedItems.reduce((sum, item) => {//check if this item was already processed in previous return
-                    const wasAlreadyReturned = item.status === 'returned' && item.returnRequestStatus === 'accepted';
-                    
-                    return sum; 
-                }, 0);
+                let refundAmount = order.totalAmount - order.deliveryFee; 
                 
                 //get wallet to check previous refunds for this order
                 const wallet = await Wallet.findOne({ userId }).session(session);
                 let previousRefunds = 0;
                 
-                if (wallet) {
-                    //calculate total already refunded for this order
+                if (wallet) { //calculate total already refunded for this order (both cancel and return)
                     previousRefunds = wallet.transactions.filter(t => 
                             t.orderId && 
                             t.orderId.toString() === order._id.toString() && 
@@ -431,7 +422,7 @@ const updateReturnOrder = async (req,res) => {
                                         paymentMethod: order.paymentMethod,
                                         amount: refundAmount,
                                         orderId: order._id,
-                                        description: `refund for returned order ${order.orderId}`,
+                                        description: `refund for returned order ${order.orderId} (delivery fee excluded)`,
                                         date: new Date()
                                     }
                                 }
@@ -478,9 +469,6 @@ const updateReturnOrder = async (req,res) => {
                         } else { //no coupon                    
                             refundAmount = returnedItem.finalPriceAfterDiscount || returnedItem.totalPrice;
                             
-                            if (order.deliveryFee > 0 && remainingSubtotal < 300) {
-                                refundAmount -= order.deliveryFee;
-                            }
                         }
                         
                         //restore coupon (only once for first item that breaks eligibility)
@@ -516,7 +504,7 @@ const updateReturnOrder = async (req,res) => {
                                             paymentMethod: order.paymentMethod,
                                             amount: refundAmount,
                                             orderId: order._id,
-                                            description: `refund for returned item in order ${order.orderId}${shouldRestoreCoupon ? ' (Coupon eligibility broken)' : ''}`,
+                                            description: `refund for returned item in order ${order.orderId}${shouldRestoreCoupon ? ' (Coupon eligibility broken)' : ''} (delivery fee excluded)`,
                                             date: new Date()
                                         }
                                     }

@@ -461,7 +461,7 @@
                                             <label for="prescriptionDate" class="form-label">
                                                 <i class="fas fa-calendar-plus"></i> Prescription Date *
                                             </label>
-                                            <input type="date" class="form-control" id="prescriptionDate" required>
+                                            <input type="date" class="form-control" id="prescriptionDate" required max="">
                                             <small class="text-muted">Date when prescription was issued</small>
                                         </div>
                                     </div>
@@ -470,7 +470,7 @@
                                             <label for="expiryDate" class="form-label">
                                                 <i class="fas fa-calendar-times"></i> Treatment End Date *
                                             </label>
-                                            <input type="date" class="form-control" id="expiryDate" required>
+                                            <input type="date" class="form-control" id="expiryDate" required min="">
                                             <small class="text-muted">Until when this medicine should be taken</small>
                                         </div>
                                     </div>
@@ -699,6 +699,17 @@
                 return;
             }
             
+            // Check if prescription data exists and populate the modal
+            if (productData.prescriptionStatus) {
+                populateExistingPrescription(productData.prescriptionStatus);
+            } else {
+                // Hide existing prescription section if no data
+                const existingSection = document.getElementById('existingPrescriptionSection');
+                if (existingSection) {
+                    existingSection.style.display = 'none';
+                }
+            }
+            
             const modal = new bootstrap.Modal(document.getElementById('prescriptionModal'));
             modal.show();
         }
@@ -801,6 +812,34 @@
             }
         }
 
+        function initializeDateRestrictions() {
+            const prescriptionDate = document.getElementById('prescriptionDate');
+            const expiryDate = document.getElementById('expiryDate');
+            
+            // Set max date for prescription date (today)
+            const today = new Date().toISOString().split('T')[0];
+            prescriptionDate.setAttribute('max', today);
+            
+            // Set min date for expiry date (today)
+            expiryDate.setAttribute('min', today);
+            
+            // Update expiry min date when prescription date changes
+            prescriptionDate.addEventListener('change', function() {
+                const selectedDate = this.value;
+                if (selectedDate) {
+                    // Expiry date should be at least one day after prescription date
+                    const minExpiryDate = new Date(selectedDate);
+                    minExpiryDate.setDate(minExpiryDate.getDate() + 1);
+                    expiryDate.setAttribute('min', minExpiryDate.toISOString().split('T')[0]);
+                    
+                    // Clear expiry date if it's now invalid
+                    if (expiryDate.value && new Date(expiryDate.value) <= new Date(selectedDate)) {
+                        expiryDate.value = '';
+                    }
+                }
+            });
+        }
+
         function validateField(fieldId) {
             const field = document.getElementById(fieldId);
             const value = field.value.trim();
@@ -883,7 +922,16 @@
             if (prescriptionDate && expiryDate) {
                 const prescDate = new Date(prescriptionDate);
                 const expDate = new Date(expiryDate);
-                
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (expDate < today) {
+                    showFieldError('expiryDate', 'Treatment end date cannot be in the past');
+                    return false;
+                }
+
+                                
                 if (expDate <= prescDate) {
                     showFieldError('expiryDate', 'Treatment end date must be after prescription date');
                     return false;
@@ -1333,9 +1381,6 @@
             // Fetch product data
             const data = await fetchProductData();
             if (data && data.success) {
-                console.log('Raw fetched data:', data);
-                console.log('Product variants:', data.product?.allVariants);
-                console.log('Variant count:', data.product?.allVariants?.length);
                 populateProductData(data);
             }
             
@@ -1346,6 +1391,7 @@
             
             initializePrescriptionUpload();
             initializeFormValidation();
+            initializeDateRestrictions();
             initializeSmoothScrolling();
             
             document.body.style.opacity = '0';
@@ -1384,22 +1430,9 @@
         updateStockStatus(variant);
         updatePrescriptionRequirement(variant.prescriptionRequired);
         
-        // Add variants section
-        console.log('About to populate variants:', {
-        allVariants: product.allVariants,
-        length: product.allVariants?.length,
-        currentIndex: product.currentVariantIndex,
-        distinguishingAttrs: product.distinguishingAttributes
-        });
         // Check if variants actually exist and have different attributes
         if (product.allVariants && product.allVariants.length > 1) {
-            console.log('Variant comparison:');
             product.allVariants.forEach((variant, index) => {
-                console.log(`Variant ${index}:`, {
-                    attributes: variant.attributes,
-                    stock: variant.stock,
-                    price: variant.salesPrice || variant.regularPrice
-                });
             });
         }
 
@@ -1413,18 +1446,20 @@
         currentStock = variant.stock;
 
         if (data.product.prescriptionStatus) {
+            productData.prescriptionStatus = data.product.prescriptionStatus;
+            
             updatePrescriptionUI(
                 data.product.prescriptionStatus.status, 
                 data.product.prescriptionStatus.patientName,
                 data.product.prescriptionStatus // Pass full prescription data
             );
-            
-            // Store rejection reason globally
-            if (data.product.prescriptionStatus.rejectionReason) {
-                productData.prescriptionStatus = data.product.prescriptionStatus;
-            }
         } else {
             prescriptionUploaded = !variant.prescriptionRequired;
+            // Clear any existing prescription UI
+            const prescriptionStatus = document.getElementById('prescriptionStatus');
+            const prescriptionUploadStatus = document.getElementById('prescriptionUploadStatus');
+            if (prescriptionStatus) prescriptionStatus.style.display = 'none';
+            if (prescriptionUploadStatus) prescriptionUploadStatus.style.display = 'none';
         }
 
         setTimeout(() => {
@@ -1432,13 +1467,6 @@
             initializeImageZoom(); // Re-initialize zoom
         }, 100);
     }
-
-console.log('Product data populated, checking variant selector...');
-setTimeout(() => {
-    const variantSelector = document.getElementById('variantSelector');
-    console.log('Variant selector display:', variantSelector?.style.display);
-    console.log('Variant options HTML:', document.getElementById('variantOptions')?.innerHTML);
-}, 500);
 
     function updateBreadcrumb(product) {
     const breadcrumb = document.querySelector('.breadcrumb');
@@ -1538,14 +1566,6 @@ function updateProductAttributes(variant) {
 }
 
 function updatePricing(variant) {
-    console.log('=== updatePricing called ===');
-    console.log('Full variant object:', JSON.stringify(variant, null, 2));  // ✅ Add this
-    console.log('Variant data:', {
-        regularPrice: variant.regularPrice,
-        salesPrice: variant.salesPrice,
-        effectiveDiscountPercent: variant.effectiveDiscountPercent
-    });
-    console.log('Type of effectiveDiscountPercent:', typeof variant.effectiveDiscountPercent);
     const currentPrice = document.querySelector('.current-price');
     const originalPrice = document.querySelector('.original-price');
     const discountBadge = document.querySelector('.discount-badge');
@@ -1681,12 +1701,6 @@ function updateCarouselControls() {
 }
 
         function populateVariants(allVariants, currentIndex, distinguishingAttrs) {
-    console.log('populateVariants called with:', {
-        variantsCount: allVariants?.length,
-        currentIndex,
-        distinguishingAttrs,
-        firstVariant: allVariants?.[0]
-    });
     
     const variantSelector = document.getElementById('variantSelector');
     const variantOptions = document.getElementById('variantOptions');
@@ -1699,10 +1713,8 @@ function updateCarouselControls() {
     // Filter only active variants (isListed = true)
     const activeVariants = allVariants ? allVariants.filter(variant => variant.isListed !== false) : [];
 
-    console.log('Active variants:', activeVariants);
 
     if (activeVariants && activeVariants.length > 0) {
-        console.log('Showing variants for multiple active options');
         
         variantSelector.style.display = 'block';
         
@@ -1740,14 +1752,12 @@ function updateCarouselControls() {
         
         variantOptions.innerHTML = variantHtml;
     } else {
-        console.log('Single active variant, hiding selector');
         variantSelector.style.display = 'none';
     }
 }
 
 function getVariantAttributeLabel(attributes, distinguishingAttrs) {
     const attrs = getAttributesObject(attributes);
-    console.log('Processing attributes:', attrs); // Debug log
     
     // Remove ingredients from attributes object
     const filteredAttrs = { ...attrs };
@@ -1783,8 +1793,6 @@ function getVariantAttributeLabel(attributes, distinguishingAttrs) {
 //this helper function
 function getAttributesObject(attributes) {
     if (!attributes) return {};
-    
-    console.log('Raw attributes:', attributes); // Debug log to see structure
     
     // Handle MongoDB Map type - it often comes as an object with $__ properties
     if (typeof attributes === 'object') {
@@ -1903,36 +1911,6 @@ function getAttributesObject(attributes) {
                 option.setAttribute('aria-label', option.textContent + ' option');
             });
         });
-
-        // Temporary debug function - call this in console to see data
-window.debugProductData = function() {
-    fetch(window.location.pathname + window.location.search, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('=== PRODUCT DEBUG ===');
-        console.log('Full response:', data);
-        console.log('All variants:', data.product?.allVariants);
-        console.log('Current variant:', data.product?.variant);
-        console.log('Distinguishing attrs:', data.product?.distinguishingAttributes);
-        console.log('Category:', data.product?.category?.name);
-        
-        // Check if variants have different distinguishing attributes
-        if (data.product?.allVariants?.length > 1) {
-            console.log('=== VARIANT COMPARISON ===');
-            data.product.allVariants.forEach((variant, index) => {
-                console.log(`Variant ${index}:`, {
-                    attributes: variant.attributes,
-                    stock: variant.stock,
-                    price: variant.salesPrice || variant.regularPrice,
-                    ingredients: variant.ingredients
-                });
-            });
-        }
-    });
-};
-
 function updateQuantity(action) {
     const quantityDisplay = document.getElementById('quantityDisplay');
     const incrementBtn = document.getElementById('incrementBtn');
@@ -1967,7 +1945,7 @@ function updatePrescriptionUI(status, patientName, prescriptionData = null) {
     const prescriptionUploadStatus = document.getElementById('prescriptionUploadStatus');
     const patientNameDisplay = document.getElementById('patientNameDisplay');
 
-    // Populate existing prescription data if available
+    // **ADD THIS: Populate existing prescription data FIRST**
     if (prescriptionData) {
         populateExistingPrescription(prescriptionData);
     }
@@ -1976,35 +1954,54 @@ function updatePrescriptionUI(status, patientName, prescriptionData = null) {
         case 'verified':
             prescriptionUploaded = true;
             prescriptionBtn.classList.add('uploaded');
-            prescriptionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Prescription Verified';
+            prescriptionBtn.innerHTML = '<i class="fas fa-check-circle"></i> View Prescription (Verified)';
             prescriptionStatus.className = 'prescription-status accepted';
             prescriptionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
-            prescriptionUploadStatus.innerHTML = `<small class="text-success"><i class="fas fa-check-circle"></i> Your prescription has been verified and approved.</small>`;
+            prescriptionUploadStatus.innerHTML = `
+                <small class="text-success">
+                    <i class="fas fa-check-circle"></i> Your prescription for ${patientName} has been verified and approved. 
+                    You can now add this product to cart.
+                </small>`;
             break;
             
         case 'pending':
             prescriptionUploaded = false;
+            prescriptionBtn.innerHTML = '<i class="fas fa-clock"></i> View Prescription (Pending)';
             prescriptionStatus.className = 'prescription-status pending';
             prescriptionStatus.innerHTML = '<i class="fas fa-clock"></i> Pending Review';
-            prescriptionUploadStatus.innerHTML = `<small class="text-warning"><i class="fas fa-clock"></i> You can know the result within 1 hour.</small>`;
+            prescriptionUploadStatus.innerHTML = `
+                <small class="text-warning">
+                    <i class="fas fa-clock"></i> Your prescription for ${patientName} is under review. 
+                    You will be notified within 1 hour.
+                </small>`;
             break;
             
         case 'rejected':
             prescriptionUploaded = false;
+            prescriptionBtn.innerHTML = '<i class="fas fa-times-circle"></i> View Prescription (Rejected)';
             prescriptionStatus.className = 'prescription-status rejected';
             prescriptionStatus.innerHTML = `
                 <i class="fas fa-times-circle"></i> Rejected 
                 <button class="btn btn-sm btn-outline-danger ms-2" onclick="showRejectionReason()">
-                    <i class="fas fa-exclamation-circle"></i> View Reason
+                    <i class="fas fa-exclamation-circle"></i> Why?
                 </button>`;
-            prescriptionUploadStatus.innerHTML = `<small class="text-danger"><i class="fas fa-times-circle"></i> Your prescription was rejected. Please upload a new one. </small>`;
+            prescriptionUploadStatus.innerHTML = `
+                <small class="text-danger">
+                    <i class="fas fa-times-circle"></i> Your prescription was rejected. 
+                    Please click the button above to see the reason and upload a new prescription.
+                </small>`;
             break;
             
         case 'expired':
             prescriptionUploaded = false;
+            prescriptionBtn.innerHTML = '<i class="fas fa-calendar-times"></i> Upload New Prescription (Expired)';
             prescriptionStatus.className = 'prescription-status rejected';
             prescriptionStatus.innerHTML = '<i class="fas fa-calendar-times"></i> Expired';
-            prescriptionUploadStatus.innerHTML = `<small class="text-danger"><i class="fas fa-calendar-times"></i> Your prescription has expired. Please upload a new one.</small>`;
+            prescriptionUploadStatus.innerHTML = `
+                <small class="text-danger">
+                    <i class="fas fa-calendar-times"></i> Your prescription for ${patientName} has expired. 
+                    Please upload a new prescription to continue.
+                </small>`;
             break;
     }
     
@@ -2015,24 +2012,54 @@ function updatePrescriptionUI(status, patientName, prescriptionData = null) {
 function populateExistingPrescription(prescriptionData) {
     const existingSection = document.getElementById('existingPrescriptionSection');
     
-    document.getElementById('existingDoctorName').textContent = prescriptionData.doctorName;
+    if (!prescriptionData) {
+        existingSection.style.display = 'none';
+        return;
+    }
+    
+    // Map the backend data structure to frontend fields
+    document.getElementById('existingDoctorName').textContent = prescriptionData.doctorName || 'N/A';
     document.getElementById('existingHospitalName').textContent = prescriptionData.hospitalName || 'N/A';
-    document.getElementById('existingPatientName').textContent = prescriptionData.patientName;
-    document.getElementById('existingMedicineName').textContent = prescriptionData.medicineName;
-    document.getElementById('existingUom').textContent = prescriptionData.uom;
-    document.getElementById('existingPrescriptionDate').textContent = new Date(prescriptionData.prescriptionDate).toLocaleDateString();
-    document.getElementById('existingExpiryDate').textContent = new Date(prescriptionData.expiryDate).toLocaleDateString();
-    document.getElementById('existingStatus').textContent = prescriptionData.status;
+    document.getElementById('existingPatientName').textContent = prescriptionData.patientName || 'N/A';
+    document.getElementById('existingMedicineName').textContent = prescriptionData.medicineName || 'N/A';
+    document.getElementById('existingUom').textContent = prescriptionData.uom || 'N/A';
+    document.getElementById('existingPrescriptionDate').textContent = prescriptionData.prescriptionDate 
+        ? new Date(prescriptionData.prescriptionDate).toLocaleDateString() 
+        : 'N/A';
+    document.getElementById('existingExpiryDate').textContent = prescriptionData.expiryDate 
+        ? new Date(prescriptionData.expiryDate).toLocaleDateString() 
+        : 'N/A';
+    
+    // Format status with proper styling
+    const statusElement = document.getElementById('existingStatus');
+    const status = prescriptionData.status || 'Unknown';
+    statusElement.textContent = status;
+    
+    // Add status-specific styling
+    statusElement.className = '';
+    if (status === 'Verified') {
+        statusElement.className = 'badge bg-success';
+    } else if (status === 'Pending') {
+        statusElement.className = 'badge bg-warning';
+    } else if (status === 'Rejected') {
+        statusElement.className = 'badge bg-danger';
+    } else if (status === 'Expired') {
+        statusElement.className = 'badge bg-secondary';
+    }
     
     // Show prescription image if available
+    const imageContainer = document.getElementById('existingPrescriptionImage');
     if (prescriptionData.prescriptionImages && prescriptionData.prescriptionImages.length > 0) {
-        document.getElementById('existingPrescriptionImage').innerHTML = `
+        imageContainer.innerHTML = `
             <img src="${prescriptionData.prescriptionImages[0].url}" 
                  alt="Existing Prescription" 
                  class="prescription-preview" 
+                 style="max-width: 300px; cursor: pointer; border: 2px solid #ddd; border-radius: 8px;"
                  onclick="window.open('${prescriptionData.prescriptionImages[0].url}', '_blank')">
             <p><small class="text-muted">Click to view full image</small></p>
         `;
+    } else {
+        imageContainer.innerHTML = '<p class="text-muted">No image uploaded</p>';
     }
     
     existingSection.style.display = 'block';
@@ -2076,4 +2103,4 @@ function showRejectionReason() {
 
     </script>
 </body>
-</html>;
+</html>

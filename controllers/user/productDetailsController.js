@@ -3,7 +3,6 @@ const Brand = require('../../models/brandSchema');
 const Category = require('../../models/categorySchema');
 const Review = require('../../models/reviewSchema');
 const Prescription = require('../../models/prescriptionSchema');
-const { uploadImage } = require('../../utils/cloudinary');
 const { getCategoryDistinguishingAttributes, getVariantLabel } = require('../../utils/variantAttribute');
 const { calculateDiscountedPrice, calculateEffectiveDiscount } = require('../../utils/discountValue');
 const fs = require('fs');
@@ -29,7 +28,7 @@ const getProductDetails = async (req, res) => {
         let selectedVariant = product.variants[variantIndex];
         let actualVariantIndex = variantIndex;
 
-        // If the requested variant doesn't exist or is not listed, find the first listed one
+        //if the requested variant doesn't exist or is not listed, find the first listed one
         if (!selectedVariant || !selectedVariant.isListed) {
             const firstListedVariantIndex = product.variants.findIndex(variant => variant.isListed);
             
@@ -120,17 +119,22 @@ const getProductDetails = async (req, res) => {
 
         let prescriptionStatus = null;
         if (req.user && selectedVariant.prescriptionRequired) {
-            prescriptionStatus = await Prescription.findOne({userId: req.user._id, productId: product._id, variantId: selectedVariant._id, }).sort({ createdAt: -1 });
+            prescriptionStatus = await Prescription.findOne({
+                userId: req.user._id, 
+                productId: product._id, 
+                variantId: selectedVariant._id,
+            }).sort({ createdAt: -1 });
+            
             //status validation for expired prescriptions
             if (prescriptionStatus && prescriptionStatus.expiryDate < new Date()) {
-                //update status to expired if the expiry date has passed
                 if (prescriptionStatus.status !== 'Expired') {
                     prescriptionStatus.status = 'Expired';
                     await prescriptionStatus.save();
                 }
             }
         }
-        // Convert selectedVariant to plain object and add discount info
+
+        //convert selectedVariant to plain object and add discount info
         const selectedVariantObj = selectedVariant.toObject();
         selectedVariantObj.salesPrice = selectedVariant.salesPrice;
         selectedVariantObj.effectiveDiscountPercent = selectedVariant.effectiveDiscountPercent;
@@ -277,16 +281,11 @@ const uploadPrescription = async (req, res) => {
                 });
             }
         }
-        //upload prescription image to Cloudinary
-        const uploadResult = await uploadImage(req.file.path, {folder: 'prescriptions'});
-
-        if (!uploadResult.success) {
-            //clean up temp file on upload failure
-            if (fs.existsSync(req.file.path)) {
-                fs.unlinkSync(req.file.path);
-            }
-            return res.status(500).json({success: false, message: "Failed to upload prescription image"});
+        
+        if(!req.file){ //upload prescription image to Cloudinary
+            return res.status(500).json({success: false, message: 'failed to upload prescription image'});
         }
+        
         //create new prescription
         const newPrescription = new Prescription({
             userId: req.user._id,
@@ -302,8 +301,8 @@ const uploadPrescription = async (req, res) => {
                 gender: patientGender
             },
             prescriptionImages: [{
-                public_id: uploadResult.public_id,
-                url: uploadResult.url,
+                public_id: req.file.filename,
+                url: req.file.path,
                 altText: `Prescription for ${patientName} - ${medicineName}`
             }],
             medicineName: medicineName,
@@ -315,10 +314,6 @@ const uploadPrescription = async (req, res) => {
 
         await newPrescription.save();
 
-        //clean up temp file
-        if (fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
 
         res.status(201).json({
             success: true, message: "Prescription uploaded successfully. Please wait for admin verification before adding to cart.", prescriptionId: newPrescription._id, canAddToCart: false //cannot add to cart until verified
@@ -326,12 +321,6 @@ const uploadPrescription = async (req, res) => {
 
     } catch (error) {
         console.error("Error grt uploading prescription : ", error);
-        
-        //clean up temp file on error
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-        
         return res.status(500).json({success: false, message: "Server error while uploading prescription"});
     }
 };

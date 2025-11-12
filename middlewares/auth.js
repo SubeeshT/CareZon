@@ -38,18 +38,22 @@ const getUserData = async (req,res,next) => {
                     if(err) console.error("Error get while destroy blocked user session : ", err);
                 });
                 res.locals.user = null;
+                req.user = null;
                 return res.redirect('/signIn?error=userBlocked');
             }
 
             res.locals.user = user;
+            req.user = user;
 
         }else{
             res.locals.user = null;
+            req.user = null;
         }
         return next();
     } catch (error) {
         console.error("internal error in user fetching : ", error);
         res.locals.user = null;
+        req.user = null;
         return next();
         
     }

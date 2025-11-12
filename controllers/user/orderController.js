@@ -236,6 +236,9 @@ const cancelOrder = async (req, res) => {
             if (!itemToCancel) {
                 return res.status(404).json({success: false, message: 'Item not found in order'});
             }
+            if (itemToCancel.status === 'cancelled') {
+                return res.status(400).json({success: false, message: 'item is already cancelled'});
+            }
             
             await Product.updateOne( //restore stock for cancelled item
                 { 
@@ -268,10 +271,16 @@ const cancelOrder = async (req, res) => {
             if (order.paymentMethod !== 'cod' || order.paymentStatus === 'completed') {
                 let refundAmount = 0;
                 let shouldRestoreCoupon = false;
+                let shouldRefundDeliveryFee = false;
                 
                 //calculate remaining active items total
                 const remainingActiveItems = order.items.filter(item => item.status !== 'cancelled' && item.status !== 'returned');
                 const remainingSubtotal = remainingActiveItems.reduce((sum, item) => sum + item.totalPrice, 0);
+                
+                //check if this is the last active item being cancelled
+                if (remainingActiveItems.length === 0) {
+                    shouldRefundDeliveryFee = true;
+                }
                 
                 //check coupon eligibility after cancellation
                 if (order.couponApplied && order.couponApplied.couponId) {
@@ -301,10 +310,11 @@ const cancelOrder = async (req, res) => {
                     }
                 } else {
                     refundAmount = itemToCancel.finalPriceAfterDiscount || itemToCancel.totalPrice;
-                    
-                    if (order.deliveryFee > 0 && remainingSubtotal < 300) {
-                        refundAmount -= order.deliveryFee;
-                    }
+                }
+                
+                //add delivery fee to refund if this is the last item being cancelled
+                if (shouldRefundDeliveryFee && order.deliveryFee > 0) {
+                    refundAmount += order.deliveryFee;
                 }
                 
                 //restore coupon usage if eligibility broken
@@ -341,7 +351,7 @@ const cancelOrder = async (req, res) => {
                                     paymentMethod: order.paymentMethod,
                                     amount: refundAmount,
                                     orderId: order._id,
-                                    description: `refund for cancelled item in order ${order.orderId}${shouldRestoreCoupon ? ' (Coupon eligibility broken)' : ''}`,
+                                    description: `refund for cancelled item in order ${order.orderId}${shouldRestoreCoupon ? ' (coupon eligibility broken)' : ''}${shouldRefundDeliveryFee ? ' (includes delivery fee)' : ''}`,
                                     date: new Date()
                                 }
                             }

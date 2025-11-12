@@ -8,6 +8,7 @@ const productController = require('../controllers/admin/productController');
 const orderController = require('../controllers/admin/orderController');
 const couponController = require('../controllers/admin/couponController');
 const salesReportController = require('../controllers/admin/salesReportController');
+const prescriptionController = require('../controllers/admin/prescriptionController');
 const auth = require('../middlewares/auth');
 const uploadConfigs  = require('../utils/multerConfig');
 
@@ -61,7 +62,11 @@ router.patch('/coupons/status/:id', auth.isAdminLoggedIn, couponController.chang
 router.delete('/coupons/delete/:id', auth.isAdminLoggedIn, couponController.deleteCoupon);
 
 //sales report
-router.get('/sales-report', auth.isAdminLoggedIn, salesReportController.getSalesReportData)
+router.get('/sales-report', auth.isAdminLoggedIn, salesReportController.getSalesReportData);
+
+//prescription section
+router.get('/prescription', auth.isAdminLoggedIn, prescriptionController.loadPrescriptionRequests);
+router.patch('/prescription/status-change', auth.isAdminLoggedIn, prescriptionController.verifyPrescription);
 
 
 module.exports = router;
