@@ -215,7 +215,6 @@ const orderSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-
 //indexing for efficient queries
 orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });

@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/admin/css/dashboard.css">
+    <link rel="stylesheet" href="/admin/css/sidebarAndHeader.css">
     <link rel="stylesheet" href="/admin/css/productAdd.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 </head>
@@ -410,7 +410,7 @@
             const addVariantBtn = document.getElementById('addVariantBtn');
             addVariantBtn.addEventListener('click', () => {
                 if (variantCount >= maxVariants) {
-                    showToast('Maximum 5 variants allowed.');
+                    showToast('Maximum 5 variants allowed.', 'warning');
                     return;
                 }
                 variantCount++;
@@ -421,10 +421,19 @@
             });
         }
 
-        function showToast(message) {
+        function showToast(message, type = 'danger') {
             const toastContainer = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-white bg-danger border-0';
+            
+            // Determine background color based on type
+            let bgClass = 'bg-danger';
+            if (type === 'success') {
+                bgClass = 'bg-success';
+            } else if (type === 'warning') {
+                bgClass = 'bg-warning';
+            }
+            
+            toast.className = `toast align-items-center text-white ${bgClass} border-0`;
             toast.setAttribute('role', 'alert');
             toast.setAttribute('aria-live', 'assertive');
             toast.setAttribute('aria-atomic', 'true');
@@ -791,7 +800,7 @@
 
             function handleImageFile(file, variantId) {
                 if (variantImageCounts[variantId] >= 6) {
-                    showToast('Maximum 6 images allowed per variant');
+                    showToast('Maximum 6 images allowed per variant', 'warning');
                     return;
                 }
 
@@ -893,17 +902,17 @@
 
                     const result = await res.json();
                     if (res.ok && result.success) {
-                        showToast('Product updated successfully: ' + result.product.name);
+                        showToast('Product updated successfully: ' + result.product.name, 'success');
                         setTimeout(() => {
                             window.location.href = '/admin/products';
                         }, 2000);
                     } else {
                         handleBackendErrors(result);
-                        showToast('Failed to update product: ' + (result.message || 'Unknown error'));
+                        showToast('Failed to update product: ' + (result.message || 'Unknown error'), 'danger');
                     }
                 } catch (error) {
                     console.error("Error:", error);
-                    showToast('Something went wrong!');
+                    showToast('Something went wrong!', 'danger');
                 } finally {
                     toggleFormDisabled(false);
                     document.getElementById('spinnerOverlay').style.display = 'none';

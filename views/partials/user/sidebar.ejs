@@ -157,7 +157,7 @@ async function uploadProfileImage(file) {
     const formData = new FormData();
     formData.append('profileImage', file);
     
-    console.log("Uploading file:", file.name, file.size); // Debug log
+    console.log("Uploading file:", file.name, file.size); 
     
     // Show loading state
     const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');

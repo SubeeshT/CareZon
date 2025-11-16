@@ -35,7 +35,7 @@ const editUserDetails = async (req, res) => {
             }
 
             //check if phone number already exists (excluding current user)
-            const existingPhone = await User.findOne({phone: phone.trim(), id: { $ne: user._id }});
+            const existingPhone = await User.findOne({phone: phone.trim(), _id: { $ne: user._id }});
             if (existingPhone) {
                 return res.status(409).json({success: false, message: "Phone number already exists"});
             }

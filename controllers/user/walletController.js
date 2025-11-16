@@ -47,7 +47,7 @@ const createRazorpayOrder = async (req, res) => {
 
         //create Razorpay order
         const options = {
-            amount: Math.round(amount * 100), //amount in paise
+            amount: Math.round(amount * 100), //amount in paisa
             currency: 'INR',
             receipt: `WLT${Date.now().toString().slice(-10)}`,
             notes: {
@@ -71,14 +71,13 @@ const createRazorpayOrder = async (req, res) => {
             });
         }
 
-        //add pending transaction
         const pendingTransaction = {
             direction: 'credit',
             status: 'pending',
             moneyFrom: 'addedViaRazorpay',
-            paymentMethod: 'card', //default, will be updated on success
+            paymentMethod: 'card', 
             amount: parseFloat(amount),
-            transactionId: order.id, //use order ID for now
+            transactionId: order.id,
             description: `payment initiated - Order ID: ${order.id}`,
             date: new Date()
         };
@@ -119,13 +118,11 @@ const verifyPaymentAndAddMoney = async (req, res) => {
             return res.status(400).json({success: false, message: 'invalid payment signature'});
         }
 
-        //validate payment method
         const validPaymentMethods = ['card', 'upi', 'netbanking'];
         if (!validPaymentMethods.includes(paymentMethod)) {
             return res.status(400).json({success: false, message: 'invalid payment method'});
         }
 
-        //find wallet
         let wallet = await Wallet.findOne({userId});
         if (!wallet) {
             wallet = new Wallet({
@@ -138,17 +135,14 @@ const verifyPaymentAndAddMoney = async (req, res) => {
             });
         }
 
-        //find and update the pending transaction
         const pendingTransactionIndex = wallet.transactions.findIndex(t => t.transactionId === razorpay_order_id && t.status === 'pending');
 
         if (pendingTransactionIndex !== -1) {
-            //update existing pending transaction to success
             wallet.transactions[pendingTransactionIndex].status = 'success';
             wallet.transactions[pendingTransactionIndex].transactionId = razorpay_payment_id;
             wallet.transactions[pendingTransactionIndex].paymentMethod = paymentMethod;
             wallet.transactions[pendingTransactionIndex].description = `Money added via Razorpay (${paymentMethod.toUpperCase()}) - Payment ID: ${razorpay_payment_id}`;
-        } else {
-            //if no pending transaction found, create new success transaction
+        } else {//if no pending transaction found, create new success transaction
             const transaction = {
                 direction: 'credit',
                 status: 'success',
@@ -162,7 +156,6 @@ const verifyPaymentAndAddMoney = async (req, res) => {
             wallet.transactions.push(transaction);
         }
 
-        //update wallet balance and totals
         wallet.balance += parseFloat(amount);
         wallet.totalCredits += parseFloat(amount);
         wallet.moneyAdded += parseFloat(amount);

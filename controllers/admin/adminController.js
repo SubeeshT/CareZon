@@ -51,15 +51,6 @@ const signIn = async (req, res) => {
   }
 };
 
-const loadDashboard = async (req, res) => {
-  try {
-    return res.render("dashboard/dashboard");
-  } catch (error) {
-    console.log("failed to load admin signin page", error);
-    return res.redirect('/admin/signIn')
-  }
-};
-
 const logout = (req,res) => {
     req.session.destroy((err) => {
         if(err){
@@ -74,6 +65,5 @@ const logout = (req,res) => {
 module.exports = {
   loadSignIn,
   signIn,
-  loadDashboard,
   logout,
 };

@@ -1,114 +1,5 @@
-const Order = require('../../models/orderSchema');
+const Order = require('../models/orderSchema');
 
-
-const loadDashboard = async (req, res) => {
-  try {
-    const { filterType = 'daily', startDate, endDate } = req.query;
-    
-    let dateFilter = {};
-    const now = new Date();
-    
-    switch(filterType) {
-      case 'daily':
-        dateFilter = {
-          createdAt: {
-            $gte: new Date(now.setHours(0, 0, 0, 0)),
-            $lte: new Date(now.setHours(23, 59, 59, 999))
-          }
-        };
-        break;
-      case 'weekly':
-        const weekAgo = new Date(now.setDate(now.getDate() - 7));
-        dateFilter = { createdAt: { $gte: weekAgo } };
-        break;
-      case 'monthly':
-        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
-        dateFilter = { createdAt: { $gte: monthAgo } };
-        break;
-      case 'yearly':
-        const yearAgo = new Date(now.setFullYear(now.getFullYear() - 1));
-        dateFilter = { createdAt: { $gte: yearAgo } };
-        break;
-      case 'custom':
-        if (startDate && endDate) {
-          dateFilter = {
-            createdAt: {
-              $gte: new Date(startDate),
-              $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
-            }
-          };
-        }
-        break;
-      default:
-        dateFilter = {};
-    }
-
-    const orders = await Order.find({...dateFilter, paymentStatus: 'completed'}).populate('items.productId');
-
-    //calculate total revenue (excluding refunded amounts)
-    let totalRevenue = 0;
-    let totalOrders = orders.length;
-    
-    orders.forEach(order => {
-      let orderTotal = order.totalAmount;
-      
-      //subtract refunded amounts for cancelled/returned items
-      order.items.forEach(item => {
-        if (item.status === 'cancelled' || item.status === 'returned') {
-          orderTotal -= (item.finalPriceAfterDiscount || item.totalPrice);
-        }
-      });
-      
-      totalRevenue += orderTotal;
-    });
-
-    //count unique users who placed orders in the period
-    const totalUsers = await Order.distinct('userId', dateFilter).then(ids => ids.length);
-
-    //calculate sales chart data
-    const chartData = await generateChartData(filterType, startDate, endDate, dateFilter);
-
-    //get top 10 products
-    const topProducts = await getTopProducts(dateFilter);
-
-    //get top 10 categories
-    const topCategories = await getTopCategories(dateFilter);
-
-    //get top 10 brands
-    const topBrands = await getTopBrands(dateFilter);
-
-    //generate colors for each data point
-    const pointColors = chartData.data.map(amount => getPointColor(amount, filterType));
-
-    if (req.headers.accept && req.headers.accept.includes('application/json')) {
-        return res.status(200).json({
-          success: true,
-          data: {
-            stats: {
-              totalRevenue,
-              totalOrders,
-              totalUsers
-            },
-            chartData: {
-              ...chartData,
-              pointColors: pointColors
-            },
-            topProducts,
-            topCategories,
-            topBrands
-          }
-        });
-    }
-
-    return res.status(200).render("dashboard/dashboard", {message: "dashboard loaded"});
-
-  } catch (error) {
-    console.log("Failed to fetch dashboard data", error);
-    return res.status(500).json({ success: false, message: "Internal error while fetching dashboard data" });
-  }
-};
-
-// Helper function to determine color for individual data points
 const getPointColor = (amount, filterType) => {
   let targets;
   
@@ -123,30 +14,29 @@ const getPointColor = (amount, filterType) => {
       break;
     case 'weekly':
       targets = {
-        min: 70000,      // 7 * 10000
-        low: 140000,     // 7 * 20000
-        medium: 350000,  // 7 * 50000
-        high: 560000     // 7 * 80000
+        min: 70000,      
+        low: 140000,   
+        medium: 350000,
+        high: 560000   
       };
       break;
     case 'monthly':
       targets = {
-        min: 300000,     // 30 * 10000
-        low: 600000,     // 30 * 20000
-        medium: 1500000, // 30 * 50000
-        high: 2400000    // 30 * 80000
+        min: 300000,    
+        low: 600000,    
+        medium: 1500000,
+        high: 2400000   
       };
       break;
     case 'yearly':
       targets = {
-        min: 3650000,    // 365 * 10000
-        low: 7300000,    // 365 * 20000
-        medium: 18250000,// 365 * 50000
-        high: 29200000   // 365 * 80000
+        min: 3650000,    
+        low: 7300000,    
+        medium: 18250000,
+        high: 29200000   
       };
       break;
     case 'custom':
-      // For custom, use daily targets as default
       targets = {
         min: 10000,
         low: 20000,
@@ -164,17 +54,16 @@ const getPointColor = (amount, filterType) => {
   }
   
   if (amount >= targets.high) {
-    return 'rgba(40, 167, 69, 1)'; // Green
+    return 'rgba(40, 167, 69, 1)'; 
   } else if (amount >= targets.medium) {
-    return 'rgba(255, 193, 7, 1)'; // Yellow
+    return 'rgba(255, 193, 7, 1)';
   } else if (amount >= targets.low) {
-    return 'rgba(253, 126, 20, 1)'; // Orange
+    return 'rgba(253, 126, 20, 1)'; 
   } else {
-    return 'rgba(220, 53, 69, 1)'; // Red
+    return 'rgba(220, 53, 69, 1)'; 
   }
 };
 
-//helper function for chart data
 const generateChartData = async (filterType, startDate, endDate, dateFilter) => {
   
   let groupBy, labels;
@@ -182,24 +71,21 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
   
   switch(filterType) {
     case 'yearly':
-      //last 10 years
       const yearLabels = [];
       const currentYear = now.getFullYear();
-      for (let i = 9; i >= 0; i--) {
+      for (let i = 2; i >= 0; i--) {
         yearLabels.push((currentYear - i).toString());
       }
       
       const yearlyData = await Order.aggregate([
         {
           $match: {
-            paymentStatus: 'completed',
-            createdAt: { $gte: new Date(currentYear - 9, 0, 1) }
+            paymentStatus: 'completed', createdAt: { $gte: new Date(currentYear - 2, 0, 1) }
           }
         },
         {
           $group: {
-            _id: { $year: '$createdAt' },
-            total: { $sum: '$totalAmount' }
+            _id: { $year: '$createdAt' }, total: { $sum: '$totalAmount' }
           }
         },
         { $sort: { _id: 1 } }
@@ -216,7 +102,6 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
       };
       
     case 'monthly':
-      //last 12 months
       labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
       const monthlyData = await Order.aggregate([
@@ -246,7 +131,6 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
       };
       
     case 'weekly':
-      //last 4 weeks
       labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
       const weeklyData = [];
       
@@ -259,14 +143,12 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
         const total = await Order.aggregate([
           {
             $match: {
-              paymentStatus: 'completed',
-              createdAt: { $gte: weekStart, $lte: weekEnd }
+              paymentStatus: 'completed', createdAt: { $gte: weekStart, $lte: weekEnd }
             }
           },
           {
             $group: {
-              _id: null,
-              total: { $sum: '$totalAmount' }
+              _id: null, total: { $sum: '$totalAmount' }
             }
           }
         ]);
@@ -277,7 +159,6 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
       return { labels, data: weeklyData };
       
     case 'daily':
-      //current month days
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
       
@@ -331,14 +212,12 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
         const total = await Order.aggregate([
           {
             $match: {
-              paymentStatus: 'completed',
-              createdAt: { $gte: dayStart, $lte: dayEnd }
+              paymentStatus: 'completed', createdAt: { $gte: dayStart, $lte: dayEnd }
             }
           },
           {
             $group: {
-              _id: null,
-              total: { $sum: '$totalAmount' }
+              _id: null, total: { $sum: '$totalAmount' }
             }
           }
         ]);
@@ -353,7 +232,6 @@ const generateChartData = async (filterType, startDate, endDate, dateFilter) => 
   }
 };
 
-//helper function for top products
 const getTopProducts = async (dateFilter) => {
   
   const topProducts = await Order.aggregate([
@@ -391,9 +269,7 @@ const getTopProducts = async (dateFilter) => {
   }));
 };
 
-//helper function for top categories
 const getTopCategories = async (dateFilter) => {
-  const Order = require('../../models/orderSchema');
   
   const topCategories = await Order.aggregate([
     { $match: { ...dateFilter, paymentStatus: 'completed' } },
@@ -439,7 +315,6 @@ const getTopCategories = async (dateFilter) => {
   }));
 };
 
-//helper function for top brands
 const getTopBrands = async (dateFilter) => {
   
   const topBrands = await Order.aggregate([
@@ -487,5 +362,9 @@ const getTopBrands = async (dateFilter) => {
 };
 
 module.exports = {
-  loadDashboard,
-}
+  getPointColor,
+  generateChartData,
+  getTopProducts,
+  getTopCategories,
+  getTopBrands
+};

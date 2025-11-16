@@ -23,7 +23,14 @@ const getSalesReportData = async (req,res) => {
                 return res.status(400).json({success: false, message: 'start date cannot be after end date'});
             }
             
-            dateFilter = {deliveredAt: { $gte: start, $lte: end}};
+            dateFilter = {
+                $or: [
+                    { deliveredAt: { $gte: start, $lte: end } },
+                    { 
+                        paymentStatus: 'completed', createdAt: { $gte: start, $lte: end }
+                    }
+                ]
+            };
 
         }else if(reportType === 'daily') {
             const startOfDay = new Date(now);
@@ -32,7 +39,14 @@ const getSalesReportData = async (req,res) => {
             const endOfDay = new Date(now);
             endOfDay.setHours(23, 59, 59, 999);
             
-            dateFilter = {deliveredAt: {$gte: startOfDay,$lte: endOfDay}};
+            dateFilter = {
+                $or: [
+                    { deliveredAt: { $gte: startOfDay, $lte: endOfDay } },
+                    { 
+                        paymentStatus: 'completed', createdAt: { $gte: startOfDay, $lte: endOfDay }
+                    }
+                ]
+            };
 
         }else if(reportType === 'weekly') {
             const startOfWeek = new Date(now);
@@ -45,7 +59,14 @@ const getSalesReportData = async (req,res) => {
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
             
-            dateFilter = { deliveredAt: { $gte: startOfWeek,$lte: endOfWeek}};
+            dateFilter = {
+                $or: [
+                    { deliveredAt: { $gte: startOfWeek, $lte: endOfWeek } },
+                    { 
+                        paymentStatus: 'completed', createdAt: { $gte: startOfWeek, $lte: endOfWeek }
+                    }
+                ]
+            };
 
         }else if(reportType === 'monthly') {
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -54,7 +75,14 @@ const getSalesReportData = async (req,res) => {
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             endOfMonth.setHours(23, 59, 59, 999);
             
-            dateFilter = {deliveredAt: {$gte: startOfMonth,$lte: endOfMonth}};
+            dateFilter = {
+                $or: [
+                    { deliveredAt: { $gte: startOfMonth, $lte: endOfMonth } },
+                    { 
+                        paymentStatus: 'completed', createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+                    }
+                ]
+            };
 
         }else if(reportType === 'yearly') {
             const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -63,22 +91,33 @@ const getSalesReportData = async (req,res) => {
             const endOfYear = new Date(now.getFullYear(), 11, 31);
             endOfYear.setHours(23, 59, 59, 999);
             
-            dateFilter = {deliveredAt: {$gte: startOfYear,$lte: endOfYear}};
+            dateFilter = {
+                $or: [
+                    { deliveredAt: { $gte: startOfYear, $lte: endOfYear } },
+                    { 
+                        paymentStatus: 'completed', createdAt: { $gte: startOfYear, $lte: endOfYear }
+                    }
+                ]
+            };;
         }
 
-        const query = {orderStatus: { $in: ['delivered', 'returned'] }, ...dateFilter};
+        const query = {
+            $or: [
+                { orderStatus: { $in: ['delivered', 'returned'] } }, { paymentStatus: 'completed' }
+            ],
+            ...dateFilter
+        }
 
         const totalOrders = await Order.countDocuments(query);
 
-        //pagination
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
         const totalPages = Math.ceil(totalOrders / limitNum);
 
-        const allOrders = await Order.find(query).populate('userId', 'fullName email').populate('couponApplied.couponId', 'code').sort({ deliveredAt: -1 }).lean();
+        const allOrders = await Order.find(query).populate('userId', 'fullName email').populate('couponApplied.couponId', 'code').sort({ createdAt: -1 }).lean();
 
-        const paginatedOrders = await Order.find(query).populate('userId', 'fullName email').populate('couponApplied.couponId', 'code').sort({ deliveredAt: -1 }).skip(skip).limit(limitNum).lean();
+        const paginatedOrders = await Order.find(query).populate('userId', 'fullName email').populate('couponApplied.couponId', 'code').sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean();
 
         //format orders function
         const formatOrders = (orders) => {
@@ -125,11 +164,10 @@ const getSalesReportData = async (req,res) => {
             });
         };
 
-        const allFormattedOrders = formatOrders(allOrders);
+        const allFormattedOrders = formatOrders(allOrders);//calling the format orders function
         
         const formattedOrders = formatOrders(paginatedOrders);
 
-        //calculate summary statistics from ALL orders (not paginated)
         let totalSalesCount = allFormattedOrders.length;
         let totalOrderAmount = 0;
         let totalDiscountAmount = 0;

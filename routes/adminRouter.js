@@ -9,6 +9,7 @@ const orderController = require('../controllers/admin/orderController');
 const couponController = require('../controllers/admin/couponController');
 const salesReportController = require('../controllers/admin/salesReportController');
 const prescriptionController = require('../controllers/admin/prescriptionController');
+const dashboardController = require('../controllers/admin/dashboardController');
 const auth = require('../middlewares/auth');
 const uploadConfigs  = require('../utils/multerConfig');
 
@@ -19,7 +20,9 @@ router.post('/signIn', adminController.signIn);
 router.get('/logout', adminController.logout);
 
 //Dashboard section
-router.get('/dashboard', auth.isAdminLoggedIn, adminController.loadDashboard);
+router.get('/dashboard', auth.isAdminLoggedIn, dashboardController.loadDashboard);
+router.get('/dashboard/download/pdf', auth.isAdminLoggedIn, dashboardController.downloadLedgerPDF);
+router.get('/dashboard/download/excel', auth.isAdminLoggedIn, dashboardController.downloadLedgerExcel);
 
 // Users management section
 router.get('/users', auth.isAdminLoggedIn, userController.getUsers);

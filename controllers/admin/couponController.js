@@ -111,13 +111,11 @@ const editCoupon = async (req, res) => {
             return res.status(404).json({success: false, message: "coupon not found"});
         }
 
-        //check for duplicate coupon code (excluding current coupon id)
         const existingCode = await Coupon.findOne({code: { $regex: `^${code.trim()}$`, $options: 'i' }, _id: { $ne: id }});
         if (existingCode) {
             return res.status(409).json({success: false, message: "coupon code already exists"});
         }
 
-        //update coupon
         coupon.code = code.trim();
         coupon.discountValue = Number(discountValue);
         coupon.minPurchaseValue = Number(minPurchaseValue);

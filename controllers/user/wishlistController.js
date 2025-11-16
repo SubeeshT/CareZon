@@ -62,7 +62,6 @@ const loadWishlist = async (req,res) => {
                     product.category.DiscountStatus || false
                 );
 
-                //create a modified variant object with the correct sales price
                 const modifiedVariant = {
                     ...variant.toObject(),
                     salesPrice: correctSalesPrice,
@@ -132,26 +131,24 @@ const addToWishlist = async (req,res) => {
         }
 
         let wishlist = await Wishlist.findOne({userId});
-        if (!wishlist) {
-            //if not have, create new wishlist with the item
+        if (!wishlist) {//if not have, create new wishlist with the item
             wishlist = await Wishlist.create({userId, items: [{productId, variantId, addedAt: new Date()}]});
             return res.status(201).json({success: true, message: 'Added to wishlist', isInWishlist: true});
         }
-        //check if item exists
+
         const itemIndex = wishlist.items.findIndex(item => item.productId.toString() === productId && item.variantId.toString() === variantId);
 
         let isAdded;
-        if (itemIndex > -1) {
-            //remove from wishlist
+        if (itemIndex > -1) {//remove from wishlist
             wishlist.items.splice(itemIndex, 1);
             isAdded = false;
-        } else {
-            //add to wishlist
+        } else {//add to wishlist
             wishlist.items.push({productId, variantId, addedAt: new Date()});
             isAdded = true;
         }
 
         await wishlist.save();
+
         return res.status(201).json({success: true, message: isAdded ? 'Added to wishlist' : 'Removed from wishlist', isInWishlist: isAdded});
 
     } catch (error) {
@@ -182,7 +179,7 @@ const removeFromWishlist = async (req,res) => {
     }
 }
 
-const checkWishlistStatus = async (req, res) => {
+const checkWishlistStatus = async (req, res) => {//for Show the correct heart/wishlist icon state color
     try {
         const {productId, variantId} = req.params;
         const userId = req.session.userId;
@@ -196,9 +193,7 @@ const checkWishlistStatus = async (req, res) => {
             return res.json({success: true, isInWishlist: false});
         }
 
-        const isInWishlist = wishlist.items.some(
-            item => item.productId.toString() === productId && item.variantId.toString() === variantId
-        );
+        const isInWishlist = wishlist.items.some(item => item.productId.toString() === productId && item.variantId.toString() === variantId);
 
         return res.json({success: true, isInWishlist});
 

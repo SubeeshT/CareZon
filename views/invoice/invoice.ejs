@@ -230,6 +230,9 @@
                 </p>
                 <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleDateString('en-GB') %></p>
                 <p><strong>Order Time:</strong> <%= new Date(order.createdAt).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true}) %></p>
+                <% if (order.couponApplied && order.couponApplied.code) { %>
+                    <p><strong>Coupon Applied:</strong> <span style="color: #28a745;"><%= order.couponApplied.code %></span></p>
+                <% } %>
             </div>
         </div>
 
@@ -242,16 +245,25 @@
                     <th class="text-center">Qty</th>
                     <th class="text-right">Unit Price</th>
                     <th class="text-right">Total</th>
+                    <% if (order.couponApplied && order.couponApplied.distributed) { %>
+                        <th class="text-right">Discount</th>
+                    <% } %>
                 </tr>
             </thead>
             <tbody>
                 <% 
                 let totalBeforeTax = 0;
+                let totalBeforeDiscount = 0;
                 order.items.forEach(item => { 
                     // Calculate price before tax (reverse calculation: current price / 1.16)
                     const priceBeforeTax = item.unitPrice / 1.16;
                     const totalBeforeTaxForItem = priceBeforeTax * item.quantity;
                     totalBeforeTax += totalBeforeTaxForItem;
+                    
+                    // Track total before discount if coupon applied
+                    if (order.couponApplied && order.couponApplied.distributed && item.discountShare) {
+                        totalBeforeDiscount += (item.totalPrice + item.discountShare);
+                    }
                 %>
                     <tr>
                         <td>
@@ -264,6 +276,15 @@
                         <td class="text-center"><%= item.quantity %></td>
                         <td class="text-right">₹<%= item.unitPrice.toLocaleString() %></td>
                         <td class="text-right">₹<%= item.totalPrice.toLocaleString() %></td>
+                        <% if (order.couponApplied && order.couponApplied.distributed) { %>
+                            <td class="text-right" style="color: #28a745;">
+                                <% if (item.discountShare) { %>
+                                    -₹<%= item.discountShare.toLocaleString('en-IN', {maximumFractionDigits: 2}) %>
+                                <% } else { %>
+                                    ₹0
+                                <% } %>
+                            </td>
+                        <% } %>
                     </tr>
                 <% }); 
                 
@@ -293,6 +314,16 @@
                 <span>Subtotal (After Tax):</span>
                 <span>₹<%= order.subtotal.toLocaleString() %></span>
             </div>
+            <% if (order.couponApplied && order.couponApplied.code) { %>
+                <div class="summary-row" style="color: #28a745;">
+                    <span>Coupon Discount (<%= order.couponApplied.code %>):</span>
+                    <span>-₹<%= order.discount.toLocaleString() %></span>
+                </div>
+                <div class="summary-row">
+                    <span>After Discount:</span>
+                    <span>₹<%= (order.subtotal - order.discount).toLocaleString() %></span>
+                </div>
+            <% } %>
             <div class="summary-row">
                 <span>Delivery Fee:</span>
                 <span><%= order.deliveryFee === 0 ? 'Free' : '₹' + order.deliveryFee.toLocaleString() %></span>

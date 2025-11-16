@@ -328,30 +328,6 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.current-datetime {
-  text-align: right;
-}
-
-.datetime-display {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.datetime-display i {
-  color: #dc3545;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 768px) {
-  .current-datetime {
-    display: none;
-  }
-}
-
 .breadcrumb {
   background: none;
   padding: 0;
@@ -455,70 +431,6 @@ body {
   font-weight: 500;
 }
 
-/* Chart Legend Styles */
-.chart-legend {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    padding: 1.5rem 1rem 0.5rem;
-    margin-top: 1rem;
-    border-top: 1px solid #e9ecef;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    display: inline-block;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: 2px solid #fff;
-}
-
-.legend-text {
-    color: #495057;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .chart-legend {
-        gap: 1rem;
-        padding: 1rem 0.5rem 0.5rem;
-    }
-    
-    .legend-item {
-        font-size: 0.8rem;
-    }
-    
-    .legend-color {
-        width: 16px;
-        height: 16px;
-    }
-}
-
-@media (max-width: 576px) {
-    .chart-legend {
-        gap: 0.75rem;
-    }
-    
-    .legend-item {
-        font-size: 0.75rem;
-    }
-    
-    .legend-text {
-        white-space: normal;
-    }
-}
-
 /* Chart Container with Filters */
 .chart-container {
   background: white;
@@ -529,7 +441,6 @@ body {
   overflow: hidden;
   min-height: 450px;
 }
-
 
 .chart-container::before {
   content: "";
@@ -1078,26 +989,6 @@ body {
     padding: 0.35rem 0.6rem;
     font-size: 0.8rem;
   }
-}
-
-/* Chart filter buttons styling */
-.chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.chart-filters {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.chart-filters .filter-btn {
-    min-width: auto;
 }
 
 /* Animations */
