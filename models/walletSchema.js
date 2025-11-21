@@ -29,7 +29,7 @@ const walletSchema = mongoose.Schema({
         },
         paymentMethod: { 
             type: String,
-            enum: ['card', 'upi', 'netbanking', 'wallet'],
+            enum: ['card', 'upi', 'netbanking', 'wallet', 'cod'],
             required: true,
         },
         amount: {//adding amount

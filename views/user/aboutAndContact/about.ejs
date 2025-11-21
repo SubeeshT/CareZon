@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - CareZon Pharmacy</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Header and Footer CSS -->
+    <link rel="stylesheet" href="/user/css/headerAndFooter.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --info-color: #0dcaf0;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,112C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            border-left: 5px solid;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stats-card.users { border-left-color: var(--primary-color); }
+        .stats-card.sales { border-left-color: var(--success-color); }
+        .stats-card.products { border-left-color: var(--warning-color); }
+        .stats-card.orders { border-left-color: var(--info-color); }
+
+        .stats-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stats-label {
+            color: #6c757d;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* About Content */
+        .about-content {
+            padding: 60px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--success-color));
+        }
+
+        .text-center .section-title::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Product Categories */
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            height: 100%;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .category-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Team Section */
+        .team-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .team-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .team-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .team-content {
+            padding: 25px;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .team-role {
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        /* Features Section */
+        .feature-box {
+            padding: 40px 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Mission Vision */
+        .mission-vision-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .mission-vision-card h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        /* Counter Animation */
+        .counter {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 50px 0;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .stats-number {
+                font-size: 2rem;
+            }
+
+            .category-icon {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 40px 0;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .stats-card {
+                padding: 20px;
+            }
+
+            .stats-number {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <%- include("../../views/partials/user/header.ejs") %>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-3 fw-bold mb-4">About CareZon Pharmacy</h1>
+                    <p class="lead mb-4">Your trusted healthcare partner, providing quality medicines, medical equipment, and wellness products to keep you and your family healthy.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/products/shop" class="btn btn-light btn-lg px-4">Our Products</a>
+                        <a href="/contact" class="btn btn-outline-light btn-lg px-4">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-5" style="background-color: #f8f9fa;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card users">
+                        <div class="stats-icon text-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stats-number counter" data-target="<%= userCount %>">0</div>
+                        <div class="stats-label">Happy Customers</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card sales">
+                        <div class="stats-icon text-success">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stats-number counter" data-target="<%= orderCount %>">0</div>
+                        <div class="stats-label">Orders Delivered</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card products">
+                        <div class="stats-icon text-warning">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stats-number counter" data-target="<%= productsCount %>">0</div>
+                        <div class="stats-label">Products Available</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card orders">
+                        <div class="stats-icon text-info">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stats-number">4.6/5</div>
+                        <div class="stats-label">Customer Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Content -->
+    <section class="about-content">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2 class="section-title">Who We Are</h2>
+                    <p class="lead">CareZon Pharmacy is a leading online healthcare platform dedicated to making quality healthcare accessible to everyone.</p>
+                    <p>Founded with a mission to revolutionize the way people access medicines and healthcare products, we have grown to become one of the most trusted names in the pharmaceutical e-commerce industry. Our platform offers a comprehensive range of authentic medicines, medical equipment, wellness products, and baby care essentials.</p>
+                    <p>With a team of experienced pharmacists and healthcare professionals, we ensure that every product meets the highest quality standards. We are committed to providing not just products, but also valuable health information and support to our customers.</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="mission-vision-card bg-gradient-primary">
+                                <h3><i class="fas fa-bullseye me-2"></i>Our Mission</h3>
+                                <p class="mb-0">To provide convenient, reliable, and affordable access to quality healthcare products and services, empowering people to take control of their health and wellbeing.</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mission-vision-card bg-gradient-success">
+                                <h3><i class="fas fa-eye me-2"></i>Our Vision</h3>
+                                <p class="mb-0">To become the most trusted healthcare partner for families across the nation, setting new standards in pharmaceutical e-commerce through innovation, quality, and care.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Categories -->
+    <section class="py-5" id="products" style="background-color: #f8f9fa;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Our Product Range</h2>
+                <p class="lead text-muted">Comprehensive healthcare solutions for your entire family</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                        <h4>Medicines & Tablets</h4>
+                        <p class="text-muted mb-0">Prescription and OTC medicines from trusted brands</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-capsules"></i>
+                        </div>
+                        <h4>Capsules & Supplements</h4>
+                        <p class="text-muted mb-0">Vitamins, minerals, and dietary supplements</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-prescription-bottle"></i>
+                        </div>
+                        <h4>Syrups & Liquids</h4>
+                        <p class="text-muted mb-0">Oral solutions and suspensions for all ages</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-band-aid"></i>
+                        </div>
+                        <h4>Ointments & Creams</h4>
+                        <p class="text-muted mb-0">Topical treatments for skin conditions</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-baby"></i>
+                        </div>
+                        <h4>Baby Care & Foods</h4>
+                        <p class="text-muted mb-0">Nutritious baby foods and care products</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <h4>Medical Equipment</h4>
+                        <p class="text-muted mb-0">Diagnostic devices and healthcare instruments</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-wheelchair"></i>
+                        </div>
+                        <h4>Body Support Items</h4>
+                        <p class="text-muted mb-0">Mobility aids and orthopedic supports</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="category-card">
+                        <div class="category-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4>Wellness Products</h4>
+                        <p class="text-muted mb-0">Health monitors and fitness accessories</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Why Choose Us</h2>
+                <p class="lead text-muted">Excellence in every aspect of our service</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="text-center mb-3">100% Authentic Products</h4>
+                        <p class="text-center text-muted mb-0">All our products are sourced directly from licensed manufacturers and authorized distributors at CareZon, ensuring authenticity and quality.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Fast Delivery</h4>
+                        <p class="text-center text-muted mb-0">Express delivery options available with real-time tracking. Get your medicines delivered to your doorstep within 24-48 hours.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Expert Consultation</h4>
+                        <p class="text-center text-muted mb-0">Free consultation with licensed pharmacists available 24/7 to answer your health-related queries and concerns.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Secure Payments</h4>
+                        <p class="text-center text-muted mb-0">Multiple secure payment options including credit/debit cards, UPI, net banking, and cash on delivery for your convenience.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Easy Returns</h4>
+                        <p class="text-center text-muted mb-0">Hassle-free return and refund policy. Not satisfied with your order? Return it within 7 days for a full refund.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-box">
+                        <div class="feature-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Best Prices</h4>
+                        <p class="text-center text-muted mb-0">Competitive pricing with regular discounts and offers. Save up to 30% on your healthcare expenses with our deals.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="py-5" style="background-color: #f8f9fa;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Meet Our Team</h2>
+                <p class="lead text-muted">Dedicated professionals committed to your health</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="team-card">
+                        <img src="/user/images/subeesh.jpg" alt="Subeesh" class="team-img" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                        <div class="team-content">
+                            <h5 class="team-name">Subeesh</h5>
+                            <p class="team-role">Admin</p>
+                            <p class="text-muted small">Oversees all operations and ensures smooth functioning of CareZon Pharmacy.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="team-card">
+                        <img src="/user/images/moni.jpg" alt="Mubashir" class="team-img" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                        <div class="team-content">
+                            <h5 class="team-name">Mubashir</h5>
+                            <p class="team-role">CA (Accountant)</p>
+                            <p class="text-muted small">Manages financial operations and ensures accurate accounting practices.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="team-card">
+                        <img src="/user/images/divya.jpg" alt="Divya" class="team-img" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                        <div class="team-content">
+                            <h5 class="team-name">Divya</h5>
+                            <p class="team-role">Senior Pharmacist</p>
+                            <p class="text-muted small">Expert in pharmaceutical care with extensive knowledge in medication management.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="team-card">
+                        <img src="/user/images/saliq.jpg" alt="Saliq" class="team-img" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                        <div class="team-content">
+                            <h5 class="team-name">Saliq</h5>
+                            <p class="team-role">Senior Pharmacist</p>
+                            <p class="text-muted small">Specialized in patient counseling and prescription verification services.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="team-card">
+                        <img src="/user/images/munavar.jpg" alt="Munavar" class="team-img" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                        <div class="team-content">
+                            <h5 class="team-name">Munavar</h5>
+                            <p class="team-role">Team Lead</p>
+                            <p class="text-muted small">Leads our team with dedication, ensuring quality service and customer satisfaction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 text-white">
+                    <h2 class="display-5 fw-bold mb-3">Ready to Experience Better Healthcare?</h2>
+                    <p class="lead mb-0">Join thousands of satisfied customers who trust CareZon Pharmacy for their healthcare needs.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a href="/products/shop" class="btn btn-light btn-lg px-5">Start Shopping</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <%- include("../../views/partials/user/footer.ejs") %>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Counter Animation Script -->
+    <script>
+        // Counter Animation
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 16);
+        }
+
+        // Intersection Observer for counter animation
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.counter');
+                    counters.forEach(counter => {
+                        if (counter.getAttribute('data-target')) {
+                            animateCounter(counter);
+                        }
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe stats section
+        document.addEventListener('DOMContentLoaded', () => {
+            const statsSection = document.querySelector('.stats-card').closest('section');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Add scroll animation for elements
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.category-card, .feature-box, .team-card');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                if (elementTop < windowHeight - 100) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        };
+
+        // Initial styles for animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.category-card, .feature-box, .team-card');
+            elements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            });
+
+            animateOnScroll();
+            window.addEventListener('scroll', animateOnScroll);
+        });
+    </script>
+</body>
+</html>

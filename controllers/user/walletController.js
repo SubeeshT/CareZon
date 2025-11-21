@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const loadWallet = async (req,res) => {
     try {
         const filter = req.query.filter || 'all';
+        const count = parseInt(req.query.count) || 1;
         const userId = req.session.userId;
 
         let wallet = await Wallet.findOne({userId}).populate({path: 'transactions.orderId', select: 'orderId'});
@@ -26,8 +27,26 @@ const loadWallet = async (req,res) => {
         }
 
         filteredTransactions.sort((a,b) => new Date(b.date) - new Date(a.date));
+        const transactionsToShow = filteredTransactions.slice(0, count * 10);
 
-        return res.status(200).render('user/account/wallet', {wallet, transactions: filteredTransactions, activePage: 'wallet', razorpayKeyId: process.env.RAZORPAYX_KEY_ID });
+        if(req.headers.accept && req.headers.accept.includes('application/json')){
+            return res.status(200).json({
+                success: true,
+                wallet, 
+                transactions: transactionsToShow, 
+                totalTransactions: filteredTransactions.length,
+                activePage: 'wallet', 
+                razorpayKeyId: process.env.RAZORPAYX_KEY_ID 
+            })
+        }
+
+        return res.status(200).render('user/account/wallet', {
+            wallet, 
+            transactions: transactionsToShow, 
+            totalTransactions: filteredTransactions.length,
+            activePage: 'wallet', 
+            razorpayKeyId: process.env.RAZORPAYX_KEY_ID 
+        });
 
     } catch (error) {
         console.error("internal error get while loading wallet : ", error);
@@ -228,18 +247,3 @@ module.exports = {
     verifyPaymentAndAddMoney,
     handlePaymentFailure
 }
-
-
-
-
-
-// 1 - Use Razorpay test cards:
-
-// Card: 4111 1111 1111 1111 or 5089 9214 5806 3914
-// CVV: Any 3 digits
-// Expiry: Any future date
-// Name: Any name
-
-// 2 - For UPI: Use success@razorpay for successful payment
-
-// 3 - For testing failure: Use fail@razorpay for UPI or decline the payment

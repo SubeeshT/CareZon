@@ -3,7 +3,7 @@ const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
 const bcrypt = require('bcryptjs');
 const { default: mongoose } = require('mongoose');
-const sendOTPEmail = (require('../../utils/sendEmail'));
+const {sendOTPEmail} = (require('../../utils/sendEmail'));
 
 
 const loadSignUp = async (req,res) => {

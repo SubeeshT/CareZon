@@ -71,5 +71,7 @@ router.get('/sales-report', auth.isAdminLoggedIn, salesReportController.getSales
 router.get('/prescription', auth.isAdminLoggedIn, prescriptionController.loadPrescriptionRequests);
 router.patch('/prescription/status-change', auth.isAdminLoggedIn, prescriptionController.verifyPrescription);
 
+router.use(auth.adminPageNotFound);
+
 
 module.exports = router;

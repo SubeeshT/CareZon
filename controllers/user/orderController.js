@@ -89,7 +89,7 @@ const loadOrdersList = async (req, res) => {
             return res.status(500).json({success: false, message: 'Error loading orders'});
         }
 
-        return res.status(500).render('pageNotFound', {status: 500, message: "Error loading orders page"});
+        return res.status(500).render('pageNotFound', {success: false, statusCode: 500, message: "Error loading orders page"});
     }
 };
 
@@ -101,7 +101,7 @@ const loadOrderedProductsDetails = async (req, res) => {
         const order = await Order.findOne({ orderId, userId }).populate('userId', 'name email').lean();
         
         if (!order) {
-            return res.status(404).render('pageNotFound', {status: 404, message: "Order not found"});
+            return res.status(404).render('pageNotFound', {success: false, statusCode: 404, message: "Order not found"});
         }
 
         //variant labels to order items
@@ -121,7 +121,7 @@ const loadOrderedProductsDetails = async (req, res) => {
 
     } catch (error) {
         console.error('Error loading order details:', error);
-        return res.status(500).render('pageNotFound', {status: 500, message: "Error loading order details"});
+        return res.status(500).render('pageNotFound', {success: false, statusCode: 500, message: "Error loading order details"});
     }
 }
 

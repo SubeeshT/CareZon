@@ -38,6 +38,41 @@
             max-width: 500px;
         }
 
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            padding-right: 40px;
+        }
+
+        .search-cancel-btn {
+            position: absolute;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: #999;
+            width: 30px;
+            height: 30px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-cancel-btn:hover {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .search-cancel-btn i {
+            font-size: 14px;
+        }
+
         .search-box input {
             border-radius: 25px;
             padding: 12px 20px;
@@ -434,6 +469,8 @@
         .toast-body.toast-warning .btn-close-white {
             filter: none;
         }
+
+
     </style>
 </head>
 <body>
@@ -456,10 +493,13 @@
                         <h2>My Orders</h2>
                         
                         <!-- Search Section -->
-                        <div class="search-section">
-                            <div class="search-box">
-                                <input type="text" class="form-control" id="searchInput" 
+                        <div class="search-box">
+                            <div class="search-input-wrapper">
+                                <input type="text" class="form-control" id="orderSearchInput" 
                                     placeholder="Search orders by Order ID, product name...">
+                                <button type="button" class="search-cancel-btn" id="orderSearchCancelBtn" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -673,6 +713,17 @@
             if (targetBtn) {
                 targetBtn.classList.add('active');
             }
+            
+            // Set search input value from URL
+            const searchParam = params.get('search');
+            const searchInput = document.getElementById('orderSearchInput');
+            const cancelBtn = document.getElementById('orderSearchCancelBtn');
+            if (searchParam && searchInput) {
+                searchInput.value = searchParam;
+                if (cancelBtn) {
+                    cancelBtn.style.display = 'flex';
+                }
+            }
         }
 
 
@@ -681,6 +732,51 @@
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', handleFilter);
             });
+            
+            // Search functionality
+            const searchInput = document.getElementById('orderSearchInput');
+            const cancelBtn = document.getElementById('orderSearchCancelBtn');
+
+            if (searchInput && cancelBtn) {
+                let searchTimeout;
+                
+                // Function to toggle cancel button visibility
+                function toggleCancelButton() {
+                    if (searchInput.value.trim() !== '') {
+                        cancelBtn.style.display = 'flex';
+                    } else {
+                        cancelBtn.style.display = 'none';
+                    }
+                }
+                
+                // Handle input with debounce
+                searchInput.addEventListener('input', function(e) {
+                    toggleCancelButton();
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        handleSearch(e.target.value);
+                    }, 500);
+                });
+                
+                // Handle Enter key
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        clearTimeout(searchTimeout);
+                        handleSearch(this.value);
+                    }
+                });
+                
+                // Handle cancel button click
+                cancelBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    toggleCancelButton();
+                    handleSearch(''); // Clear search and reload all orders
+                });
+                
+                // Check on page load if there's a value
+                toggleCancelButton();
+            }
             
             // Modal event listeners
             document.getElementById('cancelEntireOrderReason').addEventListener('change', function() {
@@ -860,6 +956,25 @@
             }
             
             // Reset to page 1 when filtering
+            params.delete('page');
+            
+            // Update URL
+            const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+            
+            await loadOrders();
+        }
+
+        async function handleSearch(searchTerm) {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (searchTerm && searchTerm.trim()) {
+                params.set('search', searchTerm.trim());
+            } else {
+                params.delete('search');
+            }
+            
+            // Reset to page 1 when searching
             params.delete('page');
             
             // Update URL

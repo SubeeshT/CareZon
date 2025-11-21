@@ -977,6 +977,7 @@
             totalCredits: <%= wallet.totalCredits %>,
             totalMoneyAdded: <%= wallet.moneyAdded %>,
             totalSpent: <%= wallet.totalSpent %>,
+            totalTransactions: <%= totalTransactions %>,
             transactions: <%- JSON.stringify(transactions.map(t => ({
                 id: t._id,
                 type: t.direction,
@@ -1005,9 +1006,10 @@
         };
 
         // Pagination state
-        let displayedTransactions = 10;
+        let clickCount = 1;
         const transactionsPerPage = 10;
         let currentFilter = 'all';
+        let totalTransactionsCount = walletDataFromServer.totalTransactions;
 
          // Global variable for selected payment method
         let selectedPaymentMethod = null;
@@ -1020,7 +1022,8 @@
             // Set active filter based on URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             const filterParam = urlParams.get('filter') || 'all';
-            
+            clickCount = parseInt(urlParams.get('count')) || 1;
+
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 if (btn.dataset.filter === filterParam) {
                     btn.classList.add('active');
@@ -1028,7 +1031,7 @@
                     btn.classList.remove('active');
                 }
             });
-            
+
             currentFilter = filterParam;
         });
 
@@ -1044,7 +1047,7 @@
                 walletData.transactions = walletDataFromServer.transactions;
                 
                 updateUI();
-                renderTransactions('all');
+                renderTransactions();
                 hideLoading();
                 
             } catch (error) {
@@ -1062,32 +1065,19 @@
             document.getElementById('totalSpent').textContent = `₹${walletData.totalSpent.toFixed(2)}`;
         }
 
-        // Render transactions
-        function renderTransactions(filter = 'all', append = false) {
+        function renderTransactions() {
             const transactionList = document.getElementById('transactionList');
             const loadingSpinner = document.getElementById('loadingSpinner');
             const emptyState = document.getElementById('emptyState');
             const viewMoreContainer = document.getElementById('viewMoreContainer');
-            const viewMoreBtn = document.getElementById('viewMoreBtn');
             const remainingCount = document.getElementById('remainingCount');
             
-            // Update current filter
-            if (!append) {
-                currentFilter = filter;
-                displayedTransactions = transactionsPerPage;
-            }
-
-            // Filter transactions
+            // Use all transactions from server (already filtered)
             let filteredTransactions = walletData.transactions;
-            if (currentFilter !== 'all') {
-                filteredTransactions = walletData.transactions.filter(t => t.type === currentFilter);
-            }
 
-            // Clear existing transactions if not appending
-            if (!append) {
-                const existingTransactions = transactionList.querySelectorAll('.transaction-item');
-                existingTransactions.forEach(item => item.remove());
-            }
+            // Clear existing transactions
+            const existingTransactions = transactionList.querySelectorAll('.transaction-item');
+            existingTransactions.forEach(item => item.remove());
 
             // Show empty state if no transactions
             if (filteredTransactions.length === 0) {
@@ -1099,28 +1089,19 @@
 
             emptyState.style.display = 'none';
 
-            // Get transactions to display
-            const transactionsToShow = filteredTransactions.slice(0, displayedTransactions);
-            const remainingTransactions = filteredTransactions.length - displayedTransactions;
-
-            // Clear if not appending
-            if (!append) {
-                const existingItems = transactionList.querySelectorAll('.transaction-item');
-                existingItems.forEach(item => item.remove());
-            }
-
-            // Render each transaction
-            transactionsToShow.forEach((transaction, index) => {
-                if (!append || index >= displayedTransactions - transactionsPerPage) {
-                    const transactionItem = createTransactionElement(transaction);
-                    transactionList.appendChild(transactionItem);
-                }
+            // Render all transactions
+            filteredTransactions.forEach((transaction) => {
+                const transactionItem = createTransactionElement(transaction);
+                transactionList.appendChild(transactionItem);
             });
 
             // Show/hide view more button
-            if (remainingTransactions > 0) {
+            const displayedCount = walletData.transactions.length;
+            const totalRemaining = totalTransactionsCount - displayedCount;
+
+            if (totalRemaining > 0) {
                 viewMoreContainer.style.display = 'block';
-                remainingCount.textContent = `(${remainingTransactions})`;
+                remainingCount.textContent = `(${totalRemaining})`;
             } else {
                 viewMoreContainer.style.display = 'none';
             }
@@ -1159,7 +1140,8 @@
 
             // Determine icon and styling based on transaction status and type
             let icon, amountClass;
-            
+            const transactionType = transaction.type || transaction.direction; // Handle both type and direction
+
             if (transaction.status === 'failed') {
                 icon = 'fa-times-circle';
                 amountClass = 'text-danger';
@@ -1167,16 +1149,16 @@
                 icon = 'fa-clock';
                 amountClass = 'text-warning';
             } else {
-                icon = transaction.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up';
-                amountClass = transaction.type === 'credit' ? 'credit' : 'debit';
+                icon = transactionType === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up';
+                amountClass = transactionType === 'credit' ? 'credit' : 'debit';
             }
 
-            const amountSign = transaction.type === 'credit' && transaction.status === 'success' ? '+' : 
+            const amountSign = transactionType === 'credit' && transaction.status === 'success' ? '+' : 
                             transaction.status === 'failed' ? '' : 
                             transaction.status === 'pending' ? '' : '-';
 
             // Determine icon wrapper class
-            let iconWrapperClass = transaction.type;
+            let iconWrapperClass = transactionType;
             if (transaction.status === 'failed') {
                 iconWrapperClass = 'failed';
             } else if (transaction.status === 'pending') {
@@ -1204,42 +1186,42 @@
             // Filter buttons
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     filterButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    displayedTransactions = transactionsPerPage;
                     const filter = this.dataset.filter;
+                    currentFilter = filter;
+                    clickCount = 1; // Reset count when changing filter
                     
-                    // Update URL with filter query parameter
+                    // Update URL without reload
                     const url = new URL(window.location);
+                    url.searchParams.delete('count');
                     if (filter === 'all') {
                         url.searchParams.delete('filter');
                     } else {
                         url.searchParams.set('filter', filter);
                     }
-                    window.history.pushState({}, '', url);
+                    window.history.pushState({}, '', url.toString());
                     
-                    renderTransactions(filter, false);
+                    // Fetch filtered data
+                    await fetchFilteredTransactions(filter, clickCount);
                 });
             });
 
             // View More button
             const viewMoreBtn = document.getElementById('viewMoreBtn');
             if (viewMoreBtn) {
-                viewMoreBtn.addEventListener('click', function() {
-                    displayedTransactions += transactionsPerPage;
-                    renderTransactions(currentFilter, false);
+                viewMoreBtn.addEventListener('click', async function() {
+                    clickCount++;
+                    const urlParams = new URLSearchParams(window.location.search);
+                    urlParams.set('count', clickCount);
+                    if (currentFilter !== 'all') {
+                        urlParams.set('filter', currentFilter);
+                    }
+                    window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
                     
-                    // Smooth scroll to newly loaded transactions
-                    setTimeout(() => {
-                        const transactions = document.querySelectorAll('.transaction-item');
-                        if (transactions.length > transactionsPerPage) {
-                            transactions[displayedTransactions - transactionsPerPage].scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'nearest' 
-                            });
-                        }
-                    }, 100);
+                    // Fetch more transactions
+                    await fetchFilteredTransactions(currentFilter, clickCount);
                 });
             }
 
@@ -1285,6 +1267,47 @@
                 document.getElementById('proceedPaymentBtn').disabled = true;
             });
         }
+
+        // Fetch filtered transactions without page reload
+        async function fetchFilteredTransactions(filter, count) {
+            try {
+                // Show loading
+                const transactionList = document.getElementById('transactionList');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+                loadingSpinner.style.display = 'flex';
+                
+                // Clear existing transactions
+                const existingTransactions = transactionList.querySelectorAll('.transaction-item');
+                existingTransactions.forEach(item => item.remove());
+                
+                const response = await fetch(`/account/wallet?filter=${filter}&count=${count}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update wallet data
+                    walletData.transactions = data.transactions;
+                    totalTransactionsCount = data.totalTransactions;
+                    
+                    // Re-render transactions
+                    renderTransactions();
+                } else {
+                    showToast('Failed to load transactions', 'error');
+                }
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Error fetching filtered transactions:', error);
+                showToast('Failed to load transactions', 'error');
+                hideLoading();
+            }
+        }
+
         // Validate amount
         function validateAmount() {
             const amountInput = document.getElementById('amountInput');

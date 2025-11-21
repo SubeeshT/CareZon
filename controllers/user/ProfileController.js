@@ -27,21 +27,18 @@ const editUserDetails = async (req, res) => {
             return res.status(400).json({success: false, message: "Full name is required"});
         }
 
-        //validate phone number if provided
         if (phone && phone.trim()) {
             const phoneRegex = /^\d{10}$/;
             if (!phoneRegex.test(phone.trim())) {
                 return res.status(400).json({success: false, message: "Please enter a valid 10-digit phone number"});
             }
 
-            //check if phone number already exists (excluding current user)
             const existingPhone = await User.findOne({phone: phone.trim(), _id: { $ne: user._id }});
             if (existingPhone) {
                 return res.status(409).json({success: false, message: "Phone number already exists"});
             }
         }
 
-        //validate DOB if provided
         let formattedDOB = null;
         if (DOB && DOB.trim()) {
             const dobDate = new Date(DOB);
@@ -52,7 +49,6 @@ const editUserDetails = async (req, res) => {
             formattedDOB = dobDate;
         }
 
-        //validate gender if provided
         const validGenders = ['Male', 'Female', 'Other', 'Prefer not to say'];
         if (gender && gender.trim() && !validGenders.includes(gender.trim())) {
             return res.status(400).json({success: false, message: "Please select a valid gender"});

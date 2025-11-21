@@ -143,7 +143,7 @@ const loadCart = async (req,res) => {
 
     } catch (error) {
         console.error("internal error get while load cart page : ", error);
-        return res.status(500).render('pageNotFound', {success: false, message: "Error get while loading cart page, Try again"});
+        return res.status(500).render('pageNotFound', {success: false, statusCode: 500, message: "Error get while loading cart page, Try again"});
     }
 }
 

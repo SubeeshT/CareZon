@@ -10,6 +10,7 @@ const checkoutController = require('../controllers/user/checkoutController');
 const orderController =  require('../controllers/user/orderController');
 const wishlistController = require('../controllers/user/wishlistController');
 const walletController = require('../controllers/user/walletController');
+const aboutContactController = require("../controllers/user/aboutAndContactController");
 const auth = require('../middlewares/auth');
 const passport = require('passport');
 const uploadConfigs = require('../utils/multerConfig');
@@ -102,5 +103,12 @@ router.get('/account/wallet', auth.validateActiveUser, walletController.loadWall
 router.post('/wallet/create-order', auth.validateActiveUser, walletController.createRazorpayOrder);
 router.post('/wallet/verify-payment', auth.validateActiveUser, walletController.verifyPaymentAndAddMoney);
 router.post('/wallet/payment-failed', auth.validateActiveUser, walletController.handlePaymentFailure);
+
+//about section
+router.get('/about', auth.getUserData, aboutContactController.loadAbout);
+router.get('/contact', auth.getUserData, aboutContactController.loadContact);
+router.post('/contact', auth.getUserData, aboutContactController.submitContact);
+
+router.use(auth.userPageNotFound);
 
 module.exports = router

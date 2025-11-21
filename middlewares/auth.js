@@ -93,10 +93,20 @@ const validateActiveUser = async (req,res,next) => {
 }
 
 
+function userPageNotFound(req,res){
+    return res.status(404).render('pageNotFound', {success: false, statusCode: 404, message: "This page is currently un available, please go back to home"});
+}
+
+function adminPageNotFound(req,res){
+    return res.status(404).render('error');
+}
+
 module.exports = {
     isAdminLoggedIn,
     isUserLoggedInWithUserData,
     getUserData, 
-    validateActiveUser 
+    validateActiveUser,
+    userPageNotFound,
+    adminPageNotFound
 }
 

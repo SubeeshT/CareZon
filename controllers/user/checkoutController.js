@@ -112,7 +112,7 @@ const loadCheckout = async (req,res) => {
 
     } catch (error) {
         console.error("error loading checkout page:", error);
-        return res.status(500).render('pageNotFound', {status: 500, message: "something went wrong while loading checkout page"});
+        return res.status(500).render('pageNotFound', {success: false, statusCode: 500, message: "something went wrong while loading checkout page"});
     }
 }
 

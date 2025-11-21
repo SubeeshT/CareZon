@@ -298,6 +298,10 @@ const addProduct = async (req, res) => {
 const loadEditProductPage = async (req, res) => {
     try {
         const { id } = req.params;
+
+        if(!mongoose.Types.ObjectId.isValid(id)){
+            return res.status(404).render('error');
+        }
         
         const product = await Product.findById(id).populate('brand', '_id name status').populate('category', '_id name isListed');    
         if (!product) {
@@ -314,7 +318,7 @@ const loadEditProductPage = async (req, res) => {
         return res.render('product/editProduct', { product, brands, categories });
     } catch (error) {
         console.error('Error loading  product edit page:', error);
-        return res.status(500).json({success: false, message: 'Failed to load  product edit page'});
+        return res.status(500).render('error');
     }
 };
 
