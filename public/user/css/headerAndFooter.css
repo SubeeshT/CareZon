@@ -179,6 +179,10 @@ body {
   transform: scale(1.1);
 }
 
+.navbar .dropdown-menu {
+  z-index: 1060;
+}
+
 header.fixed-top {
   position: fixed;
   top: 0;

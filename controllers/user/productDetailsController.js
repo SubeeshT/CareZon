@@ -63,6 +63,7 @@ const getProductDetails = async (req, res) => {
             
             return {
                 id: product._id,
+                variantId: activeVariant._id,
                 name: product.name,
                 brand: product.brand,
                 category: product.category,

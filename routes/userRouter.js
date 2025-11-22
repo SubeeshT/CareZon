@@ -94,7 +94,7 @@ router.get('/account/orders/invoice/:orderId', auth.validateActiveUser, orderCon
 
 //Wishlist section
 router.get('/account/wishlists', auth.validateActiveUser, wishlistController.loadWishlist);
-router.post('/account/wishlist/add/:productId/:variantId', auth.validateActiveUser, wishlistController.addToWishlist);
+router.post('/account/wishlist/add/:productId/:variantId', auth.getUserData, wishlistController.addToWishlist);
 router.delete('/account/wishlist/delete/:variantId', auth.validateActiveUser, wishlistController.removeFromWishlist);
 router.get('/account/wishlist/check/:productId/:variantId', auth.validateActiveUser, wishlistController.checkWishlistStatus);
 

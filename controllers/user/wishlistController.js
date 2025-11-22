@@ -107,6 +107,10 @@ const addToWishlist = async (req,res) => {
         const {productId, variantId} = req.params;
         const userId = req.session.userId;
 
+        if (!userId) {
+            return res.status(401).json({success: false, message: 'please sign in first to add items to wishlist'});
+        }
+
         if(!productId || !variantId || !mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(variantId)){
             return res.status(400).json({success: false, message: "product or variant is not valid"});
         }
