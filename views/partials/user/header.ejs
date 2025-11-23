@@ -2,30 +2,51 @@
 <header class="fixed-top">
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="/home">CareZon</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+           <button class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/products/shop">Shop</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/contact">Contact</a>
-                    </li>
-                </ul>
-                
+            <a class="navbar-brand" href="/home">CareZon</a>
+            
+            <!-- Sidebar Overlay -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+                <!-- Sidebar Navigation -->
+                <div class="sidebar-nav" id="sidebarNav">
+                    <div class="sidebar-header">
+                        <span class="sidebar-brand">CareZon</span>
+                        <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/products/shop">Shop</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact">Contact</a>
+                        </li>
+                    </ul>
+                </div>    
                 <!-- Header Right Section -->
                 <div class="header-right d-flex align-items-center">
+                    <!-- Mobile Search Icon -->
+                    <div class="mobile-search-icon me-3" id="mobileSearchIcon">
+                        <i class="fas fa-search"></i>
+                    </div>
+
                     <!-- Search Field (Hidden on account pages) -->
                     <div class="search-container me-3">
+                        <button type="button" class="mobile-search-close" id="mobileSearchClose">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <form class="search-form">
                             <div class="search-input-wrapper">
                                 <input type="text" class="form-control search-input" placeholder="Search for products..." id="searchInput" autocomplete="off" spellcheck="false">
@@ -137,8 +158,12 @@
         // Hide search on account pages
         if (isAccountPage) {
             const searchContainer = document.querySelector('.search-container');
+            const mobileSearchIcon = document.querySelector('.mobile-search-icon');
             if (searchContainer) {
                 searchContainer.style.display = 'none';
+            }
+            if (mobileSearchIcon) {
+                mobileSearchIcon.style.display = 'none';
             }
             return; // Don't initialize search functionality on account pages
         }
@@ -351,6 +376,106 @@
                 console.error('Error fetching cart count:', error);
             }
         }
+
+        // Mobile Search Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileSearchIcon = document.getElementById('mobileSearchIcon');
+            const mobileSearchClose = document.getElementById('mobileSearchClose');
+            const searchContainer = document.querySelector('.search-container');
+            const headerRight = document.querySelector('.header-right');
+
+            function closeMobileSearch() {
+                if (searchContainer && headerRight) {
+                    searchContainer.classList.remove('mobile-active');
+                    headerRight.classList.remove('search-active');
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+                    const suggestionsContainer = document.getElementById('searchSuggestions');
+                    if (suggestionsContainer) {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                    const cancelBtn = document.getElementById('cancelBtn');
+                    if (cancelBtn) {
+                        cancelBtn.style.display = 'none';
+                    }
+                }
+            }
+
+            if (mobileSearchIcon && searchContainer) {
+                mobileSearchIcon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    searchContainer.classList.add('mobile-active');
+                    headerRight.classList.add('search-active');
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        setTimeout(() => searchInput.focus(), 100);
+                    }
+                });
+            }
+
+            if (mobileSearchClose && searchContainer) {
+                mobileSearchClose.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    closeMobileSearch();
+                });
+            }
+
+            // Close mobile search when clicking outside
+            document.addEventListener('click', function(e) {
+                if (searchContainer && searchContainer.classList.contains('mobile-active')) {
+                    if (!searchContainer.contains(e.target) && e.target !== mobileSearchIcon) {
+                        closeMobileSearch();
+                    }
+                }
+            });
+
+            // Prevent closing when clicking inside search container
+            if (searchContainer) {
+                searchContainer.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+
+        // Sidebar Navigation Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const sidebarNav = document.getElementById('sidebarNav');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarClose = document.getElementById('sidebarClose');
+
+            function openSidebar() {
+                sidebarNav.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebarNav.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            if (hamburgerMenu) {
+                hamburgerMenu.addEventListener('click', openSidebar);
+            }
+
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+
+            // Close sidebar when clicking on a link
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', closeSidebar);
+            });
+        });
 
         // Initialize cart count on page load
         document.addEventListener('DOMContentLoaded', function() {
