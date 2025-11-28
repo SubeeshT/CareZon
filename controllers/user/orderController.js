@@ -5,6 +5,9 @@ const Address = require('../../models/addressSchema');
 const User = require('../../models/userSchema');
 const Wallet = require('../../models/walletSchema');
 const Coupon = require('../../models/couponSchema');
+const puppeteer = require('puppeteer');
+const ejs = require('ejs');
+const path = require('path');
 const { getVariantLabel } = require('../../utils/variantAttribute');
 const { default: mongoose } = require('mongoose');
 
@@ -489,21 +492,44 @@ const downloadInvoice = async (req, res) => {
         const { orderId } = req.params;
         const userId = req.session.userId;
         
-        const order = await Order.findOne({ orderId, userId }).populate('userId', 'name email');
+        const order = await Order.findOne({ orderId, userId }).populate('userId', 'fullName email');
         
         if (!order) {
             return res.status(404).json({ error: "Order not found" });
         }
         
-        //for view invoice
         if (req.query.view === 'true') {
             return res.status(200).render('invoice/invoice', {order: order, printMode: true});
         }
         
-        //for download 
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Content-Disposition', `attachment; filename="Invoice-${orderId}.html"`);
-        return res.status(200).render('invoice/invoice', {order: order, printMode: true});
+        const templatePath = path.join(__dirname, '../../views/invoice/invoice.ejs');
+        const html = await ejs.renderFile(templatePath, {order: order, printMode: true});
+        
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '20px',
+                right: '20px',
+                bottom: '20px',
+                left: '20px'
+            }
+        });
+        
+        await browser.close();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="Invoice-${orderId}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        return res.send(pdfBuffer);
         
     } catch (error) {
         console.error('Error generating invoice:', error);

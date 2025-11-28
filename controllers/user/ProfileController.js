@@ -1,6 +1,6 @@
 const User = require('../../models/userSchema');
 const bcrypt = require('bcryptjs');
-const sendOTPEmail = require('../../utils/sendEmail');
+const {sendOTPEmail} = require('../../utils/sendEmail');
 const path = require('path');
 
 const loadProfile = async (req, res) => {
