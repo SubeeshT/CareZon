@@ -7,7 +7,8 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const db = require('./config/db');
 const userRouter = require('./routes/userRouter');
-const adminRouter = require('./routes/adminRouter')
+const adminRouter = require('./routes/adminRouter');
+
 db()
 
 app.use(session({
@@ -22,7 +23,7 @@ app.use(session({
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,//7 days in milliseconds , maxAge: How long the browser keeps the session cookie
         httpOnly: true,
-        secure: false, //set to true in production with HTTPS
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
     }
 }));
