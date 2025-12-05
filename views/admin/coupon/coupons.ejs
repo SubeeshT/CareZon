@@ -1088,7 +1088,7 @@
                     filter: currentFilter
                 });
 
-                console.log('Fetching coupons with params:', queryParams.toString()); // ADD THIS
+                 // ADD THIS
 
                 const response = await fetch(`/admin/coupons?${queryParams}`, {
                     method: 'GET',
@@ -1098,7 +1098,7 @@
                     }
                 });
 
-                console.log('Response status:', response.status); // ADD THIS
+                 // ADD THIS
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -1107,13 +1107,13 @@
                 }
                 
                 const data = await response.json();
-                console.log('Response data:', data); // ADD THIS
+                 // ADD THIS
                 
                 if (data.success) {
                     couponsData = data.coupons;
                     filteredCoupons = data.coupons;
                     
-                    console.log('Coupons loaded:', couponsData.length); // ADD THIS
+                     // ADD THIS
                     
                     // Update pagination info from backend
                     const { totalPages, currentPage: backendPage, totalItems } = data.pagination;

@@ -856,7 +856,7 @@
             const form = document.getElementById('productForm');
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                console.log('Form submission triggered'); // Debug: Confirm event fires
+                 // Debug: Confirm event fires
                 clearErrors();
 
                 let isValid = true;
@@ -880,15 +880,14 @@
                 }
 
                 if (!isValid) {
-                    console.log('Validation failed:', document.querySelectorAll('.field-error')); // Debug: Log validation errors
+                     // Debug: Log validation errors
                     return;
                 }
 
                 const formData = new FormData(form);
-                console.log('FormData contents:'); // Debug: Inspect form data
+                 // Debug: Inspect form data
                 for (let [key, value] of formData.entries()) {
-                    console.log(`${key}:`, value instanceof File ? value.name : value);
-                }
+                                    }
 
                 toggleFormDisabled(true);
                 document.getElementById('spinnerOverlay').style.display = 'block';

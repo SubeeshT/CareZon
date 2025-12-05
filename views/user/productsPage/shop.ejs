@@ -728,8 +728,6 @@
         }
 
         function renderProducts(productsToRender = filteredProducts) {
-            console.log('Products to render:', productsToRender); // Add this line
-            console.log('First product ID:', productsToRender[0]?._id);
             if (!productsToRender || productsToRender.length === 0) {
                 productsGrid.innerHTML = `
                     <div class="col-12 text-center py-5">

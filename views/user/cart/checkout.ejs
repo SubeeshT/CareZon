@@ -1191,10 +1191,6 @@
             initializeEventListeners();
             updateStepIndicator(2);
             applyAnimations();
-
-            console.log('✅ Event listeners initialized');
-            console.log('Select coupon button exists:', document.getElementById('select-coupon-btn') !== null);
-            console.log('Apply coupon button exists:', document.getElementById('apply-coupon-code-btn') !== null);
         });
 
         function initializeEventListeners() {
@@ -1914,7 +1910,6 @@
         let allCoupons = []; 
 
         async function loadCoupons() {
-            console.log('🎯 loadCoupons() function called!');
             try {
                 const subtotal = cart.totalAmount || 0;
                 const response = await fetch(`/cart/coupons?orderAmount=${subtotal}`);
@@ -2070,7 +2065,6 @@
         }
 
         function removeCoupon() {
-            console.log('🗑️ removeCoupon() function called!');
             appliedCoupon = null;
             document.getElementById('coupon-code-input').value = '';
             document.getElementById('applied-coupon-display').style.display = 'none';
@@ -2102,16 +2096,7 @@
             const total = subtotal + fee - discount;
             
             // DEBUG LOGS
-            console.log('=== COD ELIGIBILITY CHECK ===');
-            console.log('Subtotal:', subtotal);
-            console.log('Delivery Fee:', fee);
-            console.log('Applied Coupon:', appliedCoupon);
-            console.log('Discount:', discount);
-            console.log('Final Total:', total);
-            console.log('COD_MAX_AMOUNT:', COD_MAX_AMOUNT);
-            console.log('Is COD Allowed?:', total <= COD_MAX_AMOUNT);
-            console.log('==============================');
-            
+                                                                                                                        
             // Check if COD should be disabled/enabled based on final total (including coupon discount)
             const codAllowed = total <= COD_MAX_AMOUNT;
             const codOption = document.querySelector('[data-payment="cod"]');
@@ -2121,9 +2106,7 @@
             // Store previous state to detect changes
             const wasCODAllowed = !codOption.classList.contains('disabled');
             
-            console.log('Was COD Allowed Before?:', wasCODAllowed);
-            console.log('COD Allowed Now?:', codAllowed);
-            
+                                    
             if (codAllowed) {
                 codOption.classList.remove('disabled');
                 codRadio.disabled = false;
@@ -2133,8 +2116,7 @@
                 
                 // Only show toast if COD wasn't available before and became available now
                 if (!wasCODAllowed && appliedCoupon) {
-                    console.log('✅ Showing success toast - COD now available');
-                    showToast('Cash on Delivery is now available!', 'success');
+                                        showToast('Cash on Delivery is now available!', 'success');
                 }
             } else {
                 codOption.classList.add('disabled');
@@ -2145,8 +2127,7 @@
                 
                 // If COD was selected, deselect it
                 if (selectedPayment === 'cod') {
-                    console.log('⚠️ Showing warning toast - COD was selected but now not available');
-                    selectedPayment = null;
+                                        selectedPayment = null;
                     codRadio.checked = false;
                     document.querySelectorAll('.payment-option').forEach(option => {
                         option.classList.remove('selected');

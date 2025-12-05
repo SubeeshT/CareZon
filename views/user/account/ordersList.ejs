@@ -655,28 +655,28 @@
 
         async function loadOrders() {
         try {
-            console.log('Starting loadOrders function'); // Debug
+             // Debug
             showLoading();
             
             const params = new URLSearchParams(window.location.search);
-            console.log('URL params:', params.toString()); // Debug
+             // Debug
             
             const url = `/account/orders?${params.toString()}`;
-            console.log('Fetch URL:', url); // Debug
+             // Debug
             
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' }
             });
             
-            console.log('Response status:', response.status); // Debug
-            console.log('Response headers:', response.headers.get('content-type')); // Debug
+             // Debug
+             // Debug
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
-            console.log('Response data:', data); // Debug
+             // Debug
             
             hideLoading();
             
@@ -684,7 +684,7 @@
                 displayOrders(data.orders);
                 displayPagination(data.pagination);
             } else {
-                console.log('No orders found or empty response'); // Debug
+                 // Debug
                 document.getElementById('emptyState').classList.remove('d-none');
             }
         } catch (error) {

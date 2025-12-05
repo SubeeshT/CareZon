@@ -265,7 +265,6 @@ const signIn = async (req,res) => {
                 return res.status(500).json({success: false, message: "Session save get error, please try again"})
             }
 
-            console.log(`Logged user is : ${user.fullName}`);
             //return res.redirect('/home');
             return res.status(200).json({success: true, message: "Sign in successful"});
 
@@ -445,7 +444,6 @@ const googleAuthCallback = (req, res) => {
             console.error('Google OAuth session save error:', err);
             return res.redirect('/signIn?error=sessionError');
         }
-        console.log(`Logged in user: ${req.user.fullName} via Google`);
         res.redirect('/home');
     });
 };

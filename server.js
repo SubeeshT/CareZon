@@ -9,7 +9,7 @@ const db = require('./config/db');
 const userRouter = require('./routes/userRouter');
 const adminRouter = require('./routes/adminRouter');
 
-db()
+db();
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -18,10 +18,10 @@ app.use(session({
     store: MongoStore.create({ //tell express-session to use MongoDB also, for store session user data
         mongoUrl: process.env.MONGO_URI, //where to store sessions
         collectionName: 'sessions',
-        ttl: 7 * 24 * 60 * 60 //7 days in seconds , TTL(Time To Live): How long MongoDB stores the session
+        ttl: 31 * 24 * 60 * 60 //31 days in seconds , TTL(Time To Live): How long MongoDB stores the session
     }),
     cookie: {
-        maxAge: 7 * 24 * 60 * 60 * 1000,//7 days in milliseconds , maxAge: How long the browser keeps the session cookie
+        maxAge: 31 * 24 * 60 * 60 * 1000,//31 days in milliseconds , maxAge: How long the browser keeps the session cookie
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'

@@ -297,6 +297,9 @@ const placeOrder = async (req, res) => {
             if (variant.stock < orderedItem.quantity) {
                 return res.status(400).json({success: false, message: `insufficient stock for ${product.name}. Available: ${variant.stock}, Requested: ${orderedItem.quantity}`});
             }
+            if(!variant.isListed){
+                return res.status(403).json({success: false, message: `The item is not available now : ${product.name}.`});
+            }
 
             //calculate correct discount price with utils function
             const correctPrice = calculateDiscountedPrice(
@@ -790,6 +793,10 @@ const retryPayment = async (req, res) => {
             
             if (variant.stock < item.quantity) {
                 return res.status(400).json({success: false, message: `insufficient stock for ${product.name}. Available: ${variant.stock}, Required: ${item.quantity}`});
+            }
+
+            if(!variant.isListed){
+                return res.status(403).json({success: false, message: `The item is not available now : ${product.name}.`});
             }
             
             stockUpdates.push({

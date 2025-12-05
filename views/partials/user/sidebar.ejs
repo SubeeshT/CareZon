@@ -97,8 +97,7 @@ function initializeSidebar() {
         profileImageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                console.log("File selected:", file.name);
-                // Validate file type
+                                // Validate file type
                 if (!file.type.startsWith('image/')) {
                     showAlert('Please select a valid image file', 'error');
                     return;
@@ -152,12 +151,10 @@ function initializeSidebar() {
 }
 
 async function uploadProfileImage(file) {
-    console.log("=== ROUTE HIT ===");
-    console.log("uploadProfileImage function called with:", file.name);
-    const formData = new FormData();
+            const formData = new FormData();
     formData.append('profileImage', file);
     
-    console.log("Uploading file:", file.name, file.size); 
+     
     
     // Show loading state
     const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');
@@ -175,7 +172,7 @@ async function uploadProfileImage(file) {
         });
         
         const result = await response.json();
-        console.log("Server response:", result); // Debug log
+         // Debug log
         
         if (result.success) {
             // Update the image with the server URL

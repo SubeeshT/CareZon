@@ -1968,11 +1968,7 @@
             const reviewText = document.getElementById('reviewText').value;
             
             // Here you would make an API call to submit the rating with images
-            console.log('Submitting rating for item:', currentItemId);
-            console.log('Rating:', selectedRating);
-            console.log('Review:', reviewText);
-            console.log('Images:', selectedImages.length, 'files');
-            
+                                                            
             // Example of FormData for file upload
             const formData = new FormData();
             formData.append('itemId', currentItemId);
@@ -1991,8 +1987,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Review submitted successfully:', data);
-                updateUIWithNewReview(data);
+                                updateUIWithNewReview(data);
             })
             .catch(error => {
                 console.error('Error submitting review:', error);
@@ -2066,8 +2061,7 @@
         // Handle order status updates (example function for backend integration)
         function updateOrderStatus(orderId, newStatus) {
             // This would be called from your backend when order status changes
-            console.log('Updating order status:', orderId, 'to', newStatus);
-            
+                        
             // Update item statuses based on order status
             const statusBadges = document.querySelectorAll('.status-badge');
             statusBadges.forEach(badge => {
@@ -2108,8 +2102,7 @@
         // Example of dynamic content loading for different order statuses
         function loadOrderDetails(orderId) {
             // This function would fetch order details from your backend
-            console.log('Loading order details for:', orderId);
-            
+                        
             // Example API call structure:
             /*
             fetch(`/api/orders/${orderId}`)
@@ -2131,8 +2124,7 @@
             // Update order items
             orderData.items.forEach(item => {
                 // Create item cards dynamically
-                console.log('Updating item:', item);
-            });
+                            });
             
             // Update order summary
             const summaryRows = document.querySelectorAll('.summary-row span:last-child');
@@ -2153,7 +2145,7 @@
             // Initialize image upload functionality
             setupImageUpload();
 
-            console.log('Order details page loaded'); 
+             
         });
 
         let currentOrderId = '';
