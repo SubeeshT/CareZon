@@ -905,7 +905,7 @@
         }
 
         function getCancelButton(status, orderId, returnRequestStatus) {
-            if (status === 'pending' || status === 'confirmed' || status === 'processing') {
+            if (status === 'confirmed' || status === 'processing') {
                 return `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${orderId}')">
                             <i class="fas fa-times"></i> Cancel Order
                         </button>`;

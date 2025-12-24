@@ -315,6 +315,9 @@ const forgotPassword = async (req,res) => {
             if(user.isBlocked){
                 return res.status(403).json({success: false, message: "This account is blocked. Please contact us"})
             }
+            if(user.isGoogleUser){
+                return res.status(403).json({success: false, message: "Google account password cant change. Please contact us"})
+            }
             const resendOTP = generateOTP()
             const otpExpires = new Date(Date.now() + 1 * 60 * 1000)
 

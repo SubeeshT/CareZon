@@ -1006,7 +1006,7 @@
                                 <span class="status-badge status-<%= order.orderStatus.replace(/\s+/g, '-') %>">
                                     <%= order.orderStatus.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') %>
                                 </span>
-                                    <% if (['pending', 'confirmed', 'processing'].includes(order.orderStatus)) { %>
+                                    <% if (['confirmed', 'processing'].includes(order.orderStatus)) { %>
                                         <button class="btn btn-sm btn-danger" onclick="cancelEntireOrder('<%= order.orderId %>')">
                                             <i class="fas fa-ban"></i> Cancel Entire Order
                                         </button>
@@ -1043,7 +1043,7 @@
                                             </span>
                                             
                                             <div class="item-actions">
-                                                <% if (['pending', 'confirmed', 'processing'].includes(order.orderStatus) && (!item.displayStatus || item.displayStatus === 'active') && item.returnRequestStatus === 'none') { %>
+                                                <% if (['confirmed', 'processing'].includes(order.orderStatus) && (!item.displayStatus || item.displayStatus === 'active') && item.returnRequestStatus === 'none') { %>
                                                     <button class="btn btn-sm btn-cancel" onclick="cancelItem('<%= item._id %>', '<%= order.orderId %>')">
                                                         <i class="fas fa-times"></i> Cancel Item
                                                     </button>
